@@ -25,16 +25,15 @@ public class PatientDashboardController {
     @FXML
     private Button symptomsBtn;
     @FXML
-    private Button reportsBtn;
+    private Button messageBtn;
 
     @FXML
     public void initialize() {
         // Imposta il nome del medico/paziente se necessario
-        doctorNameLabel.setText("Amelia Chen"); // oppure recupera dinamicamente
-
+        doctorNameLabel.setText("Amelia Chen"); // We'll get dynamically the name of the doctor
         // Carica la dashboard di default
         loadCenterContent("PatientDashboardHome.fxml");
-        setActiveButton(dashboardBtn); // opzionale, per evidenziare il pulsante
+        setActiveButton(dashboardBtn); // Active the dashboard button by default
 
     }
 
@@ -50,22 +49,23 @@ public class PatientDashboardController {
         setActiveButton(readingsBtn);
     }
 
+
     @FXML
     private void onMedicationClick() {
-        loadCenterContent("PatientMedication.fxml");
+        loadCenterContent("PatientDashboardMedications.fxml");
         setActiveButton(medicationBtn);
     }
 
     @FXML
     private void onSymptomsClick() {
-        loadCenterContent("PatientSymptoms.fxml");
+        loadCenterContent("PatientDashboardSymptoms.fxml");
         setActiveButton(symptomsBtn);
     }
 
     @FXML
-    private void onReportsClick() {
-        loadCenterContent("PatientReports.fxml");
-        setActiveButton(reportsBtn);
+    private void onMessagesClick() {
+        loadCenterContent("PatientMessages.fxml");
+        setActiveButton(messageBtn);
     }
 
     @FXML
@@ -88,13 +88,15 @@ public class PatientDashboardController {
         // Qui puoi mettere la logica per il logout, ad esempio tornare alla schermata di login
     }
 
+
+
     private void setActiveButton(Button activeBtn) {
         // Cambia lo stile dei pulsanti per evidenziare quello attivo
         dashboardBtn.setStyle(getButtonStyle(dashboardBtn == activeBtn));
         readingsBtn.setStyle(getButtonStyle(readingsBtn == activeBtn));
         medicationBtn.setStyle(getButtonStyle(medicationBtn == activeBtn));
         symptomsBtn.setStyle(getButtonStyle(symptomsBtn == activeBtn));
-        reportsBtn.setStyle(getButtonStyle(reportsBtn == activeBtn));
+        messageBtn.setStyle(getButtonStyle(messageBtn == activeBtn));
     }
 
     private String getButtonStyle(boolean isActive) {

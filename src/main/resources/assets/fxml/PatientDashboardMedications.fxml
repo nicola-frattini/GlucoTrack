@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<ScrollPane fitToWidth="true" fitToHeight="true" style="-fx-background-color: transparent; -fx-background: transparent;" xmlns:fx="http://javafx.com/fxml" fx:controller="it.glucotrack.controller.PatientDashboardMedicationsController">
+    <content>
+        <VBox style="-fx-background-color: #34495E;">
+            <children>
+                <!-- Header Section -->
+                <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-padding: 30 40 20 40;">
+                    <children>
+                        <VBox spacing="10.0" HBox.hgrow="ALWAYS">
+                            <children>
+                                <Label text="Medications" textFill="WHITE">
+                                    <font>
+                                        <Font name="System Bold" size="28.0" />
+                                    </font>
+                                </Label>
+                                <Label text="Your prescribed medications and intake log." textFill="#BDC3C7">
+                                    <font>
+                                        <Font size="14.0" />
+                                    </font>
+                                </Label>
+                            </children>
+                        </VBox>
+
+                        <Button fx:id="logMedicationBtn" mnemonicParsing="false"
+                                style="-fx-background-color: #3498DB; -fx-text-fill: white; -fx-padding: 12 20; -fx-background-radius: 5;"
+                                text="ⓘ Log Medication Intake" />
+                    </children>
+                </HBox>
+
+                <!-- Prescribed Medications Section -->
+                <VBox spacing="15.0" style="-fx-padding: 0 40 30 40;">
+                    <children>
+                        <Label text="Prescribed Medications" textFill="WHITE">
+                            <font>
+                                <Font name="System Bold" size="18.0" />
+                            </font>
+                        </Label>
+
+                        <!-- Medications Table -->
+                        <TableView fx:id="prescribedMedicationsTable" prefHeight="200.0"
+                                   style="-fx-background-color: #2C3E50; -fx-table-color: #2C3E50;">
+                            <columns>
+                                <TableColumn fx:id="drugNameColumn" prefWidth="200.0" text="Drug Name" />
+                                <TableColumn fx:id="dosageColumn" prefWidth="150.0" text="Dosage" />
+                                <TableColumn fx:id="frequencyColumn" prefWidth="150.0" text="Frequency" />
+                                <TableColumn fx:id="instructionsColumn" prefWidth="200.0" text="Instructions" />
+                            </columns>
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                            </columnResizePolicy>
+                        </TableView>
+                    </children>
+                </VBox>
+
+                <!-- Medication Intake Log Section -->
+                <VBox spacing="15.0" style="-fx-padding: 0 40 40 40;">
+                    <children>
+                        <Label text="Medication Intake Log" textFill="WHITE">
+                            <font>
+                                <Font name="System Bold" size="18.0" />
+                            </font>
+                        </Label>
+
+                        <!-- Intake Log Table -->
+                        <TableView fx:id="intakeLogTable" prefHeight="300.0"
+                                   style="-fx-background-color: #2C3E50; -fx-table-color: #2C3E50;">
+                            <columns>
+                                <TableColumn fx:id="dateTimeColumn" prefWidth="180.0" text="Date &amp; Time" />
+                                <TableColumn fx:id="medicationColumn" prefWidth="250.0" text="Medication" />
+                                <TableColumn fx:id="statusColumn" prefWidth="120.0" text="Status" />
+                            </columns>
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                            </columnResizePolicy>
+                        </TableView>
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+    </content>
+</ScrollPane>

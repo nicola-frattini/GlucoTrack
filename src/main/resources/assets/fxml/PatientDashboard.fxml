@@ -51,9 +51,9 @@
                         style="-fx-background-color: transparent; -fx-text-fill: #8892b0; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
                         onAction="#onSymptomsClick" prefWidth="210" />
 
-                <Button fx:id="reportsBtn" text="  📋  Reports"
+                <Button fx:id="messageBtn" text="  📋  Messages"
                         style="-fx-background-color: transparent; -fx-text-fill: #8892b0; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
-                        onAction="#onReportsClick" prefWidth="210" />
+                        onAction="#onMessagesClick" prefWidth="210" />
             </VBox>
 
             <!-- Spacer -->

@@ -1,0 +1,79 @@
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #7f8c8d;
+    -fx-font-size: 14px;
+    -fx-padding: 12 16 12 16;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-cursor: hand;
+}
+
+.nav-button:hover {
+    -fx-background-color: #1e3a5f;
+    -fx-text-fill: white;
+}
+
+.nav-button-active {
+    -fx-background-color: #3498db;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 12 16 12 16;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-font-weight: bold;
+}
+
+.chart-plot-background {
+    -fx-background-color: transparent;
+}
+
+.chart-background {
+    -fx-background-color: transparent;
+}
+
+.chart-series-line {
+    -fx-stroke: #3498db;
+    -fx-stroke-width: 3px;
+}
+
+.default-color0.chart-series-line {
+    -fx-stroke: #3498db;
+}
+
+.default-color0.chart-line-symbol {
+    -fx-background-color: #3498db;
+}
+
+.axis {
+    -fx-tick-label-fill: #7f8c8d;
+    -fx-tick-mark-visible: false;
+    -fx-minor-tick-visible: false;
+}
+
+.axis-label {
+    -fx-text-fill: #7f8c8d;
+}
+
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .scroll-bar:vertical {
+    -fx-background-color: #0f1c35;
+    -fx-background-radius: 8;
+}
+
+.scroll-pane .scroll-bar:horizontal {
+    -fx-background-color: #0f1c35;
+    -fx-background-radius: 8;
+}
+
+.scroll-pane .thumb {
+    -fx-background-color: #3498db;
+    -fx-background-radius: 8;
+}
