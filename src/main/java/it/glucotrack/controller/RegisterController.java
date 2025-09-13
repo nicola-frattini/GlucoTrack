@@ -11,6 +11,7 @@ import javafx.stage.Stage;
 import it.glucotrack.model.User;
 import it.glucotrack.model.Gender;
 import it.glucotrack.util.InputCheck;
+import it.glucotrack.view.ViewNavigator;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -65,7 +66,7 @@ public class RegisterController {
         genderComboBox.getItems().addAll("Male", "Female");
 
         // Popola account type ComboBox
-        accountTypeComboBox.getItems().addAll("Patient", "Doctor", "Caregiver");
+        accountTypeComboBox.getItems().addAll("Patient", "Doctor", "Administrator");
     }
 
     @FXML
@@ -194,27 +195,6 @@ public class RegisterController {
     }
 
     private void navigateToLogin() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/LoginView.fxml"));
-            Parent root = loader.load();
-
-            Stage stage = (Stage) registerButton.getScene().getWindow();
-
-            boolean wasMaximized = stage.isMaximized();
-            double width = stage.getWidth();
-            double height = stage.getHeight();
-
-            Scene newScene = new Scene(root, width, height);
-            stage.setScene(newScene);
-            stage.setTitle("GlucoTrack - Login");
-
-            if (wasMaximized) {
-                stage.setMaximized(true);
-            }
-
-        } catch (IOException e) {
-            System.err.println("Navigation Error: Could not load login screen: " + e.getMessage());
-            e.printStackTrace();
-        }
+        ViewNavigator.getInstance().navigateTo(ViewNavigator.LOGIN_VIEW);
     }
 }

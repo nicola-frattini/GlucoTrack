@@ -9,6 +9,7 @@ import javafx.stage.Stage;
 import javafx.event.ActionEvent;
 import it.glucotrack.util.InputCheck;
 import java.io.IOException;
+import it.glucotrack.view.ViewNavigator;
 
 public class LoginController {
 
@@ -29,6 +30,7 @@ public class LoginController {
 
     @FXML
     private void initialize() {
+        System.out.println("LoginController initialize() called");
         if (signUpLabel != null) {
             signUpLabel.setOnMouseClicked(event -> handleSignUp());
         }
@@ -42,18 +44,26 @@ public class LoginController {
 
     @FXML
     private void handleLogin(ActionEvent event) {
+        // Controllo che i campi siano stati iniettati correttamente
+        if (emailField == null || passwordField == null) {
+            System.err.println("FXML fields not injected properly!");
+            showErrorAlert("Error", "Application not initialized correctly.");
+            return;
+        }
+
         String email = emailField.getText().trim();
         String password = passwordField.getText();
 
         if (validateInput(email, password)) {
             if (authenticateUser(email, password)) {
-                //navigateToMainApp();
-                showErrorAlert("Login Successful", "Welcome, " + email + "!");
+                // Login riuscito - la navigazione è gestita in authenticateUser
             } else {
                 showErrorAlert("Login failed", "Invalid email or password.");
             }
         }
     }
+
+
 
     private boolean validateInput(String email, String password) {
         if (!InputCheck.isValidString(email)) {
@@ -72,34 +82,40 @@ public class LoginController {
     }
 
     public boolean authenticateUser(String email, String password) {
-        return "admin".equals(email) && "password".equals(password);
+        // TODO: Implementare autenticazione reale con database
+        if ("admin".equals(email) && "password".equals(password)) {
+            navigateBasedOnUserType("ADMIN");
+            return true;
+        }
+        if("doctor".equals(email) && "password".equals(password)) {
+            navigateBasedOnUserType("DOCTOR");
+            return true;
+        }
+        if ("patient".equals(email) && "password".equals(password)) {
+            navigateBasedOnUserType("PATIENT");
+            return true;
+        }
+        return false;
+    }
+
+    private void navigateBasedOnUserType(String userType) {
+        switch (userType.toUpperCase()) {
+            case "PATIENT":
+                ViewNavigator.getInstance().navigateTo(ViewNavigator.PATIENT_DASHBOARD);
+                break;
+            case "DOCTOR":
+                ViewNavigator.getInstance().navigateTo(ViewNavigator.DOCTOR_DASHBOARD);
+                break;
+            case "ADMIN":
+                ViewNavigator.getInstance().navigateTo(ViewNavigator.ADMIN_DASHBOARD);
+                break;
+            default:
+                showErrorAlert("Error", "Unknown user type");
+        }
     }
 
     private void handleSignUp() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/RegisterView.fxml"));
-            Parent root = loader.load();
-
-            Stage stage = (Stage) signUpLabel.getScene().getWindow();
-
-            // Salva le dimensioni correnti
-            double width = stage.getWidth();
-            double height = stage.getHeight();
-            boolean wasMaximized = stage.isMaximized();
-
-            Scene newScene = new Scene(root, width, height);
-            stage.setScene(newScene);
-            stage.setTitle("GlucoTrack - Register");
-
-            // Ripristina lo stato della finestra
-            if (wasMaximized) {
-                stage.setMaximized(true);
-            }
-
-        } catch (IOException e) {
-            showErrorAlert("Navigation Error", "Could not load registration page.");
-            e.printStackTrace();
-        }
+        ViewNavigator.getInstance().navigateTo(ViewNavigator.REGISTER_VIEW);
     }
 
     private void showErrorAlert(String title, String message) {

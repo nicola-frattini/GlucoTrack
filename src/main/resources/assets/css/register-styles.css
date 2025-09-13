@@ -1,0 +1,142 @@
+/* ===============================
+   COMBOBOX - TEMA SCURO E CHIUSA TRASPARENTE
+   =============================== */
+.combo-box-dark {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+/* Testo e prompt trasparenti */
+.combo-box-dark .text-field,
+.combo-box-dark .text-field .text,
+.combo-box-dark .text-field .prompt-text,
+.combo-box-dark .combo-box-base {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #ecf0f1;
+}
+
+/* Pulsante freccia */
+.combo-box-dark .arrow-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.combo-box-dark .arrow-button .arrow {
+    -fx-background-color: #3498db;
+}
+
+.combo-box-dark .arrow-button:hover {
+    -fx-background-color: rgba(52, 152, 219, 0.2);
+}
+
+/* Focus effetto */
+.combo-box-dark:focused {
+    -fx-border-color: #2980b9;
+    -fx-border-width: 0 0 3px 0;
+    -fx-effect: dropshadow(gaussian, rgba(52, 152, 219, 0.3), 10, 0, 0, 0);
+}
+
+/* Dropdown aperto */
+.combo-box-dark .list-view {
+    -fx-background-color: #2c3e50;
+    -fx-border-color: #3498db;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+}
+
+.combo-box-dark .list-cell {
+    -fx-background-color: #34495e;
+    -fx-text-fill: #ecf0f1;
+    -fx-padding: 10px;
+}
+
+.combo-box-dark .list-cell:filled:hover {
+    -fx-background-color: #3498db;
+    -fx-text-fill: white;
+}
+
+.combo-box-dark .list-cell:filled:selected {
+    -fx-background-color: #2980b9;
+    -fx-text-fill: white;
+}
+
+.combo-box-dark .list-view .scroll-bar {
+    -fx-background-color: #2c3e50;
+}
+
+.combo-box-dark .list-view .scroll-bar .thumb {
+    -fx-background-color: #3498db;
+    -fx-background-radius: 4px;
+}
+
+/* ===============================
+   DATEPICKER - TEMA SCURO
+   =============================== */
+.date-picker-dark {
+    -fx-background-color: transparent; /* Campo chiuso trasparente */
+}
+
+.date-picker-dark .text-field,
+.date-picker-dark .text-field .text,
+.date-picker-dark .text-field .prompt-text {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #ecf0f1;
+}
+
+/* Pulsante freccia */
+.date-picker-dark .arrow-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.date-picker-dark .arrow-button .arrow {
+    -fx-background-color: #3498db;
+}
+
+.date-picker-dark .arrow-button:hover {
+    -fx-background-color: rgba(52, 152, 219, 0.2);
+}
+
+/* Focus effetto */
+.date-picker-dark:focused {
+    -fx-border-color: #2980b9;
+    -fx-border-width: 0 0 3px 0;
+    -fx-effect: dropshadow(gaussian, rgba(52, 152, 219, 0.3), 10, 0, 0, 0);
+}
+
+/* Popup aperto */
+.date-picker-dark .date-picker-popup {
+    -fx-background-color: #2c3e50;
+    -fx-border-color: #3498db;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 15, 0, 0, 5);
+}
+
+.date-picker-dark .date-picker-popup .month-year-pane {
+    -fx-background-color: #34495e;
+}
+
+.date-picker-dark .date-picker-popup .day-cell {
+    -fx-background-color: #34495e;
+    -fx-text-fill: #ecf0f1;
+}
+
+.date-picker-dark .date-picker-popup .day-cell:hover {
+    -fx-background-color: #3498db;
+    -fx-text-fill: white;
+}
+
+.date-picker-dark .date-picker-popup .day-cell:selected {
+    -fx-background-color: #2980b9;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.date-picker-dark .date-picker-popup .previous-month,
+.date-picker-dark .date-picker-popup .next-month {
+    -fx-text-fill: #7f8c8d;
+}

@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 public class User {
 
-
+    private int id;              // Unique DB ID
     private String name;
     private String surname;
     private Gender gender;
@@ -15,8 +15,9 @@ public class User {
     private String birthPlace;
     private String fiscalCode;
 
-    // ===== Default Costructor =====
+    // ===== Default constructor =====
     public User() {
+        this.id = -1;
         this.name = "";
         this.surname = "";
         this.gender = Gender.MALE;
@@ -28,9 +29,10 @@ public class User {
         this.fiscalCode = "";
     }
 
-    // ===== Complete Costructor =====
-    public User(String name, String surname, String email, String password, LocalDate bornDate,
+    // ===== Full constructor =====
+    public User(int id, String name, String surname, String email, String password, LocalDate bornDate,
                 Gender gender, String phone, String birthPlace, String fiscalCode) {
+        this.id = id;
         this.name = name;
         this.surname = surname;
         this.email = email;
@@ -42,23 +44,12 @@ public class User {
         this.fiscalCode = fiscalCode;
     }
 
-    // =====  getFullName =====
+    // ===== Get full name =====
     public String getFullName() {
         return name + " " + surname;
     }
 
-    // ===== Static creation method =====
-    public static User createUser(String name, String surname, String email, String password, LocalDate bornDate,
-                                  Gender gender, String phone, String birthPlace, String fiscalCode) {
-        return new User(name, surname, email, password, bornDate, gender, phone, birthPlace, fiscalCode);
-    }
-
-    public static User createUser(User user) {
-        return new User(user.name, user.surname, user.email, user.password, user.bornDate, user.gender,
-                user.phone, user.birthPlace, user.fiscalCode);
-    }
-
-    // ===== Password verify =====
+    // ===== Password check =====
     public boolean checkPassword(String password) {
         return this.password.equals(password);
     }
@@ -73,6 +64,9 @@ public class User {
     }
 
     // ===== Getters and setters =====
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
@@ -99,4 +93,18 @@ public class User {
 
     public String getFiscalCode() { return fiscalCode; }
     public void setFiscalCode(String fiscalCode) { this.fiscalCode = fiscalCode; }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", fullName='" + getFullName() + '\'' +
+                ", email='" + email + '\'' +
+                ", gender=" + gender +
+                ", bornDate=" + bornDate +
+                ", phone='" + phone + '\'' +
+                ", birthPlace='" + birthPlace + '\'' +
+                ", fiscalCode='" + fiscalCode + '\'' +
+                '}';
+    }
 }
