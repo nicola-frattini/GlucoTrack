@@ -7,14 +7,15 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 import java.io.IOException;
+import it.glucotrack.view.ViewNavigator;
 
 public class PatientDashboardController {
 
     @FXML
-    private StackPane contentPane; // Il contenitore centrale (deve avere fx:id nel FXML)
+    private StackPane contentPane;
 
     @FXML
-    private Label doctorNameLabel;
+    private Label patientNameLabel;
 
     @FXML
     private Button dashboardBtn;
@@ -30,7 +31,7 @@ public class PatientDashboardController {
     @FXML
     public void initialize() {
         // Imposta il nome del medico/paziente se necessario
-        doctorNameLabel.setText("Amelia Chen"); // We'll get dynamically the name of the doctor
+        patientNameLabel.setText("Mario Rossi"); // We'll get dynamically the name of the doctor
         // Carica la dashboard di default
         loadCenterContent("PatientDashboardHome.fxml");
         setActiveButton(dashboardBtn); // Active the dashboard button by default
@@ -86,6 +87,7 @@ public class PatientDashboardController {
     @FXML
     private void onLogoutClick() {
         // Qui puoi mettere la logica per il logout, ad esempio tornare alla schermata di login
+        ViewNavigator.getInstance().navigateTo(ViewNavigator.LOGIN_VIEW, "GlucoTrack - Login");
     }
 
 

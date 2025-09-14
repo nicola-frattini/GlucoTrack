@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.chart.*?>
+
+<BorderPane fx:id="rootPane"
+            xmlns="http://javafx.com/javafx/11.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="it.glucotrack.controller.DoctorDashboardController"
+            style="-fx-background-color: #1a1a2e;">
+
+    <!-- Sidebar sinistra -->
+    <left>
+        <VBox style="-fx-background-color: #16213e;" prefWidth="250" spacing="5">
+            <padding>
+                <Insets top="20" bottom="20" left="20" right="20" />
+            </padding>
+
+            <!-- Profilo utente -->
+            <VBox spacing="10" style="-fx-background-color: #0f1c35; -fx-background-radius: 10; -fx-padding: 15;">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <!-- Avatar sostitutivo -->
+                    <Label text="👨‍⚕️" style="-fx-font-size: 32px;" />
+                    <VBox>
+                        <Label fx:id="doctorNameLabel"
+                               style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+                        <Label fx:id="doctorRoleLabel"
+                               style="-fx-text-fill: #8892b0; -fx-font-size: 12px;"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <!-- Menu di navigazione -->
+            <VBox spacing="5" style="-fx-padding: 10 0;">
+                <Button fx:id="dashboardBtn" text="  📊  Dashboard"
+                        style="-fx-background-color: #64b5f6; -fx-text-fill: white; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
+                        onAction="#onDashboardClick" prefWidth="210" />
+
+                <Button fx:id="patientsBtn" text="  📈  Patients"
+                        style="-fx-background-color: transparent; -fx-text-fill: #8892b0; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
+                        onAction="#onPatientsClick" prefWidth="210" />
+
+                <Button fx:id="appointmentsBtn" text="  💊  Appointments"
+                        style="-fx-background-color: transparent; -fx-text-fill: #8892b0; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
+                        onAction="#onAppointmentsClick" prefWidth="210" />
+
+                <Button fx:id="messageBtn" text="  📋  Messages"
+                        style="-fx-background-color: transparent; -fx-text-fill: #8892b0; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
+                        onAction="#onMessagesClick" prefWidth="210" />
+            </VBox>
+
+            <!-- Spacer -->
+            <Region VBox.vgrow="ALWAYS"/>
+
+            <!-- Settings e Logout -->
+            <VBox spacing="5">
+                <Button fx:id="settingsBtn" text="  ⚙️  Settings"
+                        style="-fx-background-color: transparent; -fx-text-fill: #8892b0; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
+                        onAction="#onSettingsClick" prefWidth="210" />
+
+                <Button fx:id="logoutBtn" text="  🚪  Logout"
+                        style="-fx-background-color: transparent; -fx-text-fill: #8892b0; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
+                        onAction="#onLogoutClick" prefWidth="210" />
+            </VBox>
+        </VBox>
+    </left>
+    <center>
+        <StackPane fx:id="contentPane"/>
+    </center>
+</BorderPane>

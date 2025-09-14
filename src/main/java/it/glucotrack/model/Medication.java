@@ -1,68 +1,130 @@
 package it.glucotrack.model;
 
+import it.glucotrack.model.Frequency;
+import java.time.LocalDate;
+
+//ASSOLUTAMENTE DA RIVEDERE
 public class Medication {
 
-    private String name;           // Medication name
-    private double dose;           // Dose amount per intake
-    private int timesPerDay;       // Number of daily intakes
-    private String instructions;   // Any instructions (e.g., "after meals", "before meals")
+    /* Database will have:
+
+    id
+    patient_id
+    name_medication
+    dose (in mg)
+    frequency (enum - once a day, twice a day, etc)
+    start_date
+    end_date
+    instructions (text)
+
+
+    */
+
+    private int id;
+    private int patient_id;
+    private String name_medication;
+    private int dose; // in mg
+    private Frequency freq; // enum - once a day, twice a day, etc
+    private LocalDate start_date;
+    private LocalDate end_date;
+    private String instructions; // text
 
     // ===== Default constructor =====
     public Medication() {
-        this.name = "";
+        this.id = -1;
+        this.patient_id = -1;
+        this.name_medication = "";
         this.dose = 0;
-        this.timesPerDay = 1;
+        this.freq = Frequency.ONCE_A_DAY;
+        this.start_date = LocalDate.now();
+        this.end_date = LocalDate.now();
         this.instructions = "";
     }
 
     // ===== Full constructor =====
-    public Medication(String name, double dose, int timesPerDay, String instructions) {
-        this.name = name;
+    public Medication(int id, int patient_id, String name_medication, int dose, Frequency freq, LocalDate start_date, LocalDate end_date, String instructions) {
+        this.id = id;
+        this.patient_id = patient_id;
+        this.name_medication = name_medication;
         this.dose = dose;
-        this.timesPerDay = timesPerDay;
+        this.freq = freq;
+        this.start_date = start_date;
+        this.end_date = end_date;
         this.instructions = instructions;
     }
 
-    // ===== Getters and setters =====
-    public String getName() {
-        return name;
-    }
+    // ===== Getters and Setters =====
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
-    public double getDose() {
-        return dose;
-    }
+    public int getPatient_id() { return patient_id; }
+    public void setPatient_id(int patient_id) { this.patient_id = patient_id; }
 
-    public void setDose(double dose) {
-        this.dose = dose;
-    }
+    public String getName_medication() { return name_medication; }
+    public void setName_medication(String name_medication) { this.name_medication = name_medication; }
 
-    public int getTimesPerDay() {
-        return timesPerDay;
-    }
+    public int getDose() { return dose; }
+    public void setDose(int dose) { this.dose = dose; }
 
-    public void setTimesPerDay(int timesPerDay) {
-        this.timesPerDay = timesPerDay;
-    }
+    public Frequency getFreq() { return freq; }
+    public void setFreq(Frequency freq) { this.freq = freq; }
 
-    public String getInstructions() {
-        return instructions;
-    }
+    public LocalDate getStart_date() { return start_date; }
+    public void setStart_date(LocalDate start_date) { this.start_date = start_date;}
 
-    public void setInstructions(String instructions) {
-        this.instructions = instructions;
-    }
+    public LocalDate getEnd_date() { return end_date; }
+    public void setEnd_date(LocalDate end_date) { this.end_date = end_date; }
+
+    public String getInstructions() { return instructions; }
+    public void setInstructions(String instructions) { this.instructions = instructions; }
 
     @Override
     public String toString() {
         return "Medication{" +
-                "name='" + name + '\'' +
+                "id=" + id +
+                ", patient_id=" + patient_id +
+                ", name_medication='" + name_medication + '\'' +
                 ", dose=" + dose +
-                ", timesPerDay=" + timesPerDay +
+                ", freq=" + freq +
+                ", start_date=" + start_date +
+                ", end_date=" + end_date +
                 ", instructions='" + instructions + '\'' +
                 '}';
     }
+
+
+    public boolean isActive() {
+        LocalDate today = LocalDate.now();
+        return (today.isEqual(start_date) || today.isAfter(start_date)) &&
+               (today.isEqual(end_date) || today.isBefore(end_date));
+    }
+
+
+
+    // Function that create a list of LogMedication for this medication
+    // based on frequency and start_date and end_date
+    public java.util.List<LogMedication> generateLogMedications() {
+        java.util.List<LogMedication> logMedications = new java.util.ArrayList<>();
+        LocalDate currentDate = start_date;
+
+        int[] hours = freq.getHours();
+
+        while (!currentDate.isAfter(end_date)) {
+            for (int hour : hours) {
+                LogMedication log = new LogMedication();
+                log.setMedication_id(this.id);
+                log.setDateAndTime(currentDate.atTime(hour, 0));
+                log.setTaken(false);
+                logMedications.add(log);
+            }
+            currentDate = currentDate.plusDays(1);
+        }
+
+        return logMedications;
+    }
+
+
+
+
 }

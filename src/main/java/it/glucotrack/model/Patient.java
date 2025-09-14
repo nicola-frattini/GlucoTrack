@@ -12,7 +12,7 @@ public class Patient extends User {
     private List<Medication> medications;      // Medications taken
 
     // ===== Default constructor =====
-    public Patient() {
+    public Patient(int id, String name, String surname, String email, String defaultPassword, LocalDate birthDate, Gender male, String phone, String unknown, String s) {
         super();
         this.doctorId = -1;
         this.glucoseReadings = new ArrayList<>();

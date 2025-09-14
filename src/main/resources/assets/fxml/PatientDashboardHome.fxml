@@ -21,7 +21,7 @@
             </VBox>
 
             <HBox spacing="20" alignment="TOP_LEFT">
-                <!-- Sezione principale sinistra -->
+                <!-- Sezione principale sinistra -->    
                 <VBox spacing="20" HBox.hgrow="ALWAYS" prefWidth="600">
 
                     <!-- Glycemic Trends -->

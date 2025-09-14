@@ -13,9 +13,9 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TableColumn?>
 
-<ScrollPane fitToWidth="true" fitToHeight="true" style="-fx-background-color: transparent; -fx-background: transparent;" xmlns:fx="http://javafx.com/fxml" fx:controller="it.glucotrack.controller.PatientDashboardReadingsController">
+<ScrollPane fitToWidth="true" fitToHeight="true" style="-fx-background-color: transparent; -fx-background: transparent;" xmlns:fx="http://javafx.com/fxml" fx:controller="it.glucotrack.controller.PatientDashboardReadingsController" stylesheets="@/assets/css/table-styles.css">
     <content>
-        <VBox style="-fx-background-color: #34495E;">
+        <VBox spacing="20" style="-fx-padding: 30;">
             <children>
                 <!-- Header Section -->
                 <VBox spacing="10.0" style="-fx-padding: 30 40 20 40;">

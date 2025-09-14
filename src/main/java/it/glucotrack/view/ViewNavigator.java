@@ -21,7 +21,6 @@ public class ViewNavigator {
     public static final String PATIENT_DASHBOARD = "PATIENT_DASHBOARD";
     public static final String DOCTOR_DASHBOARD = "DOCTOR_DASHBOARD";
     public static final String ADMIN_DASHBOARD = "ADMIN_DASHBOARD";
-    public static final String MAIN_DASHBOARD = "MAIN_DASHBOARD";
 
 
     private ViewNavigator() {
