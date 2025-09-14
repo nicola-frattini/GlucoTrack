@@ -18,19 +18,23 @@
                 <Insets top="20" bottom="20" left="20" right="20" />
             </padding>
 
-            <!-- Profilo utente -->
-            <VBox spacing="10" style="-fx-background-color: #0f1c35; -fx-background-radius: 10; -fx-padding: 15;">
-                <HBox alignment="CENTER_LEFT" spacing="10">
-                    <!-- Avatar sostitutivo -->
-                    <Label text="👨‍⚕️" style="-fx-font-size: 32px;" />
-                    <VBox>
-                        <Label fx:id="patientNameLabel"
-                               style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;"/>
-                        <Label text="Patient"
-                               style="-fx-text-fill: #8892b0; -fx-font-size: 12px;"/>
-                    </VBox>
-                </HBox>
-            </VBox>
+            <!-- Profilo utente - Cliccabile -->
+            <Button fx:id="profileBtn" onAction="#onProfileClick" 
+                    style="-fx-background-color: #0f1c35; -fx-background-radius: 10; -fx-padding: 15; -fx-cursor: hand; -fx-border-color: transparent;"
+                    prefWidth="210">
+                <graphic>
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <!-- Avatar sostitutivo -->
+                        <Label text="👨‍⚕️" style="-fx-font-size: 32px;" />
+                        <VBox>
+                            <Label fx:id="patientNameLabel"
+                                   style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+                            <Label text="Patient - View Profile"
+                                   style="-fx-text-fill: #8892b0; -fx-font-size: 12px;"/>
+                        </VBox>
+                    </HBox>
+                </graphic>
+            </Button>
 
             <!-- Menu di navigazione -->
             <VBox spacing="5" style="-fx-padding: 10 0;">

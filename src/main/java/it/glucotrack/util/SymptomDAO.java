@@ -2,9 +2,13 @@ package it.glucotrack.util;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import it.glucotrack.model.Symptom;
 
 public class SymptomDAO {
 
@@ -57,5 +61,85 @@ public class SymptomDAO {
             }
         }
         return symptoms;
+    }
+
+    // Nuovo metodo per il controller che usa il modello Symptom
+    public List<Symptom> getSymptomsForTable(int patientId) throws SQLException {
+        String sql = "SELECT id, symptom, severity, duration, notes, symptom_date FROM patient_symptoms WHERE patient_id = ? ORDER BY symptom_date DESC";
+        List<Symptom> symptoms = new ArrayList<>();
+        try (ResultSet rs = DatabaseInteraction.executeQuery(sql, patientId)) {
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String name = rs.getString("symptom");  // Corretto: "symptom" non "symptom_name"
+                String severity = rs.getString("severity");
+                String duration = rs.getString("duration");
+                String notes = rs.getString("notes");
+                // Gestione più robusta del timestamp
+                LocalDateTime dateTime;
+                try {
+                    Timestamp timestamp = rs.getTimestamp("symptom_date");
+                    if (timestamp != null) {
+                        dateTime = timestamp.toLocalDateTime();
+                    } else {
+                        dateTime = LocalDateTime.now();
+                    }
+                } catch (SQLException e) {
+                    // Se fallisce con timestamp, prova con getString e parsing
+                    String dateStr = rs.getString("symptom_date");
+                    if (dateStr != null && !dateStr.isEmpty()) {
+                        try {
+                            // Se è solo una data (YYYY-MM-DD), aggiungi l'orario di default
+                            if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                                dateTime = LocalDate.parse(dateStr).atTime(12, 0); // Mezzogiorno di default
+                            } else {
+                                // Se include già l'ora, prova il parsing normale
+                                dateTime = LocalDateTime.parse(dateStr.replace(" ", "T"));
+                            }
+                        } catch (Exception parseEx) {
+                            System.err.println("⚠️ Errore parsing data '" + dateStr + "': " + parseEx.getMessage());
+                            dateTime = LocalDateTime.now();
+                        }
+                    } else {
+                        dateTime = LocalDateTime.now();
+                    }
+                }
+                
+                // Creiamo un oggetto Symptom usando il costruttore con parametri appropriati
+                Symptom symptom = new Symptom();
+                symptom.setId(id);
+                symptom.setPatient_id(patientId);
+                symptom.setSymptomName(name);
+                symptom.setGravity(severity != null ? severity : "Mild");  // Default se null
+                symptom.setNotes(notes != null ? notes : "");  // Default se null
+                symptom.setDateAndTime(dateTime);
+                // Per la durata, convertiamo la stringa in LocalTime se possibile
+                try {
+                    if (duration != null && !duration.isEmpty()) {
+                        // Assumiamo formato "HH:mm" per la durata
+                        symptom.setDuration(LocalTime.parse(duration));
+                    } else {
+                        symptom.setDuration(LocalTime.of(0, 0));  // Default se null
+                    }
+                } catch (Exception e) {
+                    symptom.setDuration(LocalTime.of(0, 0));
+                }
+                
+                symptoms.add(symptom);
+            }
+        }
+        return symptoms;
+    }
+
+    // Nuovo metodo per inserire usando il modello Symptom
+    public boolean insertSymptom(int patientId, Symptom symptom) throws SQLException {
+        String sql = "INSERT INTO patient_symptoms (patient_id, symptom, severity, duration, notes, symptom_date) VALUES (?, ?, ?, ?, ?, ?)";
+        int rows = DatabaseInteraction.executeUpdate(sql, 
+            patientId, 
+            symptom.getSymptomName(), 
+            symptom.getGravity(), 
+            symptom.getDuration().toString(), 
+            symptom.getNotes(), 
+            symptom.getDateAndTime());
+        return rows > 0;
     }
 }

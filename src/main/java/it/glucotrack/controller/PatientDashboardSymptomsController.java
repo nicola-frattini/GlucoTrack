@@ -3,7 +3,9 @@ package it.glucotrack.controller;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.beans.property.SimpleStringProperty;
@@ -11,10 +13,13 @@ import javafx.util.Callback;
 import java.net.URL;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ResourceBundle;
 import java.util.Optional;
 import it.glucotrack.model.User;
+import it.glucotrack.model.Symptom;
 import it.glucotrack.util.SymptomDAO;
 import it.glucotrack.util.SessionManager;
 
@@ -65,13 +70,14 @@ public class PatientDashboardSymptomsController implements Initializable {
 
     private void setupSymptomsTable() {
         dateRecordedColumn.setCellValueFactory(cellData ->
-                new SimpleStringProperty(cellData.getValue().getFormattedDateTime()));
+                new SimpleStringProperty(cellData.getValue().getDateAndTime().format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT))));
 
         symptomColumn.setCellValueFactory(new PropertyValueFactory<>("symptomName"));
 
-        severityColumn.setCellValueFactory(new PropertyValueFactory<>("severity"));
+        severityColumn.setCellValueFactory(new PropertyValueFactory<>("gravity"));
 
-        durationColumn.setCellValueFactory(new PropertyValueFactory<>("duration"));
+        durationColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().getDuration().toString()));
 
         // Custom cell factory per colorare la severity
         severityColumn.setCellFactory(new Callback<TableColumn<Symptom, String>, TableCell<Symptom, String>>() {
@@ -121,27 +127,11 @@ public class PatientDashboardSymptomsController implements Initializable {
     }
 
     private void handleAddNewSymptom() {
-        Optional<Symptom> result = showAddSymptomDialog();
-        result.ifPresent(symptom -> {
-            // Salva nel "database"
-            symptomService.saveSymptom(symptom);
-
-            // Aggiorna UI
-            symptoms.add(0, symptom); // Aggiungi in cima (più recente)
-            symptomsTable.refresh();
-        });
+        System.out.println("➕ Pulsante Add New Symptom cliccato!");
+        openSymptomInsertForm();
     }
 
-    private Optional<Symptom> showAddSymptomDialog() {
-        // Placeholder per dialog - implementazione completa da fare
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Add New Symptom");
-        alert.setHeaderText(null);
-        alert.setContentText("Add symptom dialog will be implemented here.\nThis will allow entry of symptom details, severity, and duration.");
-        alert.showAndWait();
 
-        return Optional.empty(); // Temporary
-    }
 
     // Metodi per future integrazioni
     public void refreshData() {
@@ -157,63 +147,74 @@ public class PatientDashboardSymptomsController implements Initializable {
         symptoms.add(0, symptom);
         symptomsTable.refresh();
     }
-
-    // ========== CLASSE MODELLO ==========
-
-    public static class Symptom {
-        private Long id;
-        private String symptomName;
-        private String severity; // "Mild", "Moderate", "Severe"
-        private String duration;
-        private LocalDateTime dateRecorded;
-        private String notes;
-
-        public Symptom(Long id, String symptomName, String severity, String duration,
-                       LocalDateTime dateRecorded, String notes) {
-            this.id = id;
-            this.symptomName = symptomName;
-            this.severity = severity;
-            this.duration = duration;
-            this.dateRecorded = dateRecorded;
-            this.notes = notes;
-        }
-
-        // Constructor senza ID per nuovi sintomi
-        public Symptom(String symptomName, String severity, String duration,
-                       LocalDateTime dateRecorded, String notes) {
-            this(null, symptomName, severity, duration, dateRecorded, notes);
-        }
-
-        // Getters e Setters
-        public Long getId() { return id; }
-        public void setId(Long id) { this.id = id; }
-
-        public String getSymptomName() { return symptomName; }
-        public void setSymptomName(String symptomName) { this.symptomName = symptomName; }
-
-        public String getSeverity() { return severity; }
-        public void setSeverity(String severity) { this.severity = severity; }
-
-        public String getDuration() { return duration; }
-        public void setDuration(String duration) { this.duration = duration; }
-
-        public LocalDateTime getDateRecorded() { return dateRecorded; }
-        public void setDateRecorded(LocalDateTime dateRecorded) { this.dateRecorded = dateRecorded; }
-
-        public String getNotes() { return notes; }
-        public void setNotes(String notes) { this.notes = notes; }
-
-        // Metodo per display
-        public String getFormattedDateTime() {
-            return dateRecorded.format(DateTimeFormatter.ofPattern("MMM dd, yyyy - hh:mm a"));
-        }
-
-        @Override
-        public String toString() {
-            return String.format("Symptom{id=%d, name=%s, severity=%s, duration=%s, date=%s}",
-                    id, symptomName, severity, duration, getFormattedDateTime());
+    
+    // Metodo per aprire il form di inserimento sintomi nel pannello centrale
+    private void openSymptomInsertForm() {
+        try {
+            System.out.println("🔄 Apertura form inserimento sintomi da sezione sintomi...");
+            
+            // Carica il form nel pannello centrale del dashboard principale
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/PatientDashboardSymptomInsert.fxml"));
+            Parent symptomInsertView = loader.load();
+            System.out.println("✅ FXML sintomi caricato con successo");
+            
+            // Ottieni il controller del form
+            PatientDashboardSymptomsInsertController insertController = loader.getController();
+            System.out.println("✅ Controller sintomi ottenuto: " + (insertController != null ? "OK" : "NULL"));
+            
+            // Imposta il callback per refresh dei dati quando si salva
+            insertController.setOnDataSaved(() -> {
+                refreshData();
+                // Dopo il salvataggio, torna alla sezione sintomi
+                returnToSymptoms();
+            });
+            
+            // Imposta il callback per l'annullamento
+            insertController.setOnCancel(this::returnToSymptoms);
+            System.out.println("✅ Callback sintomi impostati");
+            
+            // Sostituisce il contenuto centrale con il form
+            loadContentInMainDashboard(symptomInsertView);
+            
+        } catch (Exception e) {
+            System.err.println("❌ Errore nell'apertura del form di inserimento sintomi: " + e.getMessage());
+            e.printStackTrace();
         }
     }
+    
+    // Metodo per caricare contenuto nel pannello centrale del dashboard principale
+    private void loadContentInMainDashboard(Parent content) {
+        try {
+            PatientDashboardController mainController = PatientDashboardController.getInstance();
+            if (mainController != null) {
+                mainController.loadCenterContentDirect(content);
+                System.out.println("✅ Contenuto caricato nel pannello centrale via controller principale");
+            } else {
+                System.err.println("❌ Controller principale non disponibile");
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Errore nel caricamento del contenuto nel dashboard: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    // Metodo per tornare alla sezione sintomi
+    private void returnToSymptoms() {
+        try {
+            PatientDashboardController mainController = PatientDashboardController.getInstance();
+            if (mainController != null) {
+                mainController.loadCenterContent("PatientDashboardSymptoms.fxml");
+                System.out.println("✅ Ritorno alla sezione sintomi completato");
+            } else {
+                System.err.println("❌ Controller principale non disponibile per il ritorno alla sezione sintomi");
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Errore nel ritorno alla sezione sintomi: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+
 
     // ========== SERVIZIO INTERFACE ==========
 
@@ -241,24 +242,8 @@ public class PatientDashboardSymptomsController implements Initializable {
             try {
                 User currentUser = SessionManager.getInstance().getCurrentUser();
                 if (currentUser != null) {
-                    java.util.List<String> dbSymptoms = 
-                        symptomDAO.getSymptomsByPatientId(currentUser.getId());
-                    
-                    // Convert from simple strings to controller Symptom objects
-                    java.util.List<Symptom> controllerSymptoms = new java.util.ArrayList<>();
-                    int id = 1;
-                    for (String symptomName : dbSymptoms) {
-                        Symptom controllerSymptom = new Symptom(
-                            (long) id++,
-                            symptomName,
-                            "N/A", // severity not available from current DAO
-                            "N/A", // duration not available from current DAO
-                            LocalDateTime.now(), // date not available from current DAO
-                            "Imported from database"
-                        );
-                        controllerSymptoms.add(controllerSymptom);
-                    }
-                    return controllerSymptoms;
+                    // Usa il nuovo metodo che restituisce oggetti Symptom completi
+                    return symptomDAO.getSymptomsForTable(currentUser.getId());
                 }
                 return new java.util.ArrayList<>();
             } catch (SQLException e) {
@@ -309,60 +294,5 @@ public class PatientDashboardSymptomsController implements Initializable {
         }
     }
 
-    private static class MockSymptomService implements SymptomService {
 
-        @Override
-        public java.util.List<Symptom> getAllSymptoms() {
-            return java.util.Arrays.asList(
-                    new Symptom(1L, "Increased thirst", "Moderate", "Approx. 2 hours",
-                            LocalDateTime.of(2023, 10, 28, 10, 15), "Persistent thirst despite drinking water"),
-
-                    new Symptom(2L, "Blurred vision", "Mild", "15 minutes",
-                            LocalDateTime.of(2023, 10, 27, 19, 0), "Temporary blurred vision episode"),
-
-                    new Symptom(3L, "Fatigue", "Severe", "All morning",
-                            LocalDateTime.of(2023, 10, 27, 9, 30), "Extreme tiredness affecting daily activities"),
-
-                    new Symptom(4L, "Frequent urination", "Moderate", "Throughout the night",
-                            LocalDateTime.of(2023, 10, 26, 23, 0), "Woke up multiple times during night"),
-
-                    new Symptom(5L, "Headache", "Mild", "30 minutes",
-                            LocalDateTime.of(2023, 10, 26, 14, 45), "Mild headache after lunch")
-            );
-        }
-
-        @Override
-        public java.util.List<Symptom> getSymptomsByDateRange(LocalDateTime start, LocalDateTime end) {
-            return getAllSymptoms().stream()
-                    .filter(s -> s.getDateRecorded().isAfter(start) && s.getDateRecorded().isBefore(end))
-                    .collect(java.util.stream.Collectors.toList());
-        }
-
-        @Override
-        public java.util.List<Symptom> getSymptomsBySeverity(String severity) {
-            return getAllSymptoms().stream()
-                    .filter(s -> s.getSeverity().equalsIgnoreCase(severity))
-                    .collect(java.util.stream.Collectors.toList());
-        }
-
-        @Override
-        public void saveSymptom(Symptom symptom) {
-            // Mock implementation - in realtà salverebbe nel database
-            System.out.println("Saving symptom: " + symptom.getSymptomName() +
-                    " with severity: " + symptom.getSeverity());
-        }
-
-        @Override
-        public void deleteSymptom(Long id) {
-            // Mock implementation
-            System.out.println("Deleting symptom with ID: " + id);
-        }
-
-        @Override
-        public Optional<Symptom> getSymptomById(Long id) {
-            return getAllSymptoms().stream()
-                    .filter(s -> s.getId().equals(id))
-                    .findFirst();
-        }
-    }
 }

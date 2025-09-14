@@ -15,9 +15,8 @@ import it.glucotrack.model.GlucoseMeasurement;
 import it.glucotrack.model.Gravity;
 import it.glucotrack.model.Medication;
 import it.glucotrack.model.Patient;
-import it.glucotrack.model.RiskFactor;
-import it.glucotrack.model.Symptom;
 import it.glucotrack.model.User;
+import it.glucotrack.model.LogMedication;
 
 
 public class DatabaseMockData {
@@ -55,14 +54,18 @@ public class DatabaseMockData {
             // 4. Crea Medications per i pazienti
             createMockMedications(medicationDAO, userDAO);
             
-            // 5. Crea Glucose Measurements
+            // 5. Crea Log Medications (pianificazioni assunzioni)
+            LogMedicationDAO logMedicationDAO = new LogMedicationDAO();
+            createMockLogMedications(logMedicationDAO, medicationDAO, userDAO);
+            
+            // 6. Crea Glucose Measurements
             createMockGlucoseMeasurements(glucoseDAO, userDAO);
             
-            // 6. Crea Symptoms per i pazienti
+            // 7. Crea Symptoms per i pazienti
             SymptomDAO symptomDAO = new SymptomDAO();
             createMockSymptoms(symptomDAO, userDAO);
             
-            // 7. Crea Risk Factors per i pazienti
+            // 8. Crea Risk Factors per i pazienti
             RiskFactorDAO riskFactorDAO = new RiskFactorDAO();
             createMockRiskFactors(riskFactorDAO, userDAO);
             
@@ -315,12 +318,31 @@ public class DatabaseMockData {
                 try {
                     LocalDateTime symptomDateTime = LocalDateTime.now().minusDays(random.nextInt(60))
                                                                        .minusHours(random.nextInt(24));
-                    LocalDate symptomDate = symptomDateTime.toLocalDate();
                     
                     String symptomName = symptomNames[random.nextInt(symptomNames.length)];
                     
-                    // Usa i parametri richiesti dal DAO
-                    symptomDAO.insertSymptom(patient.getId(), symptomName, symptomDate);
+                    // Genera dati casuali per severity, duration e notes
+                    String[] severities = {"Mild", "Moderate", "Severe"};
+                    String severity = severities[random.nextInt(severities.length)];
+                    
+                    // Genera durata casuale (30 minuti a 4 ore)
+                    int hours = random.nextInt(5); // 0-4 ore
+                    int minutes = random.nextInt(4) * 15; // 0, 15, 30, 45 minuti
+                    String duration = String.format("%02d:%02d", hours, minutes);
+                    
+                    String[] noteOptions = {"", "Sintomo lieve", "Migliorato con riposo", "Peggiorato dopo i pasti", "Sintomo ricorrente"};
+                    String notes = noteOptions[random.nextInt(noteOptions.length)];
+                    
+                    // Crea oggetto Symptom usando il modello
+                    it.glucotrack.model.Symptom symptom = new it.glucotrack.model.Symptom();
+                    symptom.setSymptomName(symptomName);
+                    symptom.setGravity(severity);
+                    symptom.setDuration(java.time.LocalTime.parse(duration));
+                    symptom.setNotes(notes);
+                    symptom.setDateAndTime(symptomDateTime);
+                    
+                    // Usa il nuovo metodo che inserisce tutti i campi
+                    symptomDAO.insertSymptom(patient.getId(), symptom);
                     symptomCount++;
                     
                 } catch (Exception e) {
@@ -356,5 +378,98 @@ public class DatabaseMockData {
         }
         
         System.out.println("  ✅ " + riskFactorCount + " Risk Factors creati");
+    }
+    
+    private static void createMockLogMedications(LogMedicationDAO logMedicationDAO, MedicationDAO medicationDAO, UserDAO userDAO) throws SQLException {
+        System.out.println("  📅 Creazione Log Medications (pianificazioni)...");
+        
+        // Prendi tutte le medications esistenti
+        List<User> patients = userDAO.getUsersByType("PATIENT");
+        int logCount = 0;
+        
+        for (User patient : patients) {
+            try {
+                // Prendi tutti i farmaci del paziente
+                List<Medication> medications = medicationDAO.getMedicationsByPatientId(patient.getId());
+                
+                for (Medication medication : medications) {
+                    // Crea log per gli ultimi 30 giorni e i prossimi 7 giorni
+                    LocalDate startDate = LocalDate.now().minusDays(30);
+                    LocalDate endDate = LocalDate.now().plusDays(7);
+                    
+                    // Determina quante volte al giorno in base alla frequenza
+                    int timesPerDay = getTimesPerDay(medication.getFreq());
+                    
+                    // Genera log per ogni giorno nel range
+                    for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+                        // Crea più log al giorno in base alla frequenza
+                        for (int i = 0; i < timesPerDay; i++) {
+                            LocalTime time = getTimeForDose(i, timesPerDay);
+                            LocalDateTime dateTime = LocalDateTime.of(date, time);
+                            
+                            // Determina se è stato preso (passato) o è pianificato (futuro)
+                            boolean taken = dateTime.isBefore(LocalDateTime.now()) && random.nextDouble() > 0.15; // 85% di aderenza
+                            
+                            // Debug: controlla che medication ID sia valido
+                            if (medication.getId() <= 0) {
+                                System.err.println("      ⚠️ Medication ID non valido: " + medication.getId() + " per " + medication.getName_medication());
+                                continue;
+                            }
+                            
+                            LogMedication logMedication = new LogMedication(
+                                -1, // ID auto-generato
+                                medication.getId(),
+                                dateTime,
+                                taken
+                            );
+                            
+                            logMedicationDAO.insertLogMedication(logMedication);
+                            logCount++;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("    ❌ Errore creando log medications per paziente " + patient.getName() + ": " + e.getMessage());
+                throw e;
+            }
+        }
+        
+        System.out.println("  ✅ " + logCount + " Log Medications creati");
+    }
+    
+    private static int getTimesPerDay(Frequency frequency) {
+        switch (frequency) {
+            case ONCE_A_DAY: return 1;
+            case TWICE_A_DAY: return 2;
+            case THREE_TIMES_A_DAY: return 3;
+            case FOUR_TIMES_A_DAY: return 4;
+            case EVERY_TWELVE_HOURS: return 2;
+            default: return 1;
+        }
+    }
+    
+    private static LocalTime getTimeForDose(int doseIndex, int totalDoses) {
+        // Distribuisce le dosi durante la giornata
+        switch (totalDoses) {
+            case 1: return LocalTime.of(8, 0); // Una volta al giorno - mattina
+            case 2: 
+                return doseIndex == 0 ? LocalTime.of(8, 0) : LocalTime.of(20, 0); // Mattina e sera
+            case 3:
+                switch (doseIndex) {
+                    case 0: return LocalTime.of(8, 0);  // Mattina  
+                    case 1: return LocalTime.of(13, 0); // Pranzo
+                    case 2: return LocalTime.of(20, 0); // Sera
+                    default: return LocalTime.of(8, 0);
+                }
+            case 4:
+                switch (doseIndex) {
+                    case 0: return LocalTime.of(8, 0);  // Mattina
+                    case 1: return LocalTime.of(12, 0); // Pranzo
+                    case 2: return LocalTime.of(17, 0); // Pomeriggio
+                    case 3: return LocalTime.of(21, 0); // Sera
+                    default: return LocalTime.of(8, 0);
+                }
+            default: return LocalTime.of(8, 0);
+        }
     }
 }

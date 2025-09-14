@@ -33,10 +33,16 @@ public class PatientDashboardController {
 
     @FXML
     public void initialize() {
+        System.out.println("📊 PatientDashboardController inizializzato!");
+        
+        // Imposta l'istanza globale
+        instance = this;
+        
         // Imposta il nome del paziente dalla sessione corrente
         loadPatientInfo();
         
         // Carica la dashboard di default
+        System.out.println("🔄 Caricamento PatientDashboardHome.fxml...");
         loadCenterContent("PatientDashboardHome.fxml");
         setActiveButton(dashboardBtn); // Active the dashboard button by default
     }
@@ -91,18 +97,42 @@ public class PatientDashboardController {
     }
 
     @FXML
+    private void onProfileClick() {
+        loadCenterContent("ProfileView.fxml");
+        // Non imposto nessun pulsante come attivo per il profilo
+        clearActiveButtons();
+    }
+
+    @FXML
     private void onSettingsClick() {
         // Logica per aprire le impostazioni, oppure lascia vuoto se non ti serve
     }
 
-    private void loadCenterContent(String fxmlFile) {
+    public void loadCenterContent(String fxmlFile) {
         try {
+            System.out.println("🔄 Caricamento FXML: " + fxmlFile);
             Node node = FXMLLoader.load(getClass().getResource("/assets/fxml/" + fxmlFile));
+            System.out.println("✅ FXML caricato con successo: " + fxmlFile);
             contentPane.getChildren().setAll(node);
+            System.out.println("✅ Contenuto aggiunto al contentPane");
         } catch (IOException e) {
+            System.err.println("❌ Errore nel caricamento FXML: " + fxmlFile);
             e.printStackTrace();
             // Puoi mostrare un messaggio di errore all'utente
         }
+    }
+    
+    // Metodo pubblico per caricare contenuto diretto nel centro
+    public void loadCenterContentDirect(Node content) {
+        contentPane.getChildren().setAll(content);
+    }
+    
+    // Istanza statica per accesso globale al dashboard principale
+    private static PatientDashboardController instance;
+    
+    // Metodo statico per ottenere l'istanza corrente
+    public static PatientDashboardController getInstance() {
+        return instance;
     }
 
     @FXML
@@ -129,6 +159,15 @@ public class PatientDashboardController {
         medicationBtn.setStyle(getButtonStyle(medicationBtn == activeBtn));
         symptomsBtn.setStyle(getButtonStyle(symptomsBtn == activeBtn));
         messageBtn.setStyle(getButtonStyle(messageBtn == activeBtn));
+    }
+
+    private void clearActiveButtons() {
+        // Imposta tutti i pulsanti come non attivi
+        dashboardBtn.setStyle(getButtonStyle(false));
+        readingsBtn.setStyle(getButtonStyle(false));
+        medicationBtn.setStyle(getButtonStyle(false));
+        symptomsBtn.setStyle(getButtonStyle(false));
+        messageBtn.setStyle(getButtonStyle(false));
     }
 
     private String getButtonStyle(boolean isActive) {

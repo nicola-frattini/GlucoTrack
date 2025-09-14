@@ -1,0 +1,155 @@
+/* CSS Styles per New Glycemia Entry */
+
+/* DatePicker personalizzato */
+.date-picker {
+    -fx-background-color: #4a6278;
+    -fx-background-radius: 5;
+    -fx-border-color: transparent;
+}
+
+.date-picker > .arrow-button {
+    -fx-background-color: #4a6278;
+    -fx-background-radius: 0 5 5 0;
+}
+
+.date-picker > .arrow-button > .arrow {
+    -fx-background-color: white;
+}
+
+.date-picker .text-field {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: #7f8c8d;
+    -fx-border-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 5 0 0 5;
+}
+
+.date-picker:focused {
+    -fx-border-color: #3498db;
+    -fx-border-width: 2;
+}
+
+/* ComboBox personalizzato */
+.combo-box {
+    -fx-background-color: #4a6278;
+    -fx-background-radius: 5;
+    -fx-border-color: transparent;
+}
+
+.combo-box > .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: #7f8c8d;
+}
+
+.combo-box > .arrow-button {
+    -fx-background-color: #4a6278;
+    -fx-background-radius: 0 5 5 0;
+}
+
+.combo-box > .arrow-button > .arrow {
+    -fx-background-color: white;
+}
+
+.combo-box:focused {
+    -fx-border-color: #3498db;
+    -fx-border-width: 2;
+}
+
+/* ComboBox Popup */
+.combo-box-popup .list-view {
+    -fx-background-color: #4a6278;
+    -fx-border-color: #3498db;
+    -fx-border-width: 1;
+}
+
+.combo-box-popup .list-view .list-cell {
+    -fx-background-color: #4a6278;
+    -fx-text-fill: white;
+    -fx-padding: 10;
+}
+
+.combo-box-popup .list-view .list-cell:hover {
+    -fx-background-color: #5a7288;
+}
+
+.combo-box-popup .list-view .list-cell:selected {
+    -fx-background-color: #3498db;
+    -fx-text-fill: white;
+}
+
+/* TextField personalizzato */
+.text-field:focused {
+    -fx-border-color: #3498db;
+    -fx-border-width: 2;
+    -fx-border-radius: 5;
+    -fx-background-insets: -2;
+}
+
+/* TextArea personalizzato */
+.text-area:focused {
+    -fx-border-color: #3498db;
+    -fx-border-width: 2;
+    -fx-border-radius: 5;
+    -fx-background-insets: -2;
+}
+
+.text-area .content {
+    -fx-background-color: transparent;
+}
+
+.text-area .scroll-pane {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.text-area .scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+/* Button hover effects */
+.button:hover {
+    -fx-background-color: #2980b9;
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+}
+
+.button:pressed {
+    -fx-background-color: #21618c;
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+}
+
+/* Header buttons */
+#notificationButton:hover,
+#profileButton:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-background-radius: 50%;
+}
+
+/* Scrollbar personalizzata per TextArea */
+.text-area .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 8;
+}
+
+.text-area .scroll-bar:vertical .track {
+    -fx-background-color: #5a7288;
+    -fx-background-radius: 4;
+}
+
+.text-area .scroll-bar:vertical .thumb {
+    -fx-background-color: #3498db;
+    -fx-background-radius: 4;
+}
+
+/* Focus ring removal */
+.date-picker:focused,
+.combo-box:focused,
+.text-field:focused,
+.text-area:focused,
+.button:focused {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}

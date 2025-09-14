@@ -1,11 +1,14 @@
 package it.glucotrack.controller;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.input.MouseEvent;
+import javafx.event.ActionEvent;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,6 +38,8 @@ public class PatientDashboardHomeController {
 
     @FXML
     public void initialize() {
+        System.out.println("🏠 PatientDashboardHomeController inizializzato!");
+        
         // Initialize DAO
         glucoseMeasurementDAO = new GlucoseMeasurementDAO();
         
@@ -221,23 +226,26 @@ public class PatientDashboardHomeController {
     }
 
     @FXML
-    private void onLogReadingClick(MouseEvent event) {
-        // Logica per aggiungere una nuova misurazione
-        // Ad esempio: apri una finestra/modal per inserire il valore
+    private void onLogReadingClick(javafx.event.ActionEvent event) {
+        System.out.println("=============================================");
+        System.out.println("🖱️ PULSANTE LOG READING CLICCATO!");
+        System.out.println("=============================================");
+        openGlucoseInsertForm();
     }
 
     @FXML
-    private void onRecordSymptomsClick(MouseEvent event) {
-        // Logica per registrare sintomi
+    private void onRecordSymptomsClick(ActionEvent event) {
+        System.out.println("🩺 Pulsante Record Symptoms cliccato!");
+        openSymptomInsertForm();
     }
 
     @FXML
-    private void onAddMedicationClick(MouseEvent event) {
+    private void onAddMedicationClick(ActionEvent event) {
         // Logica per aggiungere farmaco
     }
 
     @FXML
-    private void onViewHistoryClick(MouseEvent event) {
+    private void onViewHistoryClick(ActionEvent event) {
         // Logica per visualizzare la cronologia
     }
 
@@ -308,5 +316,105 @@ public class PatientDashboardHomeController {
         
         statusLabel.setText(statusText);
         statusLabel.setStyle(colorStyle);
+    }
+    
+    // Metodo per aprire il form di inserimento glicemia nel pannello centrale
+    private void openGlucoseInsertForm() {
+        try {
+            System.out.println("🔄 Apertura form inserimento glicemia...");
+            
+            // Carica il form nel pannello centrale del dashboard principale
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/PatientDashboardGlucoseInsert.fxml"));
+            Parent glucoseInsertView = loader.load();
+            System.out.println("✅ FXML caricato con successo");
+            
+            // Ottieni il controller del form
+            PatientDashboardGlucoseInsertController insertController = loader.getController();
+            System.out.println("✅ Controller ottenuto: " + (insertController != null ? "OK" : "NULL"));
+            
+            // Imposta il callback per refresh dei dati quando si salva
+            insertController.setOnDataSaved(() -> {
+                updateGlucoseData();
+                // Dopo il salvataggio, torna alla home
+                returnToHome();
+            });
+            
+            // Imposta il callback per l'annullamento
+            insertController.setOnCancel(this::returnToHome);
+            System.out.println("✅ Callback impostati");
+            
+            // Sostituisce il contenuto centrale con il form
+            loadContentInMainDashboard(glucoseInsertView);
+            
+        } catch (IOException e) {
+            System.err.println("❌ Errore nell'apertura del form di inserimento glicemia: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    // Metodo per aprire il form di inserimento sintomi nel pannello centrale
+    private void openSymptomInsertForm() {
+        try {
+            System.out.println("🔄 Apertura form inserimento sintomi...");
+            
+            // Carica il form nel pannello centrale del dashboard principale
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/PatientDashboardSymptomInsert.fxml"));
+            Parent symptomInsertView = loader.load();
+            System.out.println("✅ FXML sintomi caricato con successo");
+            
+            // Ottieni il controller del form
+            PatientDashboardSymptomsInsertController insertController = loader.getController();
+            System.out.println("✅ Controller sintomi ottenuto: " + (insertController != null ? "OK" : "NULL"));
+            
+            // Imposta il callback per refresh dei dati quando si salva
+            insertController.setOnDataSaved(() -> {
+                updateGlucoseData(); // Potremmo aggiungere un refresh dei sintomi se necessario
+                // Dopo il salvataggio, torna alla home
+                returnToHome();
+            });
+            
+            // Imposta il callback per l'annullamento
+            insertController.setOnCancel(this::returnToHome);
+            System.out.println("✅ Callback sintomi impostati");
+            
+            // Sostituisce il contenuto centrale con il form
+            loadContentInMainDashboard(symptomInsertView);
+            
+        } catch (IOException e) {
+            System.err.println("❌ Errore nell'apertura del form di inserimento sintomi: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    // Metodo per caricare contenuto nel pannello centrale del dashboard principale
+    private void loadContentInMainDashboard(Parent content) {
+        try {
+            PatientDashboardController mainController = PatientDashboardController.getInstance();
+            if (mainController != null) {
+                mainController.loadCenterContentDirect(content);
+                System.out.println("✅ Contenuto caricato nel pannello centrale via controller principale");
+            } else {
+                System.err.println("❌ Controller principale non disponibile");
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Errore nel caricamento del contenuto nel dashboard: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    // Metodo per tornare alla home dashboard
+    private void returnToHome() {
+        try {
+            PatientDashboardController mainController = PatientDashboardController.getInstance();
+            if (mainController != null) {
+                mainController.loadCenterContent("PatientDashboardHome.fxml");
+                System.out.println("✅ Ritorno alla home completato");
+            } else {
+                System.err.println("❌ Controller principale non disponibile per il ritorno alla home");
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Errore nel ritorno alla home: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

@@ -16,6 +16,7 @@ import java.util.ResourceBundle;
 import java.util.Optional;
 import it.glucotrack.model.User;
 import it.glucotrack.util.MedicationDAO;
+import it.glucotrack.util.LogMedicationDAO;
 import it.glucotrack.util.SessionManager;
 
 public class PatientDashboardMedicationsController implements Initializable {
@@ -76,7 +77,7 @@ public class PatientDashboardMedicationsController implements Initializable {
     private void initializeServices() {
         // Initialize DAO services
         medicationService = new DatabaseMedicationService();
-        medicationLogService = new MockMedicationLogService(); // TODO: implement real service
+        medicationLogService = new DatabaseMedicationLogService(); // Usa il servizio database
     }
 
     private void setupPrescribedMedicationsTable() {
@@ -127,7 +128,114 @@ public class PatientDashboardMedicationsController implements Initializable {
             }
         });
 
-        intakeLogTable.setStyle("-fx-background-color: #2C3E50; -fx-text-fill: white;");
+        intakeLogTable.setStyle("-fx-background-color: #2C3E50; -fx-text-fill: white; " +
+                               "-fx-selection-bar: #3498db; -fx-selection-bar-non-focused: #5dade2;");
+        
+        // Configura la selezione della tabella
+        intakeLogTable.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        
+        // Aggiungi context menu con tasto destro
+        setupContextMenu();
+    }
+    
+    private void setupContextMenu() {
+        ContextMenu contextMenu = new ContextMenu();
+        
+        MenuItem markTakenItem = new MenuItem("✓ Segna come Presa");
+        markTakenItem.setOnAction(e -> {
+            MedicationLog selectedLog = intakeLogTable.getSelectionModel().getSelectedItem();
+            if (selectedLog != null) {
+                updateMedicationLogStatus(selectedLog, true);
+            }
+        });
+        
+        MenuItem markMissedItem = new MenuItem("✗ Segna come Non Presa");
+        markMissedItem.setOnAction(e -> {
+            MedicationLog selectedLog = intakeLogTable.getSelectionModel().getSelectedItem();
+            if (selectedLog != null) {
+                updateMedicationLogStatus(selectedLog, false);
+            }
+        });
+        
+        contextMenu.getItems().addAll(markTakenItem, markMissedItem);
+        
+        // Aggiungi il context menu alla tabella
+        intakeLogTable.setContextMenu(contextMenu);
+        
+        // Configura il context menu e l'evidenziazione delle righe
+        intakeLogTable.setRowFactory(tv -> {
+            TableRow<MedicationLog> row = new TableRow<MedicationLog>() {
+                @Override
+                protected void updateItem(MedicationLog item, boolean empty) {
+                    super.updateItem(item, empty);
+                    
+                    if (empty || item == null) {
+                        setStyle("");
+                    } else {
+                        // Mantieni lo stile normale di default (trasparente)
+                        if (!isSelected()) {
+                            setStyle("");
+                        }
+                    }
+                }
+                
+                @Override
+                public void updateSelected(boolean selected) {
+                    super.updateSelected(selected);
+                    
+                    if (getItem() != null) {
+                        if (selected) {
+                            // Stile evidenziato per la riga selezionata
+                            setStyle("-fx-background-color: #3498db; -fx-text-fill: white; " +
+                                   "-fx-border-color: #2980b9; -fx-border-width: 2px; " +
+                                   "-fx-effect: dropshadow(gaussian, #2980b9, 5, 0, 0, 0);");
+                        } else {
+                            // Ritorna allo stile normale (trasparente, usa lo stile della tabella)
+                            setStyle("");
+                        }
+                    }
+                }
+            };
+            
+            // Aggiungi hover effect leggero per migliorare l'usabilità
+            row.setOnMouseEntered(e -> {
+                if (row.getItem() != null && !row.isSelected()) {
+                    row.setStyle("-fx-background-color: rgba(255, 255, 255, 0.1);");
+                }
+            });
+            
+            row.setOnMouseExited(e -> {
+                if (row.getItem() != null && !row.isSelected()) {
+                    row.setStyle("");
+                }
+            });
+            
+            // Context menu con selezione automatica della riga
+            row.setOnContextMenuRequested(e -> {
+                if (row.getItem() != null) {
+                    // Seleziona automaticamente la riga quando si clicca tasto destro
+                    intakeLogTable.getSelectionModel().select(row.getIndex());
+                    
+                    // Aggiorna il testo degli item in base allo stato attuale
+                    MedicationLog log = row.getItem();
+                    if ("Taken".equals(log.getStatus())) {
+                        markTakenItem.setText("✓ Già Presa");
+                        markTakenItem.setDisable(true);
+                        markMissedItem.setText("✗ Segna come Non Presa");
+                        markMissedItem.setDisable(false);
+                    } else {
+                        markTakenItem.setText("✓ Segna come Presa");
+                        markTakenItem.setDisable(false);
+                        markMissedItem.setText("✗ Già Non Presa");
+                        markMissedItem.setDisable(true);
+                    }
+                    contextMenu.show(row, e.getScreenX(), e.getScreenY());
+                }
+                e.consume();
+            });
+            
+            return row;
+        });
     }
 
     private void setupEventHandlers() {
@@ -282,6 +390,7 @@ public class PatientDashboardMedicationsController implements Initializable {
     public interface MedicationLogService {
         java.util.List<MedicationLog> getMedicationLogs();
         void saveMedicationLog(MedicationLog log);
+        boolean updateMedicationLogStatus(Long logId, boolean taken);
     }
 
     // Implementazione database
@@ -351,25 +460,143 @@ public class PatientDashboardMedicationsController implements Initializable {
         }
     }
 
-    private static class MockMedicationLogService implements MedicationLogService {
+    // Implementazione database per MedicationLogService
+    private static class DatabaseMedicationLogService implements MedicationLogService {
+        private LogMedicationDAO logMedicationDAO;
+        private MedicationDAO medicationDAO;
+        
+        public DatabaseMedicationLogService() {
+            this.logMedicationDAO = new LogMedicationDAO();
+            this.medicationDAO = new MedicationDAO();
+        }
+        
         @Override
         public java.util.List<MedicationLog> getMedicationLogs() {
-            return java.util.Arrays.asList(
-                    new MedicationLog(1L, 1L, "Metformin", "500mg",
-                            LocalDateTime.of(2023, 10, 27, 8, 30), "Taken"),
-                    new MedicationLog(2L, 2L, "Gliclazide", "30mg",
-                            LocalDateTime.of(2023, 10, 27, 9, 0), "Taken"),
-                    new MedicationLog(3L, 1L, "Metformin", "500mg",
-                            LocalDateTime.of(2023, 10, 26, 20, 0), "Missed"),
-                    new MedicationLog(4L, 3L, "Insulin Glargine", "10 units",
-                            LocalDateTime.of(2023, 10, 26, 22, 0), "Taken")
-            );
+            java.util.List<MedicationLog> medicationLogs = new java.util.ArrayList<>();
+            
+            try {
+                // Ottengo l'ID del paziente corrente (assumendo che sia nel SessionManager)
+                int currentPatientId = SessionManager.getInstance().getCurrentUserId();
+                
+                // Prima ottengo tutti i farmaci del paziente (usando il tipo completo del modello)
+                java.util.List<it.glucotrack.model.Medication> medications = medicationDAO.getMedicationsByPatientId(currentPatientId);
+                
+                // Per ogni farmaco, ottengo i log corrispondenti solo fino ad oggi
+                for (it.glucotrack.model.Medication medication : medications) {
+                    java.util.List<it.glucotrack.model.LogMedication> logMedications = 
+                        logMedicationDAO.getLogMedicationsByMedicationIdUpToNow(medication.getId());
+                    
+                    // Converto ogni LogMedication in MedicationLog per la UI
+                    for (it.glucotrack.model.LogMedication logMedication : logMedications) {
+                        MedicationLog uiLog = new MedicationLog(
+                            (long) logMedication.getId(),
+                            (long) logMedication.getMedication_id(),
+                            medication.getName_medication(),
+                            medication.getDose(),
+                            logMedication.getDateAndTime(),
+                            logMedication.isTaken() ? "Taken" : "Missed"
+                        );
+                        medicationLogs.add(uiLog);
+                    }
+                }
+                
+                // Ordino per data/ora decrescente (più recenti prima)
+                medicationLogs.sort((a, b) -> b.getDateTime().compareTo(a.getDateTime()));
+                
+            } catch (Exception e) {
+                System.err.println("Errore nel caricamento dei log dei farmaci: " + e.getMessage());
+                e.printStackTrace();
+            }
+            
+            return medicationLogs;
         }
-
+        
         @Override
         public void saveMedicationLog(MedicationLog log) {
-            // Mock implementation - in realtà salverebbe nel database
-            System.out.println("Saving medication log: " + log.getDrugName() + " - " + log.getStatus());
+            try {
+                // Converto MedicationLog della UI in LogMedication del modello
+                it.glucotrack.model.LogMedication modelLog = new it.glucotrack.model.LogMedication(
+                    log.getId().intValue(),
+                    log.getMedicationId().intValue(),
+                    log.getDateTime(),
+                    "Taken".equals(log.getStatus())
+                );
+                
+                if (log.getId() == null || log.getId() <= 0) {
+                    // Nuovo log - inserisco
+                    logMedicationDAO.insertLogMedication(modelLog);
+                } else {
+                    // Log esistente - aggiorno
+                    logMedicationDAO.updateLogMedication(modelLog);
+                }
+                
+                System.out.println("Log farmaco salvato: " + log.getDrugName() + " - " + log.getStatus());
+                
+            } catch (Exception e) {
+                System.err.println("Errore nel salvamento del log farmaco: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
+        
+        @Override
+        public boolean updateMedicationLogStatus(Long logId, boolean taken) {
+            try {
+                return logMedicationDAO.updateLogMedicationStatus(logId.intValue(), taken);
+            } catch (SQLException e) {
+                System.err.println("Errore nell'aggiornamento dello stato del log farmaco: " + e.getMessage());
+                e.printStackTrace();
+                return false;
+            }
+        }
+    }
+    
+    // Metodo di utilità per aggiornare lo stato di un log
+    private void updateMedicationLogStatus(MedicationLog log, boolean taken) {
+        try {
+            boolean success = medicationLogService.updateMedicationLogStatus(log.getId(), taken);
+            
+            if (success) {
+                // Aggiorna lo stato locale
+                log.setStatus(taken ? "Taken" : "Missed");
+                
+                // Refresh della tabella per mostrare il cambiamento
+                intakeLogTable.refresh();
+                
+                // Messaggio di conferma
+                String statusText = taken ? "presa" : "non presa";
+                System.out.println("✅ Medicina " + log.getDrugName() + " segnata come " + statusText);
+                
+                // Opzionale: mostra un alert di conferma
+                showStatusUpdateAlert(log.getDrugName(), taken);
+                
+            } else {
+                showErrorAlert("Errore", "Impossibile aggiornare lo stato della medicina");
+            }
+            
+        } catch (Exception e) {
+            System.err.println("Errore nell'aggiornamento dello stato: " + e.getMessage());
+            showErrorAlert("Errore", "Si è verificato un errore durante l'aggiornamento: " + e.getMessage());
+        }
+    }
+    
+    private void showStatusUpdateAlert(String drugName, boolean taken) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Stato Aggiornato");
+        alert.setHeaderText(null);
+        
+        String statusText = taken ? "presa" : "non presa";
+        alert.setContentText("Medicina " + drugName + " segnata come " + statusText);
+        
+        alert.getDialogPane().setStyle("-fx-background-color: #2c3e50; -fx-text-fill: white;");
+        alert.showAndWait();
+    }
+    
+    private void showErrorAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText("Errore");
+        alert.setContentText(message);
+        alert.getDialogPane().setStyle("-fx-background-color: #2c3e50; -fx-text-fill: white;");
+        alert.showAndWait();
     }
 }

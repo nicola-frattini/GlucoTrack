@@ -3,12 +3,18 @@ package it.glucotrack.controller;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.util.Callback;
 
+import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -253,15 +259,7 @@ public class PatientDashboardReadingsController implements Initializable {
     }
 
     private void handleAddNewReading() {
-        // TODO: Open dialog for adding new reading
-        System.out.println("Add new reading button clicked");
-
-        // For now, show a simple alert
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Add Reading");
-        alert.setHeaderText(null);
-        alert.setContentText("Add new reading functionality will be implemented here.");
-        alert.showAndWait();
+        openGlucoseInsertForm();
     }
 
     // Method to add new reading programmatically
@@ -323,6 +321,67 @@ public class PatientDashboardReadingsController implements Initializable {
         public String toString() {
             return String.format("GlucoseReading{time=%s, type=%s, value=%d, status=%s}",
                     getFormattedTime(), type, value, status);
+        }
+    }
+    
+    // Metodo per aprire il form di inserimento glicemia nel pannello centrale
+    private void openGlucoseInsertForm() {
+        try {
+            // Carica il form nel pannello centrale del dashboard principale
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/PatientDashboardGlucoseInsert.fxml"));
+            Parent glucoseInsertView = loader.load();
+            
+            // Ottieni il controller del form
+            PatientDashboardGlucoseInsertController insertController = loader.getController();
+            
+            // Imposta il callback per refresh dei dati quando si salva
+            insertController.setOnDataSaved(() -> {
+                refreshData();
+                // Dopo il salvataggio, torna alla sezione readings
+                returnToReadings();
+            });
+            
+            // Imposta il callback per l'annullamento
+            insertController.setOnCancel(this::returnToReadings);
+            
+            // Sostituisce il contenuto centrale con il form
+            loadContentInMainDashboard(glucoseInsertView);
+            
+        } catch (IOException e) {
+            System.err.println("Errore nell'apertura del form di inserimento glicemia: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    // Metodo per caricare contenuto nel pannello centrale del dashboard principale
+    private void loadContentInMainDashboard(Parent content) {
+        try {
+            PatientDashboardController mainController = PatientDashboardController.getInstance();
+            if (mainController != null) {
+                mainController.loadCenterContentDirect(content);
+                System.out.println("✅ Contenuto caricato nel pannello centrale via controller principale");
+            } else {
+                System.err.println("❌ Controller principale non disponibile");
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Errore nel caricamento del contenuto nel dashboard: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    // Metodo per tornare alla sezione readings
+    private void returnToReadings() {
+        try {
+            PatientDashboardController mainController = PatientDashboardController.getInstance();
+            if (mainController != null) {
+                mainController.loadCenterContent("PatientDashboardReadings.fxml");
+                System.out.println("✅ Ritorno alla sezione readings completato");
+            } else {
+                System.err.println("❌ Controller principale non disponibile per il ritorno alla sezione readings");
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Errore nel ritorno alla sezione readings: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

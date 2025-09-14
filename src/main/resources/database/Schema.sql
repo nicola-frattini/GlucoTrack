@@ -62,7 +62,10 @@ CREATE TABLE patient_symptoms (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     patient_id INTEGER NOT NULL,
     symptom VARCHAR(255) NOT NULL,
-    symptom_date DATE NOT NULL,
+    severity VARCHAR(50),     -- 'Mild', 'Moderate', 'Severe', 'Very Severe'
+    duration VARCHAR(100),    -- Duration description (optional)
+    notes TEXT,              -- Additional notes (optional)
+    symptom_date DATETIME NOT NULL,  -- Changed to DATETIME to include time
     FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
