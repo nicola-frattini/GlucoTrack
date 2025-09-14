@@ -4,8 +4,8 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.stage.Stage;
 import it.glucotrack.model.GlucoseMeasurement;
+import it.glucotrack.model.User;
 import it.glucotrack.util.GlucoseMeasurementDAO;
 import it.glucotrack.util.SessionManager;
 
@@ -18,13 +18,17 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ResourceBundle;
 
-public class PatientDashboardGlucoseInsertController implements Initializable {
+public class PatientDashboardGlucoseEditController implements Initializable {
 
     // Callback per notificare il refresh dei dati
-    private Runnable onDataSaved;
+    private Runnable onDataUpdated;
     
     // Callback per gestire l'annullamento
     private Runnable onCancel;
+    
+    // La misurazione originale che stiamo modificando
+    private PatientDashboardReadingsController.GlucoseReading originalReading;
+    private GlucoseMeasurement originalMeasurement;
 
     @FXML
     private DatePicker datePicker;
@@ -42,28 +46,15 @@ public class PatientDashboardGlucoseInsertController implements Initializable {
     private TextArea notesArea;
 
     @FXML
-    private Button saveButton;
+    private Button updateButton;
 
     private GlucoseMeasurementDAO glucoseMeasurementDAO;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         glucoseMeasurementDAO = new GlucoseMeasurementDAO();
-
-        // Inizializza i valori di default
-        setupDefaultValues();
         setupValidation();
         setupComboBox();
-    }
-
-    private void setupDefaultValues() {
-        // Imposta la data corrente
-        datePicker.setValue(LocalDate.now());
-
-        // Imposta l'ora corrente
-        LocalTime now = LocalTime.now();
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-        timeField.setText(now.format(timeFormatter));
     }
 
     private void setupComboBox() {
@@ -79,9 +70,6 @@ public class PatientDashboardGlucoseInsertController implements Initializable {
                 "Fasting",
                 "Random"
         ));
-
-        // Imposta il valore di default
-        typeComboBox.setValue("Before Breakfast");
     }
 
     private void setupValidation() {
@@ -99,31 +87,65 @@ public class PatientDashboardGlucoseInsertController implements Initializable {
             }
         });
     }
+    
+    public void setupForEdit(PatientDashboardReadingsController.GlucoseReading reading) {
+        this.originalReading = reading;
+        
+        // Carica i dati della misurazione nei campi del form
+        datePicker.setValue(reading.getDateTime().toLocalDate());
+        
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        timeField.setText(reading.getDateTime().format(timeFormatter));
+        
+        typeComboBox.setValue(reading.getType());
+        valueField.setText(String.valueOf(reading.getValue()));
+        
+        // Carica la misurazione completa dal database per ottenere le note
+        try {
+            User currentUser = SessionManager.getInstance().getCurrentUser();
+            if (currentUser != null) {
+                originalMeasurement = glucoseMeasurementDAO.findGlucoseMeasurement(
+                    currentUser.getId(), 
+                    reading.getDateTime(), 
+                    (float) reading.getValue()
+                );
+                
+                if (originalMeasurement != null && originalMeasurement.getNotes() != null) {
+                    notesArea.setText(originalMeasurement.getNotes());
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Errore nel caricamento delle note: " + e.getMessage());
+        }
+    }
 
     @FXML
-    private void handleSaveEntry() {
+    private void handleUpdateEntry() {
         if (validateInput()) {
             try {
-                // Crea la misurazione
-                GlucoseMeasurement measurement = createMeasurementFromInput();
+                // Crea la misurazione aggiornata
+                GlucoseMeasurement updatedMeasurement = createMeasurementFromInput();
+                
+                if (originalMeasurement != null) {
+                    updatedMeasurement.setId(originalMeasurement.getId());
+                }
 
-                // Salva nel database
-                boolean success = glucoseMeasurementDAO.insertGlucoseMeasurement(measurement);
+                // Aggiorna nel database
+                boolean success = glucoseMeasurementDAO.updateGlucoseMeasurement(updatedMeasurement);
 
                 if (success) {
                     showSuccessAlert();
-                    clearForm();
                     
                     // Notifica il refresh dei dati al controller padre
-                    if (onDataSaved != null) {
-                        onDataSaved.run();
+                    if (onDataUpdated != null) {
+                        onDataUpdated.run();
                     }
                 } else {
-                    showErrorAlert("Errore durante il salvataggio", "Non è stato possibile salvare la misurazione.");
+                    showErrorAlert("Errore durante l'aggiornamento", "Non è stato possibile aggiornare la misurazione.");
                 }
 
             } catch (SQLException e) {
-                showErrorAlert("Errore Database", "Errore durante il salvataggio: " + e.getMessage());
+                showErrorAlert("Errore Database", "Errore durante l'aggiornamento: " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -204,26 +226,17 @@ public class PatientDashboardGlucoseInsertController implements Initializable {
         return new GlucoseMeasurement(patientId, dateTime, value, type, notes);
     }
 
-    private void clearForm() {
-        datePicker.setValue(LocalDate.now());
-
-        LocalTime now = LocalTime.now();
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-        timeField.setText(now.format(timeFormatter));
-
-        typeComboBox.setValue("Before Breakfast");
-        valueField.clear();
-        notesArea.clear();
-    }
-
     private void showSuccessAlert() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Successo");
-        alert.setHeaderText("Misurazione Salvata");
-        alert.setContentText("La misurazione glicemica è stata salvata con successo!");
+        alert.setHeaderText("Misurazione Aggiornata");
+        alert.setContentText("La misurazione glicemica è stata aggiornata con successo!");
 
-        // Stile dell'alert
-        alert.getDialogPane().setStyle("-fx-background-color: #34495e;");
+        // Applica lo stile dark
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.getStylesheets().add(getClass().getResource("/assets/css/dashboard-styles.css").toExternalForm());
+        dialogPane.getStyleClass().add("alert");
+        
         alert.showAndWait();
     }
 
@@ -233,22 +246,17 @@ public class PatientDashboardGlucoseInsertController implements Initializable {
         alert.setHeaderText("Errore");
         alert.setContentText(message);
 
-        // Stile dell'alert
-        alert.getDialogPane().setStyle("-fx-background-color: #34495e;");
+        // Applica lo stile dark
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.getStylesheets().add(getClass().getResource("/assets/css/dashboard-styles.css").toExternalForm());
+        dialogPane.getStyleClass().add("alert");
+        
         alert.showAndWait();
     }
 
-
-
-    // Metodo per chiudere la finestra (se necessario)
-    public void closeWindow() {
-        Stage stage = (Stage) saveButton.getScene().getWindow();
-        stage.close();
-    }
-    
     // Setter per il callback di refresh dati
-    public void setOnDataSaved(Runnable onDataSaved) {
-        this.onDataSaved = onDataSaved;
+    public void setOnDataUpdated(Runnable onDataUpdated) {
+        this.onDataUpdated = onDataUpdated;
     }
     
     // Setter per il callback di annullamento

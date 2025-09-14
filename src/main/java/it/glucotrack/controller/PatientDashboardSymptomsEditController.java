@@ -4,9 +4,8 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.stage.Stage;
+import it.glucotrack.model.Symptom;
 import it.glucotrack.util.SymptomDAO;
-import it.glucotrack.util.SessionManager;
 
 import java.net.URL;
 import java.sql.SQLException;
@@ -17,7 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ResourceBundle;
 
-public class PatientDashboardSymptomsInsertController implements Initializable {
+public class PatientDashboardSymptomsEditController implements Initializable {
 
     @FXML
     private TextField dateField;
@@ -41,36 +40,24 @@ public class PatientDashboardSymptomsInsertController implements Initializable {
     private TextArea notesArea;
 
     @FXML
-    private Button logSymptomButton;
+    private Button updateSymptomButton;
 
     private SymptomDAO symptomDAO;
     
-    // Callback per quando i dati vengono salvati con successo
-    private Runnable onDataSaved;
+    // Callback per quando i dati vengono aggiornati con successo
+    private Runnable onDataUpdated;
     
     // Callback per quando si preme cancel
     private Runnable onCancel;
+    
+    // Il sintomo originale che stiamo modificando
+    private Symptom originalSymptom;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         symptomDAO = new SymptomDAO();
-
-        // Inizializza i valori di default
-        setupDefaultValues();
         setupValidation();
         setupComboBox();
-    }
-
-    private void setupDefaultValues() {
-        // Imposta la data corrente in formato MM/dd/yyyy
-        LocalDate now = LocalDate.now();
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-        dateField.setText(now.format(dateFormatter));
-
-        // Imposta l'ora corrente in formato 12 ore
-        LocalTime nowTime = LocalTime.now();
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mm a");
-        timeField.setText(nowTime.format(timeFormatter));
     }
 
     private void setupComboBox() {
@@ -106,36 +93,67 @@ public class PatientDashboardSymptomsInsertController implements Initializable {
 
         // Limita la lunghezza delle note
         notesArea.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue.length() > 300) {
+            if (newValue.length() > 1000) {
                 notesArea.setText(oldValue);
             }
         });
     }
+    
+    public void setupForEdit(Symptom symptom) {
+        this.originalSymptom = symptom;
+        
+        // Carica i dati del sintomo nei campi del form
+        LocalDateTime dateTime = symptom.getDateAndTime();
+        
+        // Imposta la data in formato MM/dd/yyyy
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+        dateField.setText(dateTime.format(dateFormatter));
+        
+        // Imposta l'ora in formato 12 ore
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mm a");
+        timeField.setText(dateTime.format(timeFormatter));
+        
+        // Carica gli altri campi
+        symptomDescriptionArea.setText(symptom.getSymptomName());
+        severityComboBox.setValue(symptom.getGravity());
+        
+        // Imposta la durata nei ComboBox
+        if (symptom.getDuration() != null) {
+            LocalTime duration = symptom.getDuration();
+            hoursComboBox.setValue(duration.getHour());
+            minutesComboBox.setValue(duration.getMinute());
+        }
+        
+        if (symptom.getNotes() != null) {
+            notesArea.setText(symptom.getNotes());
+        }
+    }
 
     @FXML
-    private void handleLogSymptom() {
+    private void handleUpdateSymptom() {
         if (validateInput()) {
             try {
-                // Salva il sintomo nel database
-                boolean success = saveSymptom();
+                // Crea il sintomo aggiornato
+                Symptom updatedSymptom = createSymptomFromInput();
+                updatedSymptom.setId(originalSymptom.getId());
+                updatedSymptom.setPatient_id(originalSymptom.getPatient_id());
+
+                // Aggiorna nel database
+                boolean success = symptomDAO.updateSymptom(updatedSymptom);
 
                 if (success) {
                     showSuccessAlert();
-                    clearForm();
                     
-                    // Chiamare il callback se i dati sono stati salvati con successo
-                    if (onDataSaved != null) {
-                        onDataSaved.run();
+                    // Notifica il refresh dei dati al controller padre
+                    if (onDataUpdated != null) {
+                        onDataUpdated.run();
                     }
                 } else {
-                    showErrorAlert("Errore durante il salvataggio", "Non è stato possibile salvare il sintomo.");
+                    showErrorAlert("Errore durante l'aggiornamento", "Non è stato possibile aggiornare il sintomo.");
                 }
 
             } catch (SQLException e) {
-                showErrorAlert("Errore Database", "Errore durante il salvataggio: " + e.getMessage());
-                e.printStackTrace();
-            } catch (Exception e) {
-                showErrorAlert("Errore", "Si è verificato un errore: " + e.getMessage());
+                showErrorAlert("Errore Database", "Errore durante l'aggiornamento: " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -176,8 +194,6 @@ public class PatientDashboardSymptomsInsertController implements Initializable {
             errors.append("- Il livello di severità è obbligatorio\n");
         }
 
-        // Durata è completamente opzionale
-
         if (errors.length() > 0) {
             showErrorAlert("Errori di Validazione", errors.toString());
             return false;
@@ -192,62 +208,49 @@ public class PatientDashboardSymptomsInsertController implements Initializable {
     }
 
     private LocalTime parseTime(String timeText) throws DateTimeParseException {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm a");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("h:mm a");
         return LocalTime.parse(timeText, formatter);
     }
 
-    private boolean saveSymptom() throws SQLException {
-        // Parsing della data e ora
+
+
+    private Symptom createSymptomFromInput() throws DateTimeParseException {
         LocalDate date = parseDate(dateField.getText());
         LocalTime time = parseTime(timeField.getText());
         LocalDateTime dateTime = LocalDateTime.of(date, time);
 
-        String symptomDescription = symptomDescriptionArea.getText().trim();
+        String symptomName = symptomDescriptionArea.getText().trim();
         String severity = severityComboBox.getValue();
+        String notes = notesArea.getText().trim();
         Integer hours = hoursComboBox.getValue();
         Integer minutes = minutesComboBox.getValue();
-        String notes = notesArea.getText().trim();
+        LocalTime duration = LocalTime.of(hours != null ? hours : 0, minutes != null ? minutes : 0);
 
-        // Crea un oggetto Symptom del modello
-        it.glucotrack.model.Symptom symptom = new it.glucotrack.model.Symptom();
-        symptom.setSymptomName(symptomDescription);
+        Symptom symptom = new Symptom();
+        symptom.setSymptomName(symptomName);
         symptom.setGravity(severity);
-        symptom.setNotes(notes);
         symptom.setDateAndTime(dateTime);
-        
-        // Crea LocalTime dalla selezione di ore e minuti
-        LocalTime durationTime = LocalTime.of(hours != null ? hours : 0, minutes != null ? minutes : 0);
-        symptom.setDuration(durationTime);
+        symptom.setDuration(duration);
+        symptom.setNotes(notes);
 
-        int patientId = SessionManager.getInstance().getCurrentUser().getId();
-        
-        // Usa il nuovo metodo che inserisce tutti i campi separati
-        return symptomDAO.insertSymptom(patientId, symptom);
-    }
-    
-
-
-    private void clearForm() {
-        // Reset della data e ora correnti
-        setupDefaultValues();
-
-        // Pulisci tutti i campi
-        symptomDescriptionArea.clear();
-        severityComboBox.setValue(null);
-        severityComboBox.setPromptText("Select Severity");
-        hoursComboBox.setValue(0);
-        minutesComboBox.setValue(0);
-        notesArea.clear();
+        return symptom;
     }
 
     private void showSuccessAlert() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Successo");
-        alert.setHeaderText("Sintomo Registrato");
-        alert.setContentText("Il sintomo è stato registrato con successo nel tuo diario medico!");
+        alert.setHeaderText("Sintomo Aggiornato");
+        alert.setContentText("Il sintomo è stato aggiornato con successo!");
 
-        // Stile dell'alert per matchare il tema scuro
-        alert.getDialogPane().setStyle("-fx-background-color: #2c3e50; -fx-text-fill: white;");
+        // Applica lo stile dark
+        try {
+            DialogPane dialogPane = alert.getDialogPane();
+            dialogPane.getStylesheets().add(getClass().getResource("/assets/css/dashboard-styles.css").toExternalForm());
+            dialogPane.getStyleClass().add("alert");
+        } catch (Exception e) {
+            System.err.println("Impossibile applicare lo stile al dialog: " + e.getMessage());
+        }
+        
         alert.showAndWait();
     }
 
@@ -257,48 +260,31 @@ public class PatientDashboardSymptomsInsertController implements Initializable {
         alert.setHeaderText("Errore");
         alert.setContentText(message);
 
-        // Stile dell'alert per matchare il tema scuro
-        alert.getDialogPane().setStyle("-fx-background-color: #2c3e50; -fx-text-fill: white;");
+        // Applica lo stile dark
+        try {
+            DialogPane dialogPane = alert.getDialogPane();
+            dialogPane.getStylesheets().add(getClass().getResource("/assets/css/dashboard-styles.css").toExternalForm());
+            dialogPane.getStyleClass().add("alert");
+        } catch (Exception e) {
+            System.err.println("Impossibile applicare lo stile al dialog: " + e.getMessage());
+        }
+        
         alert.showAndWait();
     }
 
-    // Metodo per chiudere la finestra (se necessario)
-    public void closeWindow() {
-        Stage stage = (Stage) logSymptomButton.getScene().getWindow();
-        stage.close();
-    }
-
-    // Metodi di utilità per ottenere i valori correnti (utile per testing o integrazione)
-    public String getCurrentSymptomName() {
-        return symptomDescriptionArea.getText().trim();
-    }
-
-    public String getCurrentSeverity() {
-        return severityComboBox.getValue();
-    }
-
-    public String getCurrentDuration() {
-        Integer hours = hoursComboBox.getValue();
-        Integer minutes = minutesComboBox.getValue();
-        return String.format("%02d:%02d", hours != null ? hours : 0, minutes != null ? minutes : 0);
-    }
-
-    public String getCurrentNotes() {
-        return notesArea.getText().trim();
+    // Setter per il callback di refresh dati
+    public void setOnDataUpdated(Runnable onDataUpdated) {
+        this.onDataUpdated = onDataUpdated;
     }
     
-    // Metodi per impostare i callback
-    public void setOnDataSaved(Runnable onDataSaved) {
-        this.onDataSaved = onDataSaved;
-    }
-    
+    // Setter per il callback di annullamento
     public void setOnCancel(Runnable onCancel) {
         this.onCancel = onCancel;
     }
     
-    // Metodo per gestire il cancel
     @FXML
     private void handleCancel() {
+        // Esegui il callback di annullamento se presente
         if (onCancel != null) {
             onCancel.run();
         }

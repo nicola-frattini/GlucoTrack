@@ -63,20 +63,24 @@ public class GlucoseMeasurementDAO {
     }
 
     public boolean insertGlucoseMeasurement(GlucoseMeasurement measurement) throws SQLException {
-        String sql = "INSERT INTO glucose_measurements (patient_id, value, measurement_time) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO glucose_measurements (patient_id, value, measurement_time, type, notes) VALUES (?, ?, ?, ?, ?)";
         int rows = DatabaseInteraction.executeUpdate(sql,
                 measurement.getPatientId(), 
-                measurement.getGlucoseLevel(), 
-                java.sql.Timestamp.valueOf(measurement.getDateAndTime()));
+                (int) measurement.getGlucoseLevel(), 
+                java.sql.Timestamp.valueOf(measurement.getDateAndTime()),
+                measurement.getType(),
+                measurement.getNotes());
         return rows > 0;
     }
 
     public boolean updateGlucoseMeasurement(GlucoseMeasurement measurement) throws SQLException {
-        String sql = "UPDATE glucose_measurements SET patient_id=?, value=?, measurement_time=? WHERE id=?";
+        String sql = "UPDATE glucose_measurements SET patient_id=?, value=?, measurement_time=?, type=?, notes=? WHERE id=?";
         int rows = DatabaseInteraction.executeUpdate(sql,
                 measurement.getPatientId(), 
-                measurement.getGlucoseLevel(), 
-                java.sql.Timestamp.valueOf(measurement.getDateAndTime()), 
+                (int) measurement.getGlucoseLevel(), 
+                java.sql.Timestamp.valueOf(measurement.getDateAndTime()),
+                measurement.getType(),
+                measurement.getNotes(),
                 measurement.getId());
         return rows > 0;
     }
@@ -85,6 +89,22 @@ public class GlucoseMeasurementDAO {
         String sql = "DELETE FROM glucose_measurements WHERE id = ?";
         int rows = DatabaseInteraction.executeUpdate(sql, id);
         return rows > 0;
+    }
+    
+    public boolean deleteGlucoseMeasurement(int patientId, LocalDateTime dateTime, float value) throws SQLException {
+        String sql = "DELETE FROM glucose_measurements WHERE patient_id = ? AND measurement_time = ? AND value = ?";
+        int rows = DatabaseInteraction.executeUpdate(sql, patientId, java.sql.Timestamp.valueOf(dateTime), (int) value);
+        return rows > 0;
+    }
+    
+    public GlucoseMeasurement findGlucoseMeasurement(int patientId, LocalDateTime dateTime, float value) throws SQLException {
+        String sql = "SELECT * FROM glucose_measurements WHERE patient_id = ? AND measurement_time = ? AND value = ?";
+        try (ResultSet rs = DatabaseInteraction.executeQuery(sql, patientId, java.sql.Timestamp.valueOf(dateTime), (int) value)) {
+            if (rs.next()) {
+                return mapResultSetToGlucoseMeasurement(rs);
+            }
+        }
+        return null;
     }
 
     public List<GlucoseMeasurement> getHighGlucoseReadings(int patientId, int threshold) throws SQLException {
@@ -104,6 +124,23 @@ public class GlucoseMeasurementDAO {
         measurement.setPatientId(rs.getInt("patient_id"));
         measurement.setGlucoseLevel(rs.getFloat("value"));
         measurement.setDateAndTime(rs.getTimestamp("measurement_time").toLocalDateTime());
+        
+        // Handle type column - default to "Before Breakfast" if null or missing
+        try {
+            String type = rs.getString("type");
+            measurement.setType(type != null ? type : "Before Breakfast");
+        } catch (SQLException e) {
+            measurement.setType("Before Breakfast");
+        }
+        
+        // Handle notes column - default to empty string if null or missing
+        try {
+            String notes = rs.getString("notes");
+            measurement.setNotes(notes != null ? notes : "");
+        } catch (SQLException e) {
+            measurement.setNotes("");
+        }
+        
         return measurement;
     }
 }

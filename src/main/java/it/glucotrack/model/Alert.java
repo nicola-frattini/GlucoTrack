@@ -18,4 +18,5 @@ public class Alert {
     public void setType(AlertType type) { this.type = type; }
 
 
+
 }

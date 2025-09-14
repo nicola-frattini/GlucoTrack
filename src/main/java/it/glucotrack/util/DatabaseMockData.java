@@ -213,10 +213,18 @@ public class DatabaseMockData {
                 
                 // Valori realistici di glicemia (70-300 mg/dL)
                 float value = 70.0f + random.nextFloat() * 231.0f;
-                boolean beforeMeal = random.nextBoolean();
-                String notes = beforeMeal ? "Prima del pasto" : "Dopo il pasto";
                 
-                GlucoseMeasurement measurement = new GlucoseMeasurement(patient.getId(), measurementTime, value, beforeMeal, notes);
+                // Seleziona un tipo di misurazione casuale
+                String[] measurementTypes = {
+                    "Before Breakfast", "After Breakfast",
+                    "Before Lunch", "After Lunch", 
+                    "Before Dinner", "After Dinner",
+                    "Before Sleep", "Fasting", "Random"
+                };
+                String type = measurementTypes[random.nextInt(measurementTypes.length)];
+                String notes = type.toLowerCase().contains("before") ? "Prima del pasto" : "Dopo il pasto";
+                
+                GlucoseMeasurement measurement = new GlucoseMeasurement(patient.getId(), measurementTime, value, type, notes);
                 glucoseDAO.insertGlucoseMeasurement(measurement);
                 measurementCount++;
             }

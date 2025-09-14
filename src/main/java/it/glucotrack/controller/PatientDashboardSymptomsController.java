@@ -113,10 +113,197 @@ public class PatientDashboardSymptomsController implements Initializable {
         });
 
         symptomsTable.setStyle("-fx-background-color: #2C3E50; -fx-text-fill: white;");
+        
+        // Setup context menu for the table
+        setupContextMenu();
     }
 
     private void setupEventHandlers() {
         addNewSymptomBtn.setOnAction(e -> handleAddNewSymptom());
+    }
+    
+    private void setupContextMenu() {
+        // Create context menu items
+        MenuItem editItem = new MenuItem("Modifica");
+        MenuItem deleteItem = new MenuItem("Cancella");
+        
+        // Set up actions
+        editItem.setOnAction(e -> {
+            Symptom selectedSymptom = symptomsTable.getSelectionModel().getSelectedItem();
+            if (selectedSymptom != null) {
+                handleEditSymptom(selectedSymptom);
+            }
+        });
+        
+        deleteItem.setOnAction(e -> {
+            Symptom selectedSymptom = symptomsTable.getSelectionModel().getSelectedItem();
+            if (selectedSymptom != null) {
+                handleDeleteSymptom(selectedSymptom);
+            }
+        });
+        
+        // Create context menu
+        ContextMenu contextMenu = new ContextMenu();
+        contextMenu.getItems().addAll(editItem, deleteItem);
+        
+        // Set up custom row factory with context menu and selection highlighting
+        symptomsTable.setRowFactory(tv -> {
+            TableRow<Symptom> row = new TableRow<Symptom>() {
+                @Override
+                protected void updateItem(Symptom item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setStyle("");
+                    }
+                }
+                
+                @Override
+                public void updateSelected(boolean selected) {
+                    super.updateSelected(selected);
+                    if (selected && getItem() != null) {
+                        setStyle("-fx-background-color: #0078d4; -fx-text-fill: white;");
+                    } else if (getItem() != null) {
+                        setStyle("");
+                    }
+                }
+            };
+            
+            // Add hover effect
+            row.setOnMouseEntered(e -> {
+                if (row.getItem() != null && !row.isSelected()) {
+                    row.setStyle("-fx-background-color: rgba(255, 255, 255, 0.1);");
+                }
+            });
+            
+            row.setOnMouseExited(e -> {
+                if (row.getItem() != null && !row.isSelected()) {
+                    row.setStyle("");
+                }
+            });
+            
+            // Only show context menu when row has data
+            row.contextMenuProperty().bind(
+                javafx.beans.binding.Bindings.when(row.emptyProperty())
+                .then((ContextMenu) null)
+                .otherwise(contextMenu)
+            );
+            
+            return row;
+        });
+    }
+    
+    private void handleEditSymptom(Symptom selectedSymptom) {
+        try {
+            // Load the edit form
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/PatientDashboardSymptomEdit.fxml"));
+            Parent editView = loader.load();
+            
+            // Get the controller and set up for editing
+            PatientDashboardSymptomsEditController editController = loader.getController();
+            editController.setupForEdit(selectedSymptom);
+            
+            // Set callbacks
+            editController.setOnDataUpdated(() -> {
+                refreshData();
+                returnToSymptoms();
+            });
+            
+            editController.setOnCancel(this::returnToSymptoms);
+            
+            // Load in main dashboard
+            loadContentInMainDashboard(editView);
+            
+        } catch (Exception e) {
+            System.err.println("Errore nell'apertura del form di modifica sintomo: " + e.getMessage());
+            showErrorAlert("Errore", "Impossibile aprire il form di modifica.");
+        }
+    }
+    
+    private void handleDeleteSymptom(Symptom selectedSymptom) {
+        // Show confirmation dialog
+        Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmationAlert.setTitle("Conferma Cancellazione");
+        confirmationAlert.setHeaderText("Eliminare questo sintomo?");
+        confirmationAlert.setContentText(String.format(
+            "Vuoi davvero eliminare il sintomo:\n\n" +
+            "Nome: %s\n" +
+            "Gravità: %s\n" +
+            "Data: %s\n" +
+            "Note: %s",
+            selectedSymptom.getSymptomName(),
+            selectedSymptom.getGravity(),
+            selectedSymptom.getDateAndTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
+            selectedSymptom.getNotes().isEmpty() ? "Nessuna nota" : selectedSymptom.getNotes()
+        ));
+        
+        // Apply dark theme to the alert
+        DialogPane dialogPane = confirmationAlert.getDialogPane();
+        try {
+            dialogPane.getStylesheets().add(getClass().getResource("/assets/css/dashboard-styles.css").toExternalForm());
+            dialogPane.getStyleClass().add("alert");
+        } catch (Exception e) {
+            System.err.println("Impossibile applicare lo stile al dialog: " + e.getMessage());
+        }
+        
+        Optional<ButtonType> result = confirmationAlert.showAndWait();
+        
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            // Delete from database
+            try {
+                SymptomDAO symptomDAO = new SymptomDAO();
+                boolean deleted = symptomDAO.deleteSymptomById(selectedSymptom.getId());
+                
+                if (deleted) {
+                    // Remove from table data
+                    symptoms.remove(selectedSymptom);
+                    
+                    showSuccessAlert("Successo", "Sintomo eliminato con successo.");
+                    System.out.println("✅ Sintomo eliminato con successo");
+                } else {
+                    showErrorAlert("Errore", "Impossibile eliminare il sintomo dal database.");
+                }
+                
+            } catch (SQLException e) {
+                System.err.println("Errore nell'eliminazione del sintomo: " + e.getMessage());
+                showErrorAlert("Errore Database", "Errore nell'eliminazione del sintomo: " + e.getMessage());
+            }
+        }
+    }
+    
+    private void showErrorAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        
+        // Apply dark theme
+        try {
+            DialogPane dialogPane = alert.getDialogPane();
+            dialogPane.getStylesheets().add(getClass().getResource("/assets/css/dashboard-styles.css").toExternalForm());
+            dialogPane.getStyleClass().add("alert");
+        } catch (Exception e) {
+            System.err.println("Impossibile applicare lo stile al dialog: " + e.getMessage());
+        }
+        
+        alert.showAndWait();
+    }
+    
+    private void showSuccessAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        
+        // Apply dark theme
+        try {
+            DialogPane dialogPane = alert.getDialogPane();
+            dialogPane.getStylesheets().add(getClass().getResource("/assets/css/dashboard-styles.css").toExternalForm());
+            dialogPane.getStyleClass().add("alert");
+        } catch (Exception e) {
+            System.err.println("Impossibile applicare lo stile al dialog: " + e.getMessage());
+        }
+        
+        alert.showAndWait();
     }
 
     private void loadData() {

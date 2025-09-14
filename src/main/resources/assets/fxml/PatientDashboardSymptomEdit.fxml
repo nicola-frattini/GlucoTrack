@@ -1,24 +1,11 @@
-<?xml version="1.0" encoding=                        <!-- Duration Field -->
-                        <VBox spacing="10.0" HBox.hgrow="ALWAYS">
-                           <children>
-                              <Label style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;" text="Duration" />
-                              <HBox spacing="10.0" alignment="CENTER_LEFT">
-                                 <children>
-                                    <ComboBox fx:id="hoursComboBox" prefHeight="50.0" prefWidth="80.0" promptText="Hours" style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-prompt-text-fill: #7f8c8d; -fx-background-radius: 8; -fx-border-color: #4a6278; -fx-border-width: 1; -fx-border-radius: 8; -fx-cursor: hand;" />
-                                    <Label style="-fx-text-fill: white; -fx-font-size: 14px;" text="h" />
-                                    <ComboBox fx:id="minutesComboBox" prefHeight="50.0" prefWidth="80.0" promptText="Minutes" style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-prompt-text-fill: #7f8c8d; -fx-background-radius: 8; -fx-border-color: #4a6278; -fx-border-width: 1; -fx-border-radius: 8; -fx-cursor: hand;" />
-                                    <Label style="-fx-text-fill: white; -fx-font-size: 14px;" text="m" />
-                                 </children>
-                              </HBox>
-                           </children>
-                        </VBox>?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<VBox xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.glucotrack.controller.PatientDashboardSymptomsInsertController" stylesheets="@../css/symptom-form-style.css">
+<VBox xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.glucotrack.controller.PatientDashboardSymptomsEditController" stylesheets="@../css/symptom-form-style.css">
    <children>
       <!-- Main Content -->
       <VBox alignment="TOP_CENTER" prefHeight="700.0" style="-fx-background-color: #2c3e50;" VBox.vgrow="ALWAYS">
@@ -26,8 +13,8 @@
             <!-- Title Section -->
             <VBox alignment="CENTER" spacing="15.0">
                <children>
-                  <Label style="-fx-text-fill: white; -fx-font-size: 36px; -fx-font-weight: bold;" text="Log a New Symptom" />
-                  <Label style="-fx-text-fill: #95a5a6; -fx-font-size: 16px;" text="Record any new symptoms you're experiencing for your health record." textAlignment="CENTER" wrapText="true" />
+                  <Label style="-fx-text-fill: white; -fx-font-size: 36px; -fx-font-weight: bold;" text="Edit Symptom" />
+                  <Label style="-fx-text-fill: #95a5a6; -fx-font-size: 16px;" text="Modify the details of your existing symptom record." textAlignment="CENTER" wrapText="true" />
                </children>
                <VBox.margin>
                   <Insets bottom="50.0" top="60.0" />
@@ -106,7 +93,7 @@
                   <HBox spacing="20.0" alignment="CENTER">
                      <children>
                         <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#handleCancel" prefHeight="55.0" prefWidth="150.0" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-border-radius: 10; -fx-cursor: hand;" text="Cancel" />
-                        <Button fx:id="logSymptomButton" mnemonicParsing="false" onAction="#handleLogSymptom" prefHeight="55.0" prefWidth="200.0" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-border-radius: 10; -fx-cursor: hand;" text="Log Symptom" />
+                        <Button fx:id="updateSymptomButton" mnemonicParsing="false" onAction="#handleUpdateSymptom" prefHeight="55.0" prefWidth="200.0" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-border-radius: 10; -fx-cursor: hand;" text="Update Symptom" />
                      </children>
                      <VBox.margin>
                         <Insets top="20.0" />

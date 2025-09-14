@@ -9,26 +9,26 @@ public class GlucoseMeasurement {
     int patientId;
     LocalDateTime dateAndTime;
     float glucoseLevel; // in mg/dL
-    boolean beforeMeal; // true if before meal, false if after meal
+    String type; // Type of measurement: "Before Breakfast", "After Lunch", etc.
     String notes;
 
 
-    public GlucoseMeasurement(int id, int patientId, LocalDateTime dateAndTime, float glucoseLevel, boolean beforeMeal, String notes) {
+    public GlucoseMeasurement(int id, int patientId, LocalDateTime dateAndTime, float glucoseLevel, String type, String notes) {
         this.id = id;
         this.patientId = patientId;
         this.dateAndTime = dateAndTime;
         this.glucoseLevel = glucoseLevel;
-        this.beforeMeal = beforeMeal;
+        this.type = type;
         this.notes = notes;
     }
 
     // ===== Constructor without ID (for new records) =====
-    public GlucoseMeasurement(int patientId, LocalDateTime dateAndTime, float glucoseLevel, boolean beforeMeal, String notes) {
+    public GlucoseMeasurement(int patientId, LocalDateTime dateAndTime, float glucoseLevel, String type, String notes) {
         this.id = -1; // Will be set by database
         this.patientId = patientId;
         this.dateAndTime = dateAndTime;
         this.glucoseLevel = glucoseLevel;
-        this.beforeMeal = beforeMeal;
+        this.type = type;
         this.notes = notes;
     }
 
@@ -37,7 +37,7 @@ public class GlucoseMeasurement {
         this.patientId = -1;
         this.dateAndTime = LocalDateTime.now();
         this.glucoseLevel = 0.0f;
-        this.beforeMeal = true;
+        this.type = "Before Breakfast";
         this.notes = "";
     }
 
@@ -53,11 +53,16 @@ public class GlucoseMeasurement {
     public float getGlucoseLevel() {return glucoseLevel;}
     public void setGlucoseLevel(float glucoseLevel) {this.glucoseLevel = glucoseLevel;}
 
-    public boolean isBeforeMeal() {return beforeMeal;}
-    public void setBeforeMeal(boolean beforeMeal) {this.beforeMeal = beforeMeal;}
+    public String getType() {return type;}
+    public void setType(String type) {this.type = type;}
 
     public String getNotes() {return notes;}
     public void setNotes(String notes) {this.notes = notes;}
+
+    // Helper method to check if measurement is before meal
+    public boolean isBeforeMeal() {
+        return type != null && type.toLowerCase().contains("before");
+    }
 
     public Status getStatus() {
         return Status.fromGlucoseValue(glucoseLevel);
@@ -68,12 +73,12 @@ public class GlucoseMeasurement {
 
     @Override
     public String toString() {
-        return "GlucoseMesourament{" +
+        return "GlucoseMeasurement{" +
                 "id=" + id +
                 ", patientId=" + patientId +
                 ", dateAndTime=" + dateAndTime +
                 ", glucoseLevel=" + glucoseLevel +
-                ", beforeMeal=" + beforeMeal +
+                ", type='" + type + '\'' +
                 ", notes='" + notes + '\'' +
                 '}';
     }

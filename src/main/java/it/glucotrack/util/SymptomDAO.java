@@ -142,4 +142,93 @@ public class SymptomDAO {
             symptom.getDateAndTime());
         return rows > 0;
     }
+    
+    // Metodo per aggiornare un sintomo esistente
+    public boolean updateSymptom(Symptom symptom) throws SQLException {
+        String sql = "UPDATE patient_symptoms SET symptom=?, severity=?, duration=?, notes=?, symptom_date=? WHERE id=?";
+        int rows = DatabaseInteraction.executeUpdate(sql,
+            symptom.getSymptomName(),
+            symptom.getGravity(),
+            symptom.getDuration().toString(),
+            symptom.getNotes(),
+            symptom.getDateAndTime(),
+            symptom.getId());
+        return rows > 0;
+    }
+    
+    // Metodo per eliminare un sintomo per ID
+    public boolean deleteSymptomById(int id) throws SQLException {
+        String sql = "DELETE FROM patient_symptoms WHERE id = ?";
+        int rows = DatabaseInteraction.executeUpdate(sql, id);
+        return rows > 0;
+    }
+    
+    // Metodo per trovare un sintomo specifico per ID
+    public Symptom findSymptomById(int id) throws SQLException {
+        String sql = "SELECT id, patient_id, symptom, severity, duration, notes, symptom_date FROM patient_symptoms WHERE id = ?";
+        try (ResultSet rs = DatabaseInteraction.executeQuery(sql, id)) {
+            if (rs.next()) {
+                return mapResultSetToSymptom(rs);
+            }
+        }
+        return null;
+    }
+    
+    // Helper method per mappare ResultSet a Symptom
+    private Symptom mapResultSetToSymptom(ResultSet rs) throws SQLException {
+        int id = rs.getInt("id");
+        int patientId = rs.getInt("patient_id");
+        String name = rs.getString("symptom");
+        String severity = rs.getString("severity");
+        String duration = rs.getString("duration");
+        String notes = rs.getString("notes");
+        
+        // Gestione robusta del timestamp
+        LocalDateTime dateTime;
+        try {
+            Timestamp timestamp = rs.getTimestamp("symptom_date");
+            if (timestamp != null) {
+                dateTime = timestamp.toLocalDateTime();
+            } else {
+                dateTime = LocalDateTime.now();
+            }
+        } catch (SQLException e) {
+            String dateStr = rs.getString("symptom_date");
+            if (dateStr != null && !dateStr.isEmpty()) {
+                try {
+                    if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                        dateTime = LocalDate.parse(dateStr).atTime(12, 0);
+                    } else {
+                        dateTime = LocalDateTime.parse(dateStr.replace(" ", "T"));
+                    }
+                } catch (Exception parseEx) {
+                    dateTime = LocalDateTime.now();
+                }
+            } else {
+                dateTime = LocalDateTime.now();
+            }
+        }
+        
+        // Creiamo un oggetto Symptom
+        Symptom symptom = new Symptom();
+        symptom.setId(id);
+        symptom.setPatient_id(patientId);
+        symptom.setSymptomName(name);
+        symptom.setGravity(severity != null ? severity : "Mild");
+        symptom.setNotes(notes != null ? notes : "");
+        symptom.setDateAndTime(dateTime);
+        
+        // Gestione della durata
+        try {
+            if (duration != null && !duration.isEmpty()) {
+                symptom.setDuration(LocalTime.parse(duration));
+            } else {
+                symptom.setDuration(LocalTime.of(0, 0));
+            }
+        } catch (Exception e) {
+            symptom.setDuration(LocalTime.of(0, 0));
+        }
+        
+        return symptom;
+    }
 }

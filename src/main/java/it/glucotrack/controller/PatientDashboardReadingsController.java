@@ -13,6 +13,7 @@ import javafx.stage.Stage;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.util.Callback;
+import java.util.Optional;
 
 import java.io.IOException;
 import java.net.URL;
@@ -120,8 +121,8 @@ public class PatientDashboardReadingsController implements Initializable {
         // Usa lo status già calcolato dal modello
         String status = measurement.getStatusString();
         
-        // Determina il tipo basato su beforeMeal
-        String type = measurement.isBeforeMeal() ? "Before Meal" : "After Meal";
+        // Usa il tipo direttamente dal modello
+        String type = measurement.getType();
         
         return new GlucoseReading(measurement.getDateAndTime(), type, value, status);
     }
@@ -180,6 +181,9 @@ public class PatientDashboardReadingsController implements Initializable {
 
         // Set table styling
         readingsTable.setStyle("-fx-background-color: #2C3E50; -fx-text-fill: white;");
+        
+        // Setup context menu for the table
+        setupContextMenu();
     }
 
     private void setupComboBox() {
@@ -225,6 +229,186 @@ public class PatientDashboardReadingsController implements Initializable {
 
     private void setupEventHandlers() {
         addReadingBtn.setOnAction(e -> handleAddNewReading());
+    }
+    
+    private void setupContextMenu() {
+        // Create context menu items
+        MenuItem editItem = new MenuItem("Modifica");
+        MenuItem deleteItem = new MenuItem("Cancella");
+        
+        // Set up actions
+        editItem.setOnAction(e -> {
+            GlucoseReading selectedReading = readingsTable.getSelectionModel().getSelectedItem();
+            if (selectedReading != null) {
+                handleEditReading(selectedReading);
+            }
+        });
+        
+        deleteItem.setOnAction(e -> {
+            GlucoseReading selectedReading = readingsTable.getSelectionModel().getSelectedItem();
+            if (selectedReading != null) {
+                handleDeleteReading(selectedReading);
+            }
+        });
+        
+        // Create context menu
+        ContextMenu contextMenu = new ContextMenu();
+        contextMenu.getItems().addAll(editItem, deleteItem);
+        
+        // Set up custom row factory with context menu and selection highlighting
+        readingsTable.setRowFactory(tv -> {
+            TableRow<GlucoseReading> row = new TableRow<GlucoseReading>() {
+                @Override
+                protected void updateItem(GlucoseReading item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setStyle("");
+                    }
+                }
+                
+                @Override
+                public void updateSelected(boolean selected) {
+                    super.updateSelected(selected);
+                    if (selected && getItem() != null) {
+                        setStyle("-fx-background-color: #0078d4; -fx-text-fill: white;");
+                    } else if (getItem() != null) {
+                        setStyle("");
+                    }
+                }
+            };
+            
+            // Add hover effect
+            row.setOnMouseEntered(e -> {
+                if (row.getItem() != null && !row.isSelected()) {
+                    row.setStyle("-fx-background-color: rgba(255, 255, 255, 0.1);");
+                }
+            });
+            
+            row.setOnMouseExited(e -> {
+                if (row.getItem() != null && !row.isSelected()) {
+                    row.setStyle("");
+                }
+            });
+            
+            // Only show context menu when row has data
+            row.contextMenuProperty().bind(
+                javafx.beans.binding.Bindings.when(row.emptyProperty())
+                .then((ContextMenu) null)
+                .otherwise(contextMenu)
+            );
+            
+            return row;
+        });
+    }
+    
+    private void handleEditReading(GlucoseReading selectedReading) {
+        try {
+            // Load the edit form
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/PatientDashboardGlucoseEdit.fxml"));
+            Parent editView = loader.load();
+            
+            // Get the controller and set up for editing
+            PatientDashboardGlucoseEditController editController = loader.getController();
+            editController.setupForEdit(selectedReading);
+            
+            // Set callbacks
+            editController.setOnDataUpdated(() -> {
+                refreshData();
+                returnToReadings();
+            });
+            
+            editController.setOnCancel(this::returnToReadings);
+            
+            // Load in main dashboard
+            loadContentInMainDashboard(editView);
+            
+        } catch (IOException e) {
+            System.err.println("Errore nell'apertura del form di modifica: " + e.getMessage());
+            showErrorAlert("Errore", "Impossibile aprire il form di modifica.");
+        }
+    }
+    
+    private void handleDeleteReading(GlucoseReading selectedReading) {
+        // Show confirmation dialog
+        Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmationAlert.setTitle("Conferma Cancellazione");
+        confirmationAlert.setHeaderText("Eliminare questa misurazione?");
+        confirmationAlert.setContentText(String.format(
+            "Vuoi davvero eliminare la misurazione del %s alle %s?\nValore: %s\nTipo: %s",
+            selectedReading.getDateTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+            selectedReading.getFormattedTime(),
+            selectedReading.getFormattedValue(),
+            selectedReading.getType()
+        ));
+        
+        // Apply dark theme to the alert
+        DialogPane dialogPane = confirmationAlert.getDialogPane();
+        dialogPane.getStylesheets().add(getClass().getResource("/assets/css/dashboard-styles.css").toExternalForm());
+        dialogPane.getStyleClass().add("alert");
+        
+        Optional<ButtonType> result = confirmationAlert.showAndWait();
+        
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            // Delete from database
+            try {
+                GlucoseMeasurementDAO glucoseDAO = new GlucoseMeasurementDAO();
+                
+                // Find the corresponding GlucoseMeasurement in database by matching datetime and value
+                User currentUser = SessionManager.getInstance().getCurrentUser();
+                if (currentUser != null) {
+                    boolean deleted = glucoseDAO.deleteGlucoseMeasurement(
+                        currentUser.getId(), 
+                        selectedReading.getDateTime(), 
+                        (float) selectedReading.getValue()
+                    );
+                    
+                    if (deleted) {
+                        // Remove from table data
+                        readingsData.remove(selectedReading);
+                        filteredData.remove(selectedReading);
+                        
+                        showSuccessAlert("Successo", "Misurazione eliminata con successo.");
+                        System.out.println("✅ Misurazione eliminata con successo");
+                    } else {
+                        showErrorAlert("Errore", "Impossibile eliminare la misurazione dal database.");
+                    }
+                } else {
+                    showErrorAlert("Errore", "Nessun utente in sessione.");
+                }
+                
+            } catch (SQLException e) {
+                System.err.println("Errore nell'eliminazione della misurazione: " + e.getMessage());
+                showErrorAlert("Errore Database", "Errore nell'eliminazione della misurazione: " + e.getMessage());
+            }
+        }
+    }
+    
+    private void showErrorAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        
+        // Apply dark theme
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.getStylesheets().add(getClass().getResource("/assets/css/dashboard-styles.css").toExternalForm());
+        dialogPane.getStyleClass().add("alert");
+        
+        alert.showAndWait();
+    }
+    
+    private void showSuccessAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        
+        // Apply dark theme
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.getStylesheets().add(getClass().getResource("/assets/css/dashboard-styles.css").toExternalForm());
+        dialogPane.getStyleClass().add("alert");
+        
+        alert.showAndWait();
     }
 
 

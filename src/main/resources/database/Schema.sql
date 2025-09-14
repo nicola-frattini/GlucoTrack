@@ -26,6 +26,8 @@ CREATE TABLE glucose_measurements (
     patient_id INTEGER NOT NULL,
     value INTEGER NOT NULL,
     measurement_time DATETIME NOT NULL,
+    type VARCHAR(50) NOT NULL, -- 'Before Breakfast', 'After Breakfast', etc.
+    notes TEXT,
     FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
