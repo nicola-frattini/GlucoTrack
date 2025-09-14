@@ -62,11 +62,13 @@
                         <LineChart fx:id="glucoseChart" prefHeight="250"
                                    style="-fx-background-color: transparent;">
                             <xAxis>
-                                <CategoryAxis side="BOTTOM" style="-fx-tick-label-fill: #8892b0;"/>
+                                <CategoryAxis side="BOTTOM" style="-fx-tick-label-fill: #8892b0;"
+                                              tickLabelRotation="45" gapStartAndEnd="true" 
+                                              tickLabelGap="5" tickLength="8"/>
                             </xAxis>
                             <yAxis>
                                 <NumberAxis side="LEFT" style="-fx-tick-label-fill: #8892b0;"
-                                            lowerBound="60" upperBound="200"/>
+                                            lowerBound="60" upperBound="200" tickUnit="20"/>
                             </yAxis>
                         </LineChart>
 

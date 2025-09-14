@@ -1,6 +1,5 @@
 package it.glucotrack.controller;
 
-import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -311,8 +310,7 @@ public class DoctorDashboardPatientsController implements Initializable {
                                           LocalDate birthDate, String phone, int doctorId,
                                           int glucoseReading, String riskStatus) {
         Patient patient = new Patient(id, name, surname, email, "defaultPassword",
-                birthDate, Gender.MALE, phone, "Unknown", "FC" + id);
-        patient.setDoctorId(doctorId);
+                birthDate, Gender.MALE, phone, "Unknown", "FC" + id, doctorId);
 
         // Add sample glucose reading
         GlucoseMeasurement measurement = new GlucoseMeasurement();

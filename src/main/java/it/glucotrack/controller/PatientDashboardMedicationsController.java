@@ -9,10 +9,14 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.util.Callback;
 import java.net.URL;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ResourceBundle;
 import java.util.Optional;
+import it.glucotrack.model.User;
+import it.glucotrack.util.MedicationDAO;
+import it.glucotrack.util.SessionManager;
 
 public class PatientDashboardMedicationsController implements Initializable {
 
@@ -70,9 +74,9 @@ public class PatientDashboardMedicationsController implements Initializable {
     }
 
     private void initializeServices() {
-        // TODO: Sostituire con dependency injection reale
-        medicationService = new MockMedicationService();
-        medicationLogService = new MockMedicationLogService();
+        // Initialize DAO services
+        medicationService = new DatabaseMedicationService();
+        medicationLogService = new MockMedicationLogService(); // TODO: implement real service
     }
 
     private void setupPrescribedMedicationsTable() {
@@ -266,7 +270,9 @@ public class PatientDashboardMedicationsController implements Initializable {
         }
     }
 
-    // ========== SERVIZI MOCK (da sostituire con implementazioni reali) ==========
+        // ========== SERVIZI DATABASE E MOCK ==========
+
+    // Interfacce dei servizi
 
     public interface MedicationService {
         java.util.List<Medication> getPrescribedMedications();
@@ -276,6 +282,55 @@ public class PatientDashboardMedicationsController implements Initializable {
     public interface MedicationLogService {
         java.util.List<MedicationLog> getMedicationLogs();
         void saveMedicationLog(MedicationLog log);
+    }
+
+    // Implementazione database
+    private static class DatabaseMedicationService implements MedicationService {
+        private MedicationDAO medicationDAO;
+        
+        public DatabaseMedicationService() {
+            this.medicationDAO = new MedicationDAO();
+        }
+        
+        @Override
+        public java.util.List<Medication> getPrescribedMedications() {
+            try {
+                User currentUser = SessionManager.getInstance().getCurrentUser();
+                if (currentUser != null) {
+                    java.util.List<it.glucotrack.model.Medication> dbMedications = 
+                        medicationDAO.getMedicationsByPatientId(currentUser.getId());
+                    
+                    // Convert from model Medication to controller Medication
+                    java.util.List<Medication> controllerMedications = new java.util.ArrayList<>();
+                    for (it.glucotrack.model.Medication dbMed : dbMedications) {
+                        Medication controllerMed = new Medication(
+                            (long) dbMed.getId(),
+                            dbMed.getName_medication(),
+                            dbMed.getDose(),
+                            dbMed.getFreq().getDisplayName(),
+                            dbMed.getInstructions()
+                        );
+                        controllerMedications.add(controllerMed);
+                    }
+                    return controllerMedications;
+                }
+                return new java.util.ArrayList<>();
+            } catch (SQLException e) {
+                System.err.println("Errore nel recupero medications: " + e.getMessage());
+                return new java.util.ArrayList<>();
+            }
+        }
+        
+        @Override
+        public void saveMedication(Medication medication) {
+            try {
+                // Convert from controller Medication to model Medication would be needed here
+                // For now, this is just a placeholder
+                System.out.println("Save medication called: " + medication.getDrugName());
+            } catch (Exception e) {
+                System.err.println("Errore nel salvataggio medication: " + e.getMessage());
+            }
+        }
     }
 
     // Implementazioni mock

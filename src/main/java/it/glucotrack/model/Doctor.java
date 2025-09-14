@@ -12,6 +12,13 @@ public class Doctor extends User {
         this.specialization = "";
     }
 
+    // ===== Constructor without ID (for new records) =====
+    public Doctor(String name, String surname, String email, String password, LocalDate bornDate,
+                  Gender gender, String phone, String birthPlace, String fiscalCode, String specialization) {
+        super(name, surname, email, password, bornDate, gender, phone, birthPlace, fiscalCode);
+        this.specialization = specialization;
+    }
+
     // ===== Full constructor =====
     public Doctor(int id, String name, String surname, String email, String password, LocalDate bornDate,
                   Gender gender, String phone, String birthPlace, String fiscalCode, String specialization) {

@@ -5,19 +5,29 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
+
 import javafx.beans.property.SimpleStringProperty;
 import javafx.util.Callback;
+
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ResourceBundle;
+import java.sql.SQLException;
+import java.util.List;
+import it.glucotrack.util.SessionManager;
+import it.glucotrack.util.GlucoseMeasurementDAO;
+import it.glucotrack.model.User;
+import it.glucotrack.model.GlucoseMeasurement;
 
 public class PatientDashboardReadingsController implements Initializable {
 
     @FXML
-    private DatePicker datePicker;
+    private DatePicker startDatePicker;
+
+    @FXML
+    private DatePicker endDatePicker;
 
     @FXML
     private ComboBox<String> typeComboBox;
@@ -50,14 +60,64 @@ public class PatientDashboardReadingsController implements Initializable {
         setupComboBox();
         setupDatePicker();
         setupEventHandlers();
-        loadSampleData();
         applyFilters();
     }
 
     private void initializeData() {
         readingsData = FXCollections.observableArrayList();
         filteredData = FXCollections.observableArrayList();
+        
+        // Carica i dati reali dal database
+        loadGlucoseReadingsFromDatabase();
+        
         readingsTable.setItems(filteredData);
+    }
+    
+    private void loadGlucoseReadingsFromDatabase() {
+        try {
+            User currentUser = SessionManager.getInstance().getCurrentUser();
+            if (currentUser == null) {
+                System.err.println("❌ Nessun utente in sessione per caricare le readings!");
+                return;
+            }
+            
+            int patientId = currentUser.getId();
+            System.out.println("📊 Caricamento readings per paziente ID: " + patientId);
+            
+            GlucoseMeasurementDAO glucoseDAO = new GlucoseMeasurementDAO();
+            List<GlucoseMeasurement> measurements = glucoseDAO.getGlucoseMeasurementsByPatientId(patientId);
+            
+            System.out.println("📊 Trovate " + measurements.size() + " misurazioni nel database");
+            
+            // Converti GlucoseMeasurement in GlucoseReading per la tabella
+            for (GlucoseMeasurement measurement : measurements) {
+                GlucoseReading reading = convertToGlucoseReading(measurement);
+                readingsData.add(reading);
+                filteredData.add(reading);
+            }
+            
+            System.out.println("✅ Readings caricate con successo nella tabella");
+            
+        } catch (SQLException e) {
+            System.err.println("❌ Errore nel caricamento delle readings: " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println("❌ Errore generico nel caricamento delle readings: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    private GlucoseReading convertToGlucoseReading(GlucoseMeasurement measurement) {
+        // Converti il valore dalla misurazione (da float a int per la tabella)
+        int value = Math.round(measurement.getGlucoseLevel());
+        
+        // Usa lo status già calcolato dal modello
+        String status = measurement.getStatusString();
+        
+        // Determina il tipo basato su beforeMeal
+        String type = measurement.isBeforeMeal() ? "Before Meal" : "After Meal";
+        
+        return new GlucoseReading(measurement.getDateAndTime(), type, value, status);
     }
 
     private void setupTableColumns() {
@@ -128,50 +188,62 @@ public class PatientDashboardReadingsController implements Initializable {
     }
 
     private void setupDatePicker() {
-        datePicker.setValue(LocalDate.of(2023, 10, 27));
-        datePicker.setOnAction(e -> applyFilters());
+        try {
+            // Imposta le date di default (ultima settimana) senza modificare prompt text
+            LocalDate endDate = LocalDate.now();
+            LocalDate startDate = endDate.minusDays(7);
+            
+            // Imposta valori di default in modo sicuro
+            startDatePicker.setValue(startDate);
+            endDatePicker.setValue(endDate);
+            
+            // Pulisce il prompt text per evitare conflitti
+            startDatePicker.setPromptText("");
+            endDatePicker.setPromptText("");
+            
+            // Listener per entrambi i date picker
+            startDatePicker.setOnAction(e -> {
+                System.out.println("Start date changed: " + startDatePicker.getValue());
+                applyFilters();
+            });
+            endDatePicker.setOnAction(e -> {
+                System.out.println("End date changed: " + endDatePicker.getValue());
+                applyFilters();
+            });
+            
+        } catch (Exception e) {
+            System.err.println("Errore nella configurazione dei DatePicker: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void setupEventHandlers() {
         addReadingBtn.setOnAction(e -> handleAddNewReading());
     }
 
-    private void loadSampleData() {
-        // Sample data matching the screenshot
-        readingsData.add(new GlucoseReading(
-                LocalDateTime.of(2023, 10, 27, 8, 15),
-                "Pre-Meal", 95, "Normal"
-        ));
 
-        readingsData.add(new GlucoseReading(
-                LocalDateTime.of(2023, 10, 27, 12, 45),
-                "Post-Meal", 165, "Elevated"
-        ));
-
-        readingsData.add(new GlucoseReading(
-                LocalDateTime.of(2023, 10, 27, 18, 30),
-                "Pre-Meal", 110, "Normal"
-        ));
-
-        readingsData.add(new GlucoseReading(
-                LocalDateTime.of(2023, 10, 27, 20, 0),
-                "Post-Meal", 190, "High"
-        ));
-
-        readingsData.add(new GlucoseReading(
-                LocalDateTime.of(2023, 10, 27, 22, 0),
-                "Bedtime", 120, "Normal"
-        ));
-    }
 
     private void applyFilters() {
         filteredData.clear();
 
-        LocalDate selectedDate = datePicker.getValue();
+        LocalDate startDate = startDatePicker.getValue();
+        LocalDate endDate = endDatePicker.getValue();
         String selectedType = typeComboBox.getValue();
 
         for (GlucoseReading reading : readingsData) {
-            boolean matchesDate = selectedDate == null || reading.getDateTime().toLocalDate().equals(selectedDate);
+            LocalDate readingDate = reading.getDateTime().toLocalDate();
+            
+            // Verifica se la data è nel range selezionato
+            boolean matchesDate = true;
+            if (startDate != null && endDate != null) {
+                matchesDate = (readingDate.isEqual(startDate) || readingDate.isAfter(startDate)) &&
+                             (readingDate.isEqual(endDate) || readingDate.isBefore(endDate));
+            } else if (startDate != null) {
+                matchesDate = readingDate.isEqual(startDate) || readingDate.isAfter(startDate);
+            } else if (endDate != null) {
+                matchesDate = readingDate.isEqual(endDate) || readingDate.isBefore(endDate);
+            }
+            
             boolean matchesType = selectedType == null || selectedType.equals("All Types") || reading.getType().equals(selectedType);
 
             if (matchesDate && matchesType) {
@@ -200,6 +272,10 @@ public class PatientDashboardReadingsController implements Initializable {
 
     // Method to refresh data (useful for external updates)
     public void refreshData() {
+        // Ricarica i dati dal database
+        readingsData.clear();
+        filteredData.clear();
+        loadGlucoseReadingsFromDatabase();
         applyFilters();
     }
 

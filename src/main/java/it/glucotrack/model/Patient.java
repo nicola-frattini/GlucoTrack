@@ -9,15 +9,26 @@ public class Patient extends User {
     private int doctorId;                       // DB reference to assigned doctor
     private List<GlucoseMeasurement> glucoseReadings; // Daily glucose readings
     private List<String> symptoms;              // Symptoms reported
-    private List<Medication> medications;      // Medications taken
+    private List<RiskFactor> riskFactors;       // Patient risk factors
+
 
     // ===== Default constructor =====
-    public Patient(int id, String name, String surname, String email, String defaultPassword, LocalDate birthDate, Gender male, String phone, String unknown, String s) {
+    public Patient() {
         super();
         this.doctorId = -1;
         this.glucoseReadings = new ArrayList<>();
         this.symptoms = new ArrayList<>();
-        this.medications = new ArrayList<>();
+        this.riskFactors = new ArrayList<>();
+    }
+
+    // ===== Constructor without ID (for new records) =====
+    public Patient(String name, String surname, String email, String password, LocalDate bornDate,
+                   Gender gender, String phone, String birthPlace, String fiscalCode, int doctorId) {
+        super(name, surname, email, password, bornDate, gender, phone, birthPlace, fiscalCode);
+        this.doctorId = doctorId;
+        this.glucoseReadings = new ArrayList<>();
+        this.symptoms = new ArrayList<>();
+        this.riskFactors = new ArrayList<>();
     }
 
     // ===== Full constructor =====
@@ -27,7 +38,7 @@ public class Patient extends User {
         this.doctorId = doctorId;
         this.glucoseReadings = new ArrayList<>();
         this.symptoms = new ArrayList<>();
-        this.medications = new ArrayList<>();
+        this.riskFactors = new ArrayList<>();
     }
 
     // ===== Getters and setters =====
@@ -40,8 +51,9 @@ public class Patient extends User {
     public List<String> getSymptoms() { return symptoms; }
     public void setSymptoms(List<String> symptoms) { this.symptoms = symptoms; }
 
-    public List<Medication> getMedications() { return medications; }
-    public void setMedications(List<Medication> medications) { this.medications = medications; }
+
+    public List<RiskFactor> getRiskFactors() { return riskFactors; }
+    public void setRiskFactors(List<RiskFactor> riskFactors) { this.riskFactors = riskFactors; }
 
     @Override
     public String toString() {
@@ -50,7 +62,7 @@ public class Patient extends User {
                 ", doctorId=" + doctorId +
                 ", glucoseReadings=" + glucoseReadings.size() +
                 ", symptoms=" + symptoms +
-                ", medications=" + medications.size() +
+                ", riskFactors=" + riskFactors.size() +
                 '}';
     }
 }

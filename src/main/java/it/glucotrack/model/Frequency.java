@@ -13,10 +13,9 @@ public enum Frequency {
     private final String displayName;
     private final int[] defaultHours;
 
-
-    Frequency(String displayName) {
+    Frequency(String displayName, int[] hours) {
         this.displayName = displayName;
-        this.defaultHours = defaultHours;
+        this.defaultHours = hours;
     }
 
     public String getDisplayName() { return displayName; }

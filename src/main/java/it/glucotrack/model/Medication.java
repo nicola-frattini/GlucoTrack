@@ -1,29 +1,14 @@
 package it.glucotrack.model;
 
-import it.glucotrack.model.Frequency;
 import java.time.LocalDate;
 
 //ASSOLUTAMENTE DA RIVEDERE
 public class Medication {
 
-    /* Database will have:
-
-    id
-    patient_id
-    name_medication
-    dose (in mg)
-    frequency (enum - once a day, twice a day, etc)
-    start_date
-    end_date
-    instructions (text)
-
-
-    */
-
     private int id;
     private int patient_id;
     private String name_medication;
-    private int dose; // in mg
+    private String dose; // dose as string (e.g., "500mg", "10 unità")
     private Frequency freq; // enum - once a day, twice a day, etc
     private LocalDate start_date;
     private LocalDate end_date;
@@ -34,15 +19,27 @@ public class Medication {
         this.id = -1;
         this.patient_id = -1;
         this.name_medication = "";
-        this.dose = 0;
+        this.dose = "";
         this.freq = Frequency.ONCE_A_DAY;
         this.start_date = LocalDate.now();
         this.end_date = LocalDate.now();
         this.instructions = "";
     }
 
+    // ===== Constructor without ID (for new records) =====
+    public Medication(int patient_id, String name_medication, String dose, Frequency freq, LocalDate start_date, LocalDate end_date, String instructions) {
+        this.id = -1; // Will be set by database
+        this.patient_id = patient_id;
+        this.name_medication = name_medication;
+        this.dose = dose;
+        this.freq = freq;
+        this.start_date = start_date;
+        this.end_date = end_date;
+        this.instructions = instructions;
+    }
+
     // ===== Full constructor =====
-    public Medication(int id, int patient_id, String name_medication, int dose, Frequency freq, LocalDate start_date, LocalDate end_date, String instructions) {
+    public Medication(int id, int patient_id, String name_medication, String dose, Frequency freq, LocalDate start_date, LocalDate end_date, String instructions) {
         this.id = id;
         this.patient_id = patient_id;
         this.name_medication = name_medication;
@@ -64,8 +61,8 @@ public class Medication {
     public String getName_medication() { return name_medication; }
     public void setName_medication(String name_medication) { this.name_medication = name_medication; }
 
-    public int getDose() { return dose; }
-    public void setDose(int dose) { this.dose = dose; }
+    public String getDose() { return dose; }
+    public void setDose(String dose) { this.dose = dose; }
 
     public Frequency getFreq() { return freq; }
     public void setFreq(Frequency freq) { this.freq = freq; }

@@ -22,6 +22,16 @@ public class GlucoseMeasurement {
         this.notes = notes;
     }
 
+    // ===== Constructor without ID (for new records) =====
+    public GlucoseMeasurement(int patientId, LocalDateTime dateAndTime, float glucoseLevel, boolean beforeMeal, String notes) {
+        this.id = -1; // Will be set by database
+        this.patientId = patientId;
+        this.dateAndTime = dateAndTime;
+        this.glucoseLevel = glucoseLevel;
+        this.beforeMeal = beforeMeal;
+        this.notes = notes;
+    }
+
     public GlucoseMeasurement() {
         this.id = -1;
         this.patientId = -1;

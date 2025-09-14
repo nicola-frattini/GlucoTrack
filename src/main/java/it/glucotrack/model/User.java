@@ -29,6 +29,21 @@ public class User {
         this.fiscalCode = "";
     }
 
+    // ===== Constructor without ID (for new records) =====
+    public User(String name, String surname, String email, String password, LocalDate bornDate,
+                Gender gender, String phone, String birthPlace, String fiscalCode) {
+        this.id = -1; // Will be set by database
+        this.name = name;
+        this.surname = surname;
+        this.email = email;
+        this.password = password;
+        this.bornDate = bornDate;
+        this.gender = gender;
+        this.phone = phone;
+        this.birthPlace = birthPlace;
+        this.fiscalCode = fiscalCode;
+    }
+
     // ===== Full constructor =====
     public User(int id, String name, String surname, String email, String password, LocalDate bornDate,
                 Gender gender, String phone, String birthPlace, String fiscalCode) {

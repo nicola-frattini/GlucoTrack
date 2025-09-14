@@ -1,15 +1,17 @@
 package it.glucotrack.controller;
 
-import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.stage.Stage;
-import javafx.event.ActionEvent;
+import it.glucotrack.model.User;
 import it.glucotrack.util.InputCheck;
-import java.io.IOException;
+import it.glucotrack.util.SessionManager;
 import it.glucotrack.view.ViewNavigator;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
 
 public class LoginController {
 
@@ -27,6 +29,9 @@ public class LoginController {
 
     @FXML
     private Label signUpLabel;
+
+    // Session Manager per gestire l'utente loggato
+    private SessionManager sessionManager = SessionManager.getInstance();
 
     @FXML
     private void initialize() {
@@ -82,20 +87,18 @@ public class LoginController {
     }
 
     public boolean authenticateUser(String email, String password) {
-        // TODO: Implementare autenticazione reale con database
-        if ("admin".equals(email) && "password".equals(password)) {
-            navigateBasedOnUserType("ADMIN");
+        // Usa SessionManager per l'autenticazione
+        boolean loginSuccess = sessionManager.login(email, password);
+        
+        if (loginSuccess) {
+            // Naviga in base al tipo di utente
+            String userType = sessionManager.getCurrentUserType();
+            navigateBasedOnUserType(userType);
             return true;
+        } else {
+            showErrorAlert("Login Failed", "Invalid email or password.");
+            return false;
         }
-        if("doctor".equals(email) && "password".equals(password)) {
-            navigateBasedOnUserType("DOCTOR");
-            return true;
-        }
-        if ("patient".equals(email) && "password".equals(password)) {
-            navigateBasedOnUserType("PATIENT");
-            return true;
-        }
-        return false;
     }
 
     private void navigateBasedOnUserType(String userType) {
@@ -124,5 +127,30 @@ public class LoginController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    // Metodi statici per compatibilità - delegano a SessionManager
+    public static User getCurrentUser() {
+        return SessionManager.getInstance().getCurrentUser();
+    }
+
+    public static String getCurrentUserType() {
+        return SessionManager.getInstance().getCurrentUserType();
+    }
+
+    public static boolean isLoggedIn() {
+        return SessionManager.getInstance().isLoggedIn();
+    }
+
+    public static void logout() {
+        SessionManager.getInstance().logout();
+    }
+
+    public static int getCurrentUserId() {
+        return SessionManager.getInstance().getCurrentUserId();
+    }
+
+    public static String getCurrentUserFullName() {
+        return SessionManager.getInstance().getCurrentUserFullName();
     }
 }

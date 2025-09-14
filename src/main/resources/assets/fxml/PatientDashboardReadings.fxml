@@ -36,7 +36,20 @@
                 <!-- Controls Section -->
                 <HBox alignment="CENTER_LEFT" spacing="15.0" style="-fx-padding: 0 40 20 40;">
                     <children>
-                        <DatePicker fx:id="datePicker" prefWidth="150.0" promptText="10/27/2023"
+                        <Label text="From:" textFill="#BDC3C7">
+                            <font>
+                                <Font size="12.0" />
+                            </font>
+                        </Label>
+                        <DatePicker fx:id="startDatePicker" prefWidth="150.0"
+                                    style="-fx-background-color: #2C3E50; -fx-text-fill: white;" />
+
+                        <Label text="To:" textFill="#BDC3C7">
+                            <font>
+                                <Font size="12.0" />
+                            </font>
+                        </Label>
+                        <DatePicker fx:id="endDatePicker" prefWidth="150.0"
                                     style="-fx-background-color: #2C3E50; -fx-text-fill: white;" />
 
                         <ComboBox fx:id="typeComboBox" prefWidth="120.0" promptText="All Types"

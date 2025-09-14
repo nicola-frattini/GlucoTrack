@@ -8,6 +8,9 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 import java.io.IOException;
 import it.glucotrack.view.ViewNavigator;
+import it.glucotrack.util.SessionManager;
+import it.glucotrack.model.User;
+import it.glucotrack.model.Patient;
 
 public class PatientDashboardController {
 
@@ -30,12 +33,30 @@ public class PatientDashboardController {
 
     @FXML
     public void initialize() {
-        // Imposta il nome del medico/paziente se necessario
-        patientNameLabel.setText("Mario Rossi"); // We'll get dynamically the name of the doctor
+        // Imposta il nome del paziente dalla sessione corrente
+        loadPatientInfo();
+        
         // Carica la dashboard di default
         loadCenterContent("PatientDashboardHome.fxml");
         setActiveButton(dashboardBtn); // Active the dashboard button by default
-
+    }
+    
+    private void loadPatientInfo() {
+        try {
+            User currentUser = SessionManager.getInstance().getCurrentUser();
+            if (currentUser != null) {
+                String displayName = currentUser.getName() + " " + currentUser.getSurname();
+                patientNameLabel.setText(displayName);
+                System.out.println("📊 Dashboard caricato per paziente: " + displayName);
+            } else {
+                patientNameLabel.setText("Paziente non trovato");
+                System.err.println("❌ Nessun utente in sessione nel PatientDashboard!");
+            }
+        } catch (Exception e) {
+            patientNameLabel.setText("Errore caricamento");
+            System.err.println("❌ Errore nel caricamento info paziente: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -86,8 +107,17 @@ public class PatientDashboardController {
 
     @FXML
     private void onLogoutClick() {
-        // Qui puoi mettere la logica per il logout, ad esempio tornare alla schermata di login
-        ViewNavigator.getInstance().navigateTo(ViewNavigator.LOGIN_VIEW, "GlucoTrack - Login");
+        try {
+            // Esegui il logout dalla sessione
+            SessionManager.getInstance().logout();
+            System.out.println("👋 Logout eseguito con successo");
+            
+            // Torna alla schermata di login
+            ViewNavigator.getInstance().navigateTo(ViewNavigator.LOGIN_VIEW, "GlucoTrack - Login");
+        } catch (Exception e) {
+            System.err.println("❌ Errore durante il logout: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
 

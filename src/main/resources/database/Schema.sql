@@ -1,35 +1,31 @@
 -- ============================
--- Table: users
+-- Table: users (base for all)
 -- ============================
 CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(100) NOT NULL,
     surname VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     born_date DATE NOT NULL,
-    gender ENUM('MALE','FEMALE','OTHER') NOT NULL,
+    gender VARCHAR(10) NOT NULL,
     phone VARCHAR(20),
     birth_place VARCHAR(100),
     fiscal_code VARCHAR(50) UNIQUE,
-    type ENUM('PATIENT','DOCTOR','ADMIN') NOT NULL,
-    role VARCHAR(50) DEFAULT NULL,          -- For Admins
-    specialization VARCHAR(100) DEFAULT NULL, -- For Doctors
-    doctor_id INT DEFAULT NULL,             -- For Patients: FK to doctors
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (doctor_id) REFERENCES users(id) ON DELETE SET NULL
+    type VARCHAR(20) NOT NULL, -- 'PATIENT', 'DOCTOR', 'ADMIN'
+    role VARCHAR(50),          -- For Admins
+    specialization VARCHAR(100), -- For Doctors
+    doctor_id INTEGER          -- For Patients: FK to doctors
 );
 
 -- ============================
 -- Table: glucose_measurements
 -- ============================
 CREATE TABLE glucose_measurements (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    patient_id INT NOT NULL,
-    value INT NOT NULL,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    patient_id INTEGER NOT NULL,
+    value INTEGER NOT NULL,
     measurement_time DATETIME NOT NULL,
-    before_meal BOOLEAN NOT NULL,
     FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -37,33 +33,54 @@ CREATE TABLE glucose_measurements (
 -- Table: medications
 -- ============================
 CREATE TABLE medications (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    patient_id INT NOT NULL,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    patient_id INTEGER NOT NULL,
     name VARCHAR(100) NOT NULL,
-    dose DECIMAL(5,2) NOT NULL,
-    times_per_day INT NOT NULL,
+    dose VARCHAR(50) NOT NULL,
+    frequency VARCHAR(50) NOT NULL, -- es: 'ONCE_A_DAY', 'TWICE_A_DAY'
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
     instructions VARCHAR(255),
     FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- ============================
+-- Table: log_medications
+-- ============================
+CREATE TABLE log_medications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    medication_id INTEGER NOT NULL,
+    date_time DATETIME NOT NULL,
+    taken BOOLEAN NOT NULL DEFAULT 0,
+    FOREIGN KEY (medication_id) REFERENCES medications(id) ON DELETE CASCADE
 );
 
 -- ============================
 -- Table: patient_symptoms
 -- ============================
 CREATE TABLE patient_symptoms (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    patient_id INT NOT NULL,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    patient_id INTEGER NOT NULL,
     symptom VARCHAR(255) NOT NULL,
     symptom_date DATE NOT NULL,
     FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- ============================
+-- Table: risk_factors
+-- ============================
+CREATE TABLE risk_factors (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    type VARCHAR(100) NOT NULL,
+    gravity VARCHAR(10) NOT NULL
+);
+
+-- ============================
 -- Table: admin_managed_users
 -- ============================
--- Optional: if you want to track which users each admin manages
 CREATE TABLE admin_managed_users (
-    admin_id INT NOT NULL,
-    user_id INT NOT NULL,
+    admin_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (admin_id, user_id),
     FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -75,7 +92,5 @@ CREATE TABLE admin_managed_users (
 CREATE INDEX idx_patient_doctor ON users(doctor_id);
 CREATE INDEX idx_glucose_patient ON glucose_measurements(patient_id);
 CREATE INDEX idx_medication_patient ON medications(patient_id);
+CREATE INDEX idx_log_medication ON log_medications(medication_id);
 CREATE INDEX idx_symptom_patient ON patient_symptoms(patient_id);
-
-
--- !!! STILL IL PROGRESS !!!

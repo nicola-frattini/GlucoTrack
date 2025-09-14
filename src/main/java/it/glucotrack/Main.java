@@ -1,15 +1,19 @@
 package it.glucotrack;
 
+import it.glucotrack.view.ViewNavigator;
 import javafx.application.Application;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
-import it.glucotrack.view.ViewNavigator;
 
 public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
         try {
+
+            // Inizializza il database (crea tabelle e popola con dati mock)
+            it.glucotrack.util.DatabaseInitializer.initializeDatabase();
+
 
             // Load and set the application icon
             Image icon = new Image(getClass().getResourceAsStream("/assets/icons/Logo.png"));
@@ -25,6 +29,8 @@ public class Main extends Application {
 
             navigator.navigateTo(ViewNavigator.LOGIN_VIEW);
             primaryStage.show();
+
+
 
         } catch (Exception e) {
             e.printStackTrace();

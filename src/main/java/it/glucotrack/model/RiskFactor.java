@@ -4,13 +4,20 @@ public class RiskFactor {
 
     private int id;
     private String type; // e.g., "Smoking", "Obesity", "Family History"
-    private Gravity gravity; // e.g., "Low", "Medium", "High"
+    private Gravity gravity;
 
     // ===== Default constructor =====
     public RiskFactor() {
         this.id = -1;
         this.type = "";
         this.gravity = Gravity.LOW;
+    }
+
+    // ===== Constructor without ID (for new records) =====
+    public RiskFactor(String type, Gravity gravity) {
+        this.id = -1; // Will be set by database
+        this.type = type;
+        this.gravity = gravity;
     }
 
     // ===== Full constructor =====

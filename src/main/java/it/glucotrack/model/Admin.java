@@ -12,6 +12,13 @@ public class Admin extends User {
         this.role = "Administrator";
     }
 
+    // ===== Constructor without ID (for new records) =====
+    public Admin(String name, String surname, String email, String password, LocalDate bornDate,
+                 Gender gender, String phone, String birthPlace, String fiscalCode, String role) {
+        super(name, surname, email, password, bornDate, gender, phone, birthPlace, fiscalCode);
+        this.role = role;
+    }
+
     // ===== Full constructor =====
     public Admin(int id, String name, String surname, String email, String password, LocalDate bornDate,
                  Gender gender, String phone, String birthPlace, String fiscalCode, String role) {
