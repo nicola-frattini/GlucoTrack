@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.control.ScrollPane?>
+
+<ScrollPane style="-fx-background-color: #2C3E50;" xmlns:fx="http://javafx.com/fxml" fx:controller="it.glucotrack.controller.DoctorDashboardPatientsController" stylesheets="@/assets/css/table-styles.css" fitToWidth="true" fitToHeight="true">
+    <VBox style="-fx-background-color: #2C3E50;">
+        <!-- Header Section -->
+        <VBox spacing="10.0" style="-fx-padding: 30 40 20 40;">
+            <children>
+                <Label text="Patients" textFill="WHITE">
+                    <font>
+                        <Font name="System Bold" size="28.0" />
+                    </font>
+                </Label>
+                <Label text="Manage your patients and their health data" textFill="#BDC3C7">
+                    <font>
+                        <Font size="14.0" />
+                    </font>
+                </Label>
+            </children>
+        </VBox>
+
+        <!-- Search and Filter Section -->
+        <HBox alignment="CENTER_LEFT" spacing="15.0" style="-fx-padding: 0 40 20 40;">
+            <children>
+                <!-- Search Field -->
+                <TextField fx:id="searchField" prefWidth="300.0" promptText="Search patients..."
+                           style="-fx-background-color: #34495E; -fx-text-fill: white; -fx-prompt-text-fill: #BDC3C7; -fx-background-radius: 5;">
+                    <font>
+                        <Font size="14.0" />
+                    </font>
+                </TextField>
+
+                <!-- Spacer -->
+                <Region HBox.hgrow="ALWAYS" />
+
+                <!-- Filter Button -->
+                <Button fx:id="filterBtn" mnemonicParsing="false" prefHeight="35.0" prefWidth="80.0"
+                        style="-fx-background-color: transparent; -fx-border-color: #3498DB; -fx-border-width: 1; -fx-text-fill: #3498DB; -fx-background-radius: 5;"
+                        text="Filter">
+                    <font>
+                        <Font size="14.0" />
+                    </font>
+                </Button>
+
+                <!-- Add Patient Button -->
+                <Button fx:id="addPatientBtn" mnemonicParsing="false" prefHeight="35.0" prefWidth="120.0"
+                        style="-fx-background-color: #3498DB; -fx-text-fill: white; -fx-background-radius: 5;"
+                        text="Add Patient">
+                    <font>
+                        <Font name="System Bold" size="14.0" />
+                    </font>
+                </Button>
+            </children>
+        </HBox>
+
+        <!-- Patients Table -->
+        <VBox style="-fx-padding: 0 40 40 40;" VBox.vgrow="ALWAYS">
+            <children>
+                <TableView fx:id="patientsTable" prefHeight="400.0" VBox.vgrow="ALWAYS"
+                           style="-fx-background-color: #34495E; -fx-table-cell-border-color: #2C3E50;">
+                    <columns>
+                        <!-- Patient Name Column -->
+                        <TableColumn fx:id="patientNameColumn" prefWidth="200.0" text="Patient Name" />
+                        <!-- Last Glucose Reading Column -->
+                        <TableColumn fx:id="lastGlucoseColumn" prefWidth="180.0" text="Last Glucose Reading" />
+                        <!-- Risk Status Column -->
+                        <TableColumn fx:id="riskStatusColumn" prefWidth="150.0" text="Risk Status" />
+                        <!-- Last Visit Column -->
+                        <TableColumn fx:id="lastVisitColumn" prefWidth="150.0" text="Last Visit" />
+                        <!-- Age Column -->
+                        <TableColumn fx:id="ageColumn" prefWidth="80.0" text="Age" />
+                        <!-- Actions Column -->
+                        <TableColumn fx:id="actionsColumn" prefWidth="100.0" text="Actions" sortable="false" />
+                    </columns>
+
+                    <!-- Table styling will be applied in controller -->
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                    </columnResizePolicy>
+
+                    <!-- Placeholder for empty table -->
+                    <placeholder>
+                        <VBox alignment="CENTER" spacing="10.0" style="-fx-padding: 20;">
+                            <children>
+                                <Label text="No patients found" textFill="#BDC3C7">
+                                    <font>
+                                        <Font size="16.0" />
+                                    </font>
+                                </Label>
+                                <Label text="Add your first patient to get started" textFill="#95A5A6">
+                                    <font>
+                                        <Font size="12.0" />
+                                    </font>
+                                </Label>
+                            </children>
+                        </VBox>
+                    </placeholder>
+
+                    <!-- Context Menu for Table Rows -->
+                    <contextMenu>
+                        <ContextMenu fx:id="tableContextMenu">
+                            <items>
+                                <MenuItem fx:id="viewPatientMenuItem" mnemonicParsing="false" text="View Profile" />
+                                <MenuItem fx:id="editPatientMenuItem" mnemonicParsing="false" text="Edit Patient" />
+                                <SeparatorMenuItem />
+                                <MenuItem fx:id="scheduleAppointmentMenuItem" mnemonicParsing="false" text="Schedule Appointment" />
+                                <MenuItem fx:id="sendMessageMenuItem" mnemonicParsing="false" text="Send Message" />
+                                <SeparatorMenuItem />
+                                <MenuItem fx:id="deletePatientMenuItem" mnemonicParsing="false" text="Delete Patient"
+                                          style="-fx-text-fill: #E74C3C;" />
+                            </items>
+                        </ContextMenu>
+                    </contextMenu>
+                </TableView>
+            </children>
+        </VBox>
+
+        <!-- Status Bar -->
+        <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-padding: 10 40 20 40; -fx-background-color: #34495E;">
+            <children>
+                <Label fx:id="statusLabel" text="Loading patients..." textFill="#BDC3C7">
+                    <font>
+                        <Font size="12.0" />
+                    </font>
+                </Label>
+                <Region HBox.hgrow="ALWAYS" />
+                <Label fx:id="totalPatientsLabel" text="Total: 0 patients" textFill="#BDC3C7">
+                    <font>
+                        <Font size="12.0" />
+                    </font>
+                </Label>
+            </children>
+        </HBox>
+    </VBox>
+</ScrollPane>

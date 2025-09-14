@@ -1,0 +1,257 @@
+/* Mostra solo la thumb della scrollbar, nascondi tutto il resto */
+.table-view .scroll-bar:vertical,
+.table-view .scroll-bar:horizontal {
+	-fx-background-color: transparent;
+	-fx-background-radius: 8px;
+	-fx-pref-width: 12px;
+	-fx-pref-height: 12px;
+}
+.table-view .track {
+	-fx-background-color: transparent;
+	-fx-background-radius: 0;
+	-fx-opacity: 0;
+	-fx-pref-width: 0;
+	-fx-pref-height: 0;
+	-fx-max-width: 0;
+	-fx-max-height: 0;
+	-fx-min-width: 0;
+	-fx-min-height: 0;
+}
+.table-view .increment-button,
+.table-view .decrement-button {
+	-fx-padding: 0;
+	-fx-background-color: transparent;
+	-fx-shape: "";
+	-fx-background-insets: 0;
+	-fx-opacity: 0;
+	-fx-min-width: 0;
+	-fx-min-height: 0;
+	-fx-max-width: 0;
+	-fx-max-height: 0;
+}
+.table-view .thumb {
+	-fx-background-color: #2c3a40;
+	-fx-background-radius: 8px;
+	-fx-opacity: 1;
+	-fx-pref-width: 12px;
+	-fx-pref-height: 32px;
+	-fx-min-width: 12px;
+	-fx-min-height: 32px;
+	-fx-max-width: 12px;
+	-fx-max-height: 100px;
+	-fx-effect: none;
+}
+/* Nascondi completamente la traccia della scrollbar (rettangolo sotto) */
+.table-view .scroll-bar:vertical .track,
+.table-view .scroll-bar:horizontal .track {
+	-fx-background-color: transparent;
+	-fx-opacity: 0;
+	-fx-pref-width: 0;
+	-fx-pref-height: 0;
+	-fx-max-width: 0;
+	-fx-max-height: 0;
+	-fx-min-width: 0;
+	-fx-min-height: 0;
+}
+/* Scrollbar: la thumb appare solo al passaggio del mouse o durante l'uso */
+.table-view .scroll-bar:vertical,
+.table-view .scroll-bar:horizontal {
+	-fx-background-color: transparent;
+}
+.table-view .track {
+	-fx-background-color: transparent;
+	-fx-background-radius: 0;
+	-fx-pref-width: 0;
+	-fx-pref-height: 0;
+	-fx-max-width: 0;
+	-fx-max-height: 0;
+	-fx-min-width: 0;
+	-fx-min-height: 0;
+	-fx-opacity: 0;
+}
+.table-view .thumb {
+	-fx-background-color: #3a4a56;
+	-fx-background-radius: 8px;
+	-fx-opacity: 0;
+	-fx-pref-width: 12px;
+	-fx-pref-height: 12px;
+	-fx-min-width: 12px;
+	-fx-min-height: 12px;
+	-fx-max-width: 12px;
+	-fx-max-height: 12px;
+	-fx-transition: opacity 0.2s;
+}
+.table-view .scroll-bar:hover .thumb,
+.table-view .thumb:hover,
+.table-view .scroll-bar:focused .thumb {
+	-fx-opacity: 1;
+}
+.table-view .increment-button,
+.table-view .decrement-button {
+	-fx-padding: 0;
+	-fx-background-color: transparent;
+	-fx-shape: "";
+	-fx-background-insets: 0;
+	-fx-opacity: 0;
+	-fx-min-width: 0;
+	-fx-min-height: 0;
+	-fx-max-width: 0;
+	-fx-max-height: 0;
+}
+/* Minimal scrollbar: mostra solo la thumb, nascondi traccia e bottoni */
+.table-view .scroll-bar:vertical,
+.table-view .scroll-bar:horizontal {
+	-fx-background-color: transparent;
+	-fx-background-radius: 8px;
+	-fx-pref-width: 12px;
+	-fx-pref-height: 12px;
+}
+.table-view .increment-button,
+.table-view .decrement-button {
+	-fx-padding: 0;
+	-fx-background-color: transparent;
+	-fx-shape: "";
+	-fx-background-insets: 0;
+	-fx-opacity: 0;
+	-fx-min-width: 0;
+	-fx-min-height: 0;
+	-fx-max-width: 0;
+	-fx-max-height: 0;
+}
+.table-view .track {
+	-fx-background-color: transparent;
+	-fx-background-radius: 8px;
+}
+.table-view .thumb {
+	-fx-background-color: #3a4a56;
+	-fx-background-radius: 8px;
+}
+.table-view .thumb:hover {
+	-fx-background-color: #3eea8a;
+}
+
+.table-view .track {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+    -fx-max-width: 0;
+    -fx-max-height: 0;
+    -fx-min-width: 0;
+    -fx-min-height: 0;
+    -fx-opacity: 0;
+}
+
+/* Modern dark table style for JavaFX inspired by the provided UI screenshot */
+
+.table-view {
+	-fx-border-color: transparent;
+	-fx-background-color: #16213e;
+	-fx-background-radius: 16px;
+	-fx-padding: 0;
+}
+
+.table-view .column-header-background {
+	-fx-background-color: #16213e;
+	-fx-background-radius: 12px 12px 0 0;
+    -fx-border-color: #22323a;
+    -fx-border-width: 0 0 2px 0;
+
+}
+
+.table-view .column-header, .table-view .filler {
+	-fx-background-color: transparent;
+}
+
+.table-view .column-header .label {
+	-fx-font-family: 'Segoe UI', Arial, sans-serif;
+	-fx-font-size: 16px;
+	-fx-font-weight: 600;
+	-fx-text-fill: #f2f6fa;
+	-fx-padding: 12px 8px 12px 8px;
+	-fx-alignment: CENTER_LEFT;
+	-fx-letter-spacing: 0.5px;
+}
+
+.table-view .table-row-cell {
+	-fx-background-color: #16213e;
+	-fx-border-color: #16213e;
+	-fx-border-width: 0 0 1px 0;
+	-fx-table-cell-border-color: transparent;
+	-fx-background-insets: 0;
+	-fx-padding: 0;
+}
+
+.table-view .table-row-cell:odd {
+	-fx-background-color: #16213e;
+}
+
+.table-view .table-row-cell:selected {
+	-fx-background-color: #16213e;
+}
+
+.table-view .table-cell {
+	-fx-font-family: 'Segoe UI', Arial, sans-serif;
+	-fx-font-size: 15px;
+	-fx-text-fill: #e6f0f3;
+	-fx-padding: 12px 8px 12px 8px;
+	-fx-alignment: CENTER_LEFT;
+	-fx-border-color: transparent;
+	-fx-background-color: transparent;
+}
+
+/* Status icons and text */
+.status-taken {
+	-fx-text-fill: #3eea8a;
+	-fx-font-weight: bold;
+}
+.status-missed {
+	-fx-text-fill: #ff5c5c;
+	-fx-font-weight: bold;
+}
+.status-icon {
+	-fx-font-size: 16px;
+	-fx-padding: 0 6px 0 0;
+	-fx-translate-y: 2px;
+}
+
+/* Card-like container for table blocks */
+.card {
+	-fx-background-color: #16213e;
+	-fx-background-radius: 16px;
+	-fx-padding: 20px;
+}
+
+.table-view .scroll-bar:vertical,
+.table-view .scroll-bar:horizontal {
+    -fx-background-color: #202f36;
+    -fx-background-radius: 8px;
+    -fx-pref-width: 12px; /* larghezza barra verticale */
+    -fx-pref-height: 12px; /* altezza barra orizzontale */
+}
+
+.table-view .thumb {
+    -fx-background-color: #3a4a56;
+    -fx-background-radius: 8px;
+}
+
+.table-view .thumb:hover {
+    -fx-background-color: #3eea8a;
+}
+/* Table title */
+.table-title {
+	-fx-font-family: 'Segoe UI', Arial, sans-serif;
+	-fx-font-size: 22px;
+	-fx-font-weight: 700;
+	-fx-text-fill: #f2f6fa;
+	-fx-padding: 0 0 16px 0;
+	-fx-letter-spacing: 0.5px;
+}
+
+/* Table subtitle */
+.table-subtitle {
+	-fx-font-family: 'Segoe UI', Arial, sans-serif;
+	-fx-font-size: 15px;
+	-fx-text-fill: #b0c4cc;
+	-fx-padding: 0 0 18px 0;
+}

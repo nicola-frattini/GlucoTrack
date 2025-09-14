@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<ScrollPane fitToWidth="true" fitToHeight="true" style="-fx-background-color: transparent; -fx-background: transparent;" xmlns:fx="http://javafx.com/fxml" fx:controller="it.glucotrack.controller.DoctorDashboardHomeController" stylesheets="@/assets/css/table-styles.css">
+    <content>
+        <VBox spacing="20" style="-fx-padding: 30;">
+
+            <!-- Header -->
+            <VBox spacing="5">
+                <Label text="Dashboard" style="-fx-text-fill: white; -fx-font-size: 24; -fx-font-weight: bold;"/>
+                <Label text="Overview of your patients and their health status."
+                       style="-fx-text-fill: #aaaaaa; -fx-font-size: 12;"/>
+            </VBox>
+
+            <!-- Patient Summary -->
+            <VBox spacing="10" style="-fx-background-color: #1e293b; -fx-background-radius: 10; -fx-padding: 15;">
+                <Label text="Patient Summary" style="-fx-text-fill: white; -fx-font-size: 18; -fx-font-weight: bold;"/>
+
+                <TableView fx:id="patientTable" prefHeight="250">
+                    <columns>
+                        <TableColumn text="Patient Name" prefWidth="150"/>
+                        <TableColumn text="Last Reading" prefWidth="120"/>
+                        <TableColumn text="Medication Adherence" prefWidth="180"/>
+                        <TableColumn text="Status" prefWidth="100"/>
+                        <TableColumn text="Actions" prefWidth="100"/>
+                    </columns>
+                </TableView>
+            </VBox>
+
+            <!-- Alerts -->
+            <VBox spacing="10" style="-fx-background-color: #1e293b; -fx-background-radius: 10; -fx-padding: 15;">
+                <Label text="Alerts" style="-fx-text-fill: white; -fx-font-size: 18; -fx-font-weight: bold;"/>
+
+                <ListView fx:id="alertsList" prefHeight="120"/>
+            </VBox>
+        </VBox>
+    </content>
+
+</ScrollPane>
