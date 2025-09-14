@@ -10,13 +10,28 @@ public class Alert {
         this.type = type;
     }
 
-    public String getMessage() { return message; }
-    public void setMessage(String message) { this.message = message; }
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
 
 
-    public AlertType getType() { return type; }
-    public void setType(AlertType type) { this.type = type; }
+    public AlertType getType() {
+        return type;
+    }
+
+    public void setType(AlertType type) {
+        this.type = type;
+    }
 
 
-
+    public String toString() {
+        return "Alert{" +
+                "message='" + message + '\'' +
+                ", type=" + type +
+                '}';
+    }
 }

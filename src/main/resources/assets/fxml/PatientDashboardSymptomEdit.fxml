@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<VBox xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.glucotrack.controller.PatientDashboardSymptomsEditController" stylesheets="@../css/symptom-form-style.css">
+<VBox xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.glucotrack.controller.PatientDashboardSymptomsEditController" stylesheets="@../css/symptom-form-style.css,@../css/titlebar.css">
    <children>
       <!-- Main Content -->
       <VBox alignment="TOP_CENTER" prefHeight="700.0" style="-fx-background-color: #2c3e50;" VBox.vgrow="ALWAYS">

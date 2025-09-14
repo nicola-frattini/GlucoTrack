@@ -89,14 +89,38 @@ public class PatientDAO {
     }
 
     private Patient mapResultSetToPatient(ResultSet rs) throws SQLException {
+        // Parse born_date as string since it's stored as ISO date string in database
+        String bornDateStr = rs.getString("born_date");
+        java.time.LocalDate bornDate = null;
+        if (bornDateStr != null && !bornDateStr.isEmpty()) {
+            try {
+                bornDate = java.time.LocalDate.parse(bornDateStr);
+            } catch (Exception e) {
+                System.err.println("Error parsing born_date: " + bornDateStr + " - " + e.getMessage());
+                bornDate = java.time.LocalDate.now(); // fallback
+            }
+        }
+        
+        // Parse gender with error handling
+        Gender gender = Gender.MALE; // default fallback
+        String genderStr = rs.getString("gender");
+        if (genderStr != null && !genderStr.isEmpty()) {
+            try {
+                gender = Gender.fromString(genderStr);
+            } catch (Exception e) {
+                System.err.println("Error parsing gender: " + genderStr + " - " + e.getMessage());
+                // Use default MALE as fallback
+            }
+        }
+        
         return new Patient(
             rs.getInt("id"),
             rs.getString("name"),
             rs.getString("surname"),
             rs.getString("email"),
             rs.getString("password"),
-            rs.getDate("born_date").toLocalDate(),
-            Gender.valueOf(rs.getString("gender")),
+            bornDate,
+            gender,
             rs.getString("phone"),
             rs.getString("birth_place"),
             rs.getString("fiscal_code"),

@@ -1,0 +1,318 @@
+/* medication-prescription.css */
+
+/* Root styling */
+.root {
+    -fx-background-color: #2a2a2a;
+    -fx-font-family: "System";
+}
+
+/* Main container */
+.main-container {
+    -fx-background-color: #2a2a2a;
+    -fx-alignment: center;
+}
+
+/* Title styling */
+.title-label {
+    -fx-text-fill: white;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+
+/* Subtitle styling */
+.subtitle-label {
+    -fx-text-fill: #b0b0b0;
+    -fx-font-size: 14px;
+}
+
+/* Form container */
+.form-container {
+    -fx-background-color: #3a3a3a;
+    -fx-background-radius: 10px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 2);
+}
+
+/* Field labels */
+.field-label {
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+}
+
+/* Text fields */
+.text-field {
+    -fx-background-color: #4a4a4a;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: #888888;
+    -fx-background-radius: 5px;
+    -fx-border-radius: 5px;
+    -fx-border-color: transparent;
+    -fx-border-width: 1px;
+    -fx-padding: 10px;
+}
+
+.text-field:focused {
+    -fx-border-color: #00bcd4;
+    -fx-background-color: #525252;
+}
+
+.text-field:hover {
+    -fx-background-color: #525252;
+}
+
+/* ComboBox styling */
+.combo-box {
+    -fx-background-color: #4a4a4a;
+    -fx-background-radius: 5px;
+    -fx-border-radius: 5px;
+    -fx-border-color: transparent;
+    -fx-border-width: 1px;
+}
+
+.combo-box:focused {
+    -fx-border-color: #00bcd4;
+    -fx-background-color: #525252;
+}
+
+.combo-box:hover {
+    -fx-background-color: #525252;
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: white;
+    -fx-background-color: transparent;
+}
+
+.combo-box .list-cell:filled:selected {
+    -fx-background-color: #00bcd4;
+    -fx-text-fill: white;
+}
+
+.combo-box .list-cell:filled:hover {
+    -fx-background-color: #525252;
+    -fx-text-fill: white;
+}
+
+/* ComboBox dropdown */
+.combo-box-popup .list-view {
+    -fx-background-color: #4a4a4a;
+    -fx-background-radius: 5px;
+    -fx-border-color: #666666;
+    -fx-border-width: 1px;
+}
+
+.combo-box-popup .list-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-padding: 8px 12px;
+}
+
+.combo-box-popup .list-view .list-cell:hover {
+    -fx-background-color: #525252;
+}
+
+.combo-box-popup .list-view .list-cell:selected {
+    -fx-background-color: #00bcd4;
+}
+
+/* ComboBox arrow button */
+.combo-box .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.combo-box .arrow {
+    -fx-background-color: #888888;
+}
+
+.combo-box:focused .arrow,
+.combo-box:hover .arrow {
+    -fx-background-color: white;
+}
+
+/* DatePicker styling */
+.date-picker {
+    -fx-background-color: #4a4a4a;
+    -fx-background-radius: 5px;
+    -fx-border-radius: 5px;
+    -fx-border-color: transparent;
+    -fx-border-width: 1px;
+}
+
+.date-picker:focused {
+    -fx-border-color: #00bcd4;
+    -fx-background-color: #525252;
+}
+
+.date-picker:hover {
+    -fx-background-color: #525252;
+}
+
+.date-picker .text-field {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: #888888;
+}
+
+.date-picker .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.date-picker .arrow {
+    -fx-background-color: #888888;
+}
+
+.date-picker:focused .arrow,
+.date-picker:hover .arrow {
+    -fx-background-color: white;
+}
+
+/* DatePicker popup */
+.date-picker-popup {
+    -fx-background-color: #4a4a4a;
+    -fx-border-color: #666666;
+    -fx-border-width: 1px;
+    -fx-background-radius: 5px;
+}
+
+.date-picker-popup .month-year-pane {
+    -fx-background-color: #3a3a3a;
+}
+
+.date-picker-popup .day-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+}
+
+.date-picker-popup .day-cell:hover {
+    -fx-background-color: #525252;
+}
+
+.date-picker-popup .selected {
+    -fx-background-color: #00bcd4;
+    -fx-text-fill: white;
+}
+
+/* TextArea styling */
+.text-area {
+    -fx-background-color: #4a4a4a;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: #888888;
+    -fx-background-radius: 5px;
+    -fx-border-radius: 5px;
+    -fx-border-color: transparent;
+    -fx-border-width: 1px;
+}
+
+.text-area:focused {
+    -fx-border-color: #00bcd4;
+    -fx-background-color: #525252;
+}
+
+.text-area:hover {
+    -fx-background-color: #525252;
+}
+
+.text-area .content {
+    -fx-background-color: transparent;
+}
+
+.text-area .scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.text-area .scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.text-area .scroll-pane .corner {
+    -fx-background-color: transparent;
+}
+
+/* ScrollBar styling for TextArea */
+.text-area .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 8px;
+}
+
+.text-area .scroll-bar:vertical .track {
+    -fx-background-color: #3a3a3a;
+    -fx-background-radius: 4px;
+}
+
+.text-area .scroll-bar:vertical .thumb {
+    -fx-background-color: #666666;
+    -fx-background-radius: 4px;
+}
+
+.text-area .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #777777;
+}
+
+/* Prescribe button styling */
+.prescribe-button {
+    -fx-background-color: #00bcd4;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 5px;
+    -fx-border-radius: 5px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,188,212,0.3), 5, 0, 0, 1);
+}
+
+.prescribe-button:hover {
+    -fx-background-color: #00acc1;
+    -fx-effect: dropshadow(gaussian, rgba(0,188,212,0.5), 8, 0, 0, 2);
+}
+
+.prescribe-button:pressed {
+    -fx-background-color: #0097a7;
+    -fx-effect: dropshadow(gaussian, rgba(0,188,212,0.2), 3, 0, 0, 1);
+}
+
+/* Field container spacing */
+.field-container {
+    -fx-spacing: 8px;
+}
+
+.row-container {
+    -fx-spacing: 20px;
+}
+
+/* Custom scrollbar for combo box popup */
+.combo-box-popup .list-view .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 8px;
+}
+
+.combo-box-popup .list-view .scroll-bar:vertical .track {
+    -fx-background-color: #3a3a3a;
+    -fx-background-radius: 4px;
+}
+
+.combo-box-popup .list-view .scroll-bar:vertical .thumb {
+    -fx-background-color: #666666;
+    -fx-background-radius: 4px;
+}
+
+.combo-box-popup .list-view .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #777777;
+}
+
+/* Focus ring removal for cleaner look */
+.text-field:focused,
+.text-area:focused,
+.combo-box:focused,
+.date-picker:focused,
+.button:focused {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/* Smooth transitions */
+.text-field,
+.text-area,
+.combo-box,
+.date-picker,
+.button {
+    -fx-transition: all 0.2s ease;
+}

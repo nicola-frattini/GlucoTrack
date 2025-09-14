@@ -14,6 +14,7 @@ import it.glucotrack.model.Patient;
 
 public class PatientDashboardController {
 
+
     @FXML
     private StackPane contentPane;
 
@@ -45,6 +46,7 @@ public class PatientDashboardController {
         System.out.println("🔄 Caricamento PatientDashboardHome.fxml...");
         loadCenterContent("PatientDashboardHome.fxml");
         setActiveButton(dashboardBtn); // Active the dashboard button by default
+
     }
     
     private void loadPatientInfo() {

@@ -9,8 +9,8 @@
 <HBox xmlns="http://javafx.com/javafx/11.0.1"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="it.glucotrack.controller.LoginController"
-      stylesheets="@../css/register-styles.css">
-    <children>
+    stylesheets="@../css/register-styles.css">
+        <children>
         <!-- Sezione sinistra - Form di login -->
         <VBox alignment="CENTER" style="-fx-background-color: #2c3e50;" spacing="30.0" HBox.hgrow="ALWAYS">
             <children>

@@ -1,4 +1,5 @@
 package it.glucotrack.controller;
+import javafx.scene.input.MouseButton;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -240,6 +241,53 @@ public class PatientDashboardMedicationsController implements Initializable {
 
     private void setupEventHandlers() {
         logMedicationBtn.setOnAction(e -> handleLogMedicationIntake());
+
+        // Doppio click su riga della tabella farmaci
+        prescribedMedicationsTable.setRowFactory(tv -> {
+            TableRow<Medication> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (!row.isEmpty() && event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+                    Medication med = row.getItem();
+                    showMedicationDetailsPopup(med);
+                }
+            });
+            return row;
+        });
+
+        // Context menu "View" su farmaco
+        MenuItem viewItem = new MenuItem("View Details");
+        viewItem.setOnAction(e -> {
+            Medication selected = prescribedMedicationsTable.getSelectionModel().getSelectedItem();
+            if (selected != null) showMedicationDetailsPopup(selected);
+        });
+        ContextMenu menu = new ContextMenu(viewItem);
+        prescribedMedicationsTable.setContextMenu(menu);
+    }
+
+    private void showMedicationDetailsPopup(Medication med) {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/CustomPopup.fxml"));
+            javafx.scene.Parent root = loader.load();
+            it.glucotrack.component.CustomPopupController controller = loader.getController();
+            controller.setTitle("Dettagli Farmaco");
+            controller.setSubtitle(med.getDrugName());
+            javafx.scene.layout.VBox content = controller.getPopupContent();
+            content.getChildren().clear();
+            content.getChildren().addAll(
+                new javafx.scene.control.Label("Dosaggio: " + med.getDosage()),
+                new javafx.scene.control.Label("Frequenza: " + med.getFrequency()),
+                new javafx.scene.control.Label("Istruzioni: " + med.getInstructions())
+            );
+            javafx.stage.Stage popupStage = new javafx.stage.Stage();
+            popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
+            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.setMinWidth(520);
+            popupStage.setMinHeight(340);
+            controller.setStage(popupStage);
+            popupStage.showAndWait();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void loadData() {

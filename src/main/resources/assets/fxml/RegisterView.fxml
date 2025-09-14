@@ -9,7 +9,7 @@
 <HBox xmlns="http://javafx.com/javafx/11.0.1"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="it.glucotrack.controller.RegisterController"
-      stylesheets="@../css/register-styles.css">
+    stylesheets="@../css/register-styles.css,@../css/register-styles.css">
 
     <children>
         <!-- Sezione sinistra - Form di registrazione -->

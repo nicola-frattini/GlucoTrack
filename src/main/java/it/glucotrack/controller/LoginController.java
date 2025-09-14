@@ -45,6 +45,7 @@ public class LoginController {
         if (passwordField != null) {
             passwordField.setOnAction(this::handleLogin);
         }
+
     }
 
     @FXML

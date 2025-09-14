@@ -52,35 +52,38 @@ public class ViewNavigator {
 
     public void navigateTo(String viewName, String title) {
         try {
+            System.out.println("[ViewNavigator] Navigazione verso: " + viewName);
             String fxmlPath = viewPaths.get(viewName);
             if (fxmlPath == null) {
+                System.err.println("[ViewNavigator] View non trovata: " + viewName);
                 throw new IllegalArgumentException("View not found: " + viewName);
             }
+            System.out.println("[ViewNavigator] Carico FXML: " + fxmlPath);
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Parent root = loader.load();
+            System.out.println("[ViewNavigator] FXML caricato con successo");
 
-            // Salva le dimensioni correnti
             double width = primaryStage.getWidth();
             double height = primaryStage.getHeight();
             boolean wasMaximized = primaryStage.isMaximized();
 
             Scene newScene = new Scene(root, width, height);
             primaryStage.setScene(newScene);
+            System.out.println("[ViewNavigator] Scena impostata");
 
-            // Imposta il titolo se fornito
             if (title != null) {
                 primaryStage.setTitle(title);
             } else {
                 primaryStage.setTitle(getDefaultTitle(viewName));
             }
 
-            // Ripristina lo stato della finestra
             if (wasMaximized) {
                 primaryStage.setMaximized(true);
             }
+            System.out.println("[ViewNavigator] Navigazione completata");
 
         } catch (IOException e) {
-            System.err.println("Navigation Error: Could not load " + viewName + ": " + e.getMessage());
+            System.err.println("[ViewNavigator] Errore caricamento FXML per " + viewName + ": " + e.getMessage());
             e.printStackTrace();
         }
     }

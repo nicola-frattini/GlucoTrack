@@ -18,6 +18,7 @@ import java.time.LocalDate;
 
 public class RegisterController {
 
+
     @FXML
     private TextField firstNameField;
 
@@ -54,6 +55,7 @@ public class RegisterController {
     public void initialize() {
         setupComboBoxes();
         setupEventHandlers();
+
     }
 
     private void setupEventHandlers() {

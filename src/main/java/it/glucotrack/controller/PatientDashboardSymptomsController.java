@@ -121,6 +121,33 @@ public class PatientDashboardSymptomsController implements Initializable {
     private void setupEventHandlers() {
         addNewSymptomBtn.setOnAction(e -> handleAddNewSymptom());
     }
+
+    private void showSymptomDetailsPopup(Symptom sym) {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/CustomPopup.fxml"));
+            javafx.scene.Parent root = loader.load();
+            it.glucotrack.component.CustomPopupController controller = loader.getController();
+            controller.setTitle("Dettagli Sintomo");
+            controller.setSubtitle(sym.getSymptomName());
+            javafx.scene.layout.VBox content = controller.getPopupContent();
+            content.getChildren().clear();
+            content.getChildren().addAll(
+                new javafx.scene.control.Label("Gravità: " + sym.getGravity()),
+                new javafx.scene.control.Label("Durata: " + sym.getDuration()),
+                new javafx.scene.control.Label("Data/Ora: " + sym.getDateAndTime().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))),
+                new javafx.scene.control.Label("Note: " + ((sym.getNotes() == null || sym.getNotes().isEmpty()) ? "Nessuna" : sym.getNotes()))
+            );
+            javafx.stage.Stage popupStage = new javafx.stage.Stage();
+            popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
+            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.setMinWidth(520);
+            popupStage.setMinHeight(340);
+            controller.setStage(popupStage);
+            popupStage.showAndWait();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     
     private void setupContextMenu() {
         // Create context menu items
@@ -146,7 +173,7 @@ public class PatientDashboardSymptomsController implements Initializable {
         ContextMenu contextMenu = new ContextMenu();
         contextMenu.getItems().addAll(editItem, deleteItem);
         
-        // Set up custom row factory with context menu and selection highlighting
+        // Set up custom row factory with context menu, selection highlighting e doppio click
         symptomsTable.setRowFactory(tv -> {
             TableRow<Symptom> row = new TableRow<Symptom>() {
                 @Override
@@ -156,7 +183,6 @@ public class PatientDashboardSymptomsController implements Initializable {
                         setStyle("");
                     }
                 }
-                
                 @Override
                 public void updateSelected(boolean selected) {
                     super.updateSelected(selected);
@@ -167,27 +193,30 @@ public class PatientDashboardSymptomsController implements Initializable {
                     }
                 }
             };
-            
+            // Doppio click per mostrare i dettagli
+            row.setOnMouseClicked(event -> {
+                if (!row.isEmpty() && event.getButton() == javafx.scene.input.MouseButton.PRIMARY && event.getClickCount() == 2) {
+                    Symptom sym = row.getItem();
+                    showSymptomDetailsPopup(sym);
+                }
+            });
             // Add hover effect
             row.setOnMouseEntered(e -> {
                 if (row.getItem() != null && !row.isSelected()) {
                     row.setStyle("-fx-background-color: rgba(255, 255, 255, 0.1);");
                 }
             });
-            
             row.setOnMouseExited(e -> {
                 if (row.getItem() != null && !row.isSelected()) {
                     row.setStyle("");
                 }
             });
-            
             // Only show context menu when row has data
             row.contextMenuProperty().bind(
                 javafx.beans.binding.Bindings.when(row.emptyProperty())
                 .then((ContextMenu) null)
                 .otherwise(contextMenu)
             );
-            
             return row;
         });
     }
@@ -220,34 +249,23 @@ public class PatientDashboardSymptomsController implements Initializable {
     }
     
     private void handleDeleteSymptom(Symptom selectedSymptom) {
-        // Show confirmation dialog
-        Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmationAlert.setTitle("Conferma Cancellazione");
-        confirmationAlert.setHeaderText("Eliminare questo sintomo?");
-        confirmationAlert.setContentText(String.format(
-            "Vuoi davvero eliminare il sintomo:\n\n" +
-            "Nome: %s\n" +
-            "Gravità: %s\n" +
-            "Data: %s\n" +
-            "Note: %s",
-            selectedSymptom.getSymptomName(),
-            selectedSymptom.getGravity(),
-            selectedSymptom.getDateAndTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
-            selectedSymptom.getNotes().isEmpty() ? "Nessuna nota" : selectedSymptom.getNotes()
-        ));
-        
-        // Apply dark theme to the alert
-        DialogPane dialogPane = confirmationAlert.getDialogPane();
-        try {
-            dialogPane.getStylesheets().add(getClass().getResource("/assets/css/dashboard-styles.css").toExternalForm());
-            dialogPane.getStyleClass().add("alert");
-        } catch (Exception e) {
-            System.err.println("Impossibile applicare lo stile al dialog: " + e.getMessage());
-        }
-        
-        Optional<ButtonType> result = confirmationAlert.showAndWait();
-        
-        if (result.isPresent() && result.get() == ButtonType.OK) {
+        // Show custom confirmation dialog
+        boolean confirmed = showCustomConfirmationDialog(
+            "Conferma Cancellazione",
+            "Eliminare questo sintomo?",
+            String.format(
+                "Vuoi davvero eliminare il sintomo:\n\n" +
+                "Nome: %s\n" +
+                "Gravità: %s\n" +
+                "Data: %s\n" +
+                "Note: %s",
+                selectedSymptom.getSymptomName(),
+                selectedSymptom.getGravity(),
+                selectedSymptom.getDateAndTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
+                selectedSymptom.getNotes().isEmpty() ? "Nessuna nota" : selectedSymptom.getNotes()
+            )
+        );
+        if (confirmed) {
             // Delete from database
             try {
                 SymptomDAO symptomDAO = new SymptomDAO();
@@ -271,39 +289,75 @@ public class PatientDashboardSymptomsController implements Initializable {
     }
     
     private void showErrorAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        
-        // Apply dark theme
-        try {
-            DialogPane dialogPane = alert.getDialogPane();
-            dialogPane.getStylesheets().add(getClass().getResource("/assets/css/dashboard-styles.css").toExternalForm());
-            dialogPane.getStyleClass().add("alert");
-        } catch (Exception e) {
-            System.err.println("Impossibile applicare lo stile al dialog: " + e.getMessage());
-        }
-        
-        alert.showAndWait();
+        showCustomPopup(title, message, "error");
     }
     
     private void showSuccessAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        
-        // Apply dark theme
+        showCustomPopup(title, message, "success");
+    }
+
+    // --- Custom Popup Helpers ---
+    private void showCustomPopup(String title, String message, String type) {
         try {
-            DialogPane dialogPane = alert.getDialogPane();
-            dialogPane.getStylesheets().add(getClass().getResource("/assets/css/dashboard-styles.css").toExternalForm());
-            dialogPane.getStyleClass().add("alert");
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/CustomPopup.fxml"));
+            javafx.scene.Parent root = loader.load();
+            it.glucotrack.component.CustomPopupController controller = loader.getController();
+            controller.setTitle(title);
+            controller.setSubtitle(type.equals("error") ? "Errore" : (type.equals("success") ? "Successo" : "Info"));
+            javafx.scene.layout.VBox content = controller.getPopupContent();
+            content.getChildren().clear();
+            javafx.scene.control.Label label = new javafx.scene.control.Label(message);
+            label.setWrapText(true);
+            content.getChildren().add(label);
+            javafx.stage.Stage popupStage = new javafx.stage.Stage();
+            popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
+            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.setMinWidth(420);
+            popupStage.setMinHeight(200);
+            popupStage.setResizable(false);
+            // Disabilita lo spostamento: rimuovi i listener drag dal title bar custom
+            controller.setStage(popupStage, false); // popup: drag disabilitato
+            popupStage.showAndWait();
         } catch (Exception e) {
-            System.err.println("Impossibile applicare lo stile al dialog: " + e.getMessage());
+            e.printStackTrace();
         }
-        
-        alert.showAndWait();
+    }
+
+    private boolean showCustomConfirmationDialog(String title, String subtitle, String message) {
+        final boolean[] result = {false};
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/CustomPopup.fxml"));
+            javafx.scene.Parent root = loader.load();
+            it.glucotrack.component.CustomPopupController controller = loader.getController();
+            controller.setTitle(title);
+            controller.setSubtitle(subtitle);
+            javafx.scene.layout.VBox content = controller.getPopupContent();
+            content.getChildren().clear();
+            javafx.scene.control.Label label = new javafx.scene.control.Label(message);
+            label.setWrapText(true);
+            javafx.scene.control.Button yesBtn = new javafx.scene.control.Button("Sì");
+            javafx.scene.control.Button noBtn = new javafx.scene.control.Button("No");
+            yesBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-background-radius: 8;");
+            noBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-background-radius: 8;");
+            javafx.scene.layout.HBox btnBox = new javafx.scene.layout.HBox(16, yesBtn, noBtn);
+            btnBox.setStyle("-fx-alignment: center; -fx-padding: 18 0 0 0;");
+            content.getChildren().addAll(label, btnBox);
+            javafx.stage.Stage popupStage = new javafx.stage.Stage();
+            popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
+            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.setMinWidth(420);
+            popupStage.setMinHeight(220);
+            popupStage.setResizable(false);
+            // Disabilita lo spostamento: rimuovi i listener drag dal title bar custom
+            // (Assicurati che CustomTitleBarController non implementi drag per questi popup)
+            controller.setStage(popupStage, false); // popup: drag disabilitato
+            yesBtn.setOnAction(ev -> { result[0] = true; popupStage.close(); });
+            noBtn.setOnAction(ev -> { result[0] = false; popupStage.close(); });
+            popupStage.showAndWait();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result[0];
     }
 
     private void loadData() {

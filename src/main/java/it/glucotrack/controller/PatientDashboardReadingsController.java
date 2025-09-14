@@ -13,7 +13,6 @@ import javafx.stage.Stage;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.util.Callback;
-import java.util.Optional;
 
 import java.io.IOException;
 import java.net.URL;
@@ -73,10 +72,10 @@ public class PatientDashboardReadingsController implements Initializable {
     private void initializeData() {
         readingsData = FXCollections.observableArrayList();
         filteredData = FXCollections.observableArrayList();
-        
+
         // Carica i dati reali dal database
         loadGlucoseReadingsFromDatabase();
-        
+
         readingsTable.setItems(filteredData);
     }
     
@@ -230,6 +229,54 @@ public class PatientDashboardReadingsController implements Initializable {
     private void setupEventHandlers() {
         addReadingBtn.setOnAction(e -> handleAddNewReading());
     }
+
+    private void showReadingDetailsPopup(GlucoseReading reading) {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/CustomPopup.fxml"));
+            javafx.scene.Parent root = loader.load();
+            it.glucotrack.component.CustomPopupController controller = loader.getController();
+            controller.setTitle("Dettagli Misurazione");
+            controller.setSubtitle("Dettagli completi della misurazione");
+            javafx.scene.layout.VBox content = controller.getPopupContent();
+            content.getChildren().clear();
+
+            String note = "";
+            try {
+                User currentUser = SessionManager.getInstance().getCurrentUser();
+                if (currentUser != null) {
+                    GlucoseMeasurementDAO glucoseDAO = new GlucoseMeasurementDAO();
+                    java.util.List<GlucoseMeasurement> measurements = glucoseDAO.getGlucoseMeasurementsByPatientId(currentUser.getId());
+                    for (GlucoseMeasurement m : measurements) {
+                        if (m.getDateAndTime().equals(reading.getDateTime()) &&
+                            m.getType().equals(reading.getType()) &&
+                            Math.round(m.getGlucoseLevel()) == reading.getValue()) {
+                            note = m.getNotes();
+                            break;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                note = "Errore nel recupero delle note";
+            }
+
+            content.getChildren().addAll(
+                new javafx.scene.control.Label("Data/Ora: " + reading.getFormattedTime()),
+                new javafx.scene.control.Label("Tipo: " + reading.getType()),
+                new javafx.scene.control.Label("Valore: " + reading.getFormattedValue()),
+                new javafx.scene.control.Label("Stato: " + reading.getStatus()),
+                new javafx.scene.control.Label("Note: " + ((note == null || note.isEmpty()) ? "Nessuna" : note))
+            );
+            javafx.stage.Stage popupStage = new javafx.stage.Stage();
+            popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
+            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.setMinWidth(520);
+            popupStage.setMinHeight(340);
+            controller.setStage(popupStage);
+            popupStage.showAndWait();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     
     private void setupContextMenu() {
         // Create context menu items
@@ -255,7 +302,7 @@ public class PatientDashboardReadingsController implements Initializable {
         ContextMenu contextMenu = new ContextMenu();
         contextMenu.getItems().addAll(editItem, deleteItem);
         
-        // Set up custom row factory with context menu and selection highlighting
+        // Set up custom row factory with context menu, selection highlighting e doppio click
         readingsTable.setRowFactory(tv -> {
             TableRow<GlucoseReading> row = new TableRow<GlucoseReading>() {
                 @Override
@@ -265,7 +312,6 @@ public class PatientDashboardReadingsController implements Initializable {
                         setStyle("");
                     }
                 }
-                
                 @Override
                 public void updateSelected(boolean selected) {
                     super.updateSelected(selected);
@@ -276,27 +322,30 @@ public class PatientDashboardReadingsController implements Initializable {
                     }
                 }
             };
-            
+            // Doppio click per mostrare i dettagli
+            row.setOnMouseClicked(event -> {
+                if (!row.isEmpty() && event.getButton() == javafx.scene.input.MouseButton.PRIMARY && event.getClickCount() == 2) {
+                    GlucoseReading reading = row.getItem();
+                    showReadingDetailsPopup(reading);
+                }
+            });
             // Add hover effect
             row.setOnMouseEntered(e -> {
                 if (row.getItem() != null && !row.isSelected()) {
                     row.setStyle("-fx-background-color: rgba(255, 255, 255, 0.1);");
                 }
             });
-            
             row.setOnMouseExited(e -> {
                 if (row.getItem() != null && !row.isSelected()) {
                     row.setStyle("");
                 }
             });
-            
             // Only show context menu when row has data
             row.contextMenuProperty().bind(
                 javafx.beans.binding.Bindings.when(row.emptyProperty())
                 .then((ContextMenu) null)
                 .otherwise(contextMenu)
             );
-            
             return row;
         });
     }
@@ -328,27 +377,21 @@ public class PatientDashboardReadingsController implements Initializable {
         }
     }
     
+    
     private void handleDeleteReading(GlucoseReading selectedReading) {
-        // Show confirmation dialog
-        Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmationAlert.setTitle("Conferma Cancellazione");
-        confirmationAlert.setHeaderText("Eliminare questa misurazione?");
-        confirmationAlert.setContentText(String.format(
-            "Vuoi davvero eliminare la misurazione del %s alle %s?\nValore: %s\nTipo: %s",
-            selectedReading.getDateTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-            selectedReading.getFormattedTime(),
-            selectedReading.getFormattedValue(),
-            selectedReading.getType()
-        ));
-        
-        // Apply dark theme to the alert
-        DialogPane dialogPane = confirmationAlert.getDialogPane();
-        dialogPane.getStylesheets().add(getClass().getResource("/assets/css/dashboard-styles.css").toExternalForm());
-        dialogPane.getStyleClass().add("alert");
-        
-        Optional<ButtonType> result = confirmationAlert.showAndWait();
-        
-        if (result.isPresent() && result.get() == ButtonType.OK) {
+        // Show custom confirmation dialog
+        boolean confirmed = showCustomConfirmationDialog(
+            "Conferma Cancellazione",
+            "Eliminare questa misurazione?",
+            String.format(
+                "Vuoi davvero eliminare la misurazione del %s alle %s?\nValore: %s\nTipo: %s",
+                selectedReading.getDateTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                selectedReading.getFormattedTime(),
+                selectedReading.getFormattedValue(),
+                selectedReading.getType()
+            )
+        );
+        if (confirmed) {
             // Delete from database
             try {
                 GlucoseMeasurementDAO glucoseDAO = new GlucoseMeasurementDAO();
@@ -384,31 +427,70 @@ public class PatientDashboardReadingsController implements Initializable {
     }
     
     private void showErrorAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        
-        // Apply dark theme
-        DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.getStylesheets().add(getClass().getResource("/assets/css/dashboard-styles.css").toExternalForm());
-        dialogPane.getStyleClass().add("alert");
-        
-        alert.showAndWait();
+        showCustomPopup(title, message, "error");
     }
     
     private void showSuccessAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        
-        // Apply dark theme
-        DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.getStylesheets().add(getClass().getResource("/assets/css/dashboard-styles.css").toExternalForm());
-        dialogPane.getStyleClass().add("alert");
-        
-        alert.showAndWait();
+        showCustomPopup(title, message, "success");
+    }
+
+    // --- Custom Popup Helpers ---
+    private void showCustomPopup(String title, String message, String type) {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/CustomPopup.fxml"));
+            javafx.scene.Parent root = loader.load();
+            it.glucotrack.component.CustomPopupController controller = loader.getController();
+            controller.setTitle(title);
+            controller.setSubtitle(type.equals("error") ? "Errore" : (type.equals("success") ? "Successo" : "Info"));
+            javafx.scene.layout.VBox content = controller.getPopupContent();
+            content.getChildren().clear();
+            javafx.scene.control.Label label = new javafx.scene.control.Label(message);
+            label.setWrapText(true);
+            content.getChildren().add(label);
+            javafx.stage.Stage popupStage = new javafx.stage.Stage();
+            popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
+            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.setMinWidth(420);
+            popupStage.setMinHeight(200);
+            controller.setStage(popupStage);
+            popupStage.showAndWait();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean showCustomConfirmationDialog(String title, String subtitle, String message) {
+        final boolean[] result = {false};
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/CustomPopup.fxml"));
+            javafx.scene.Parent root = loader.load();
+            it.glucotrack.component.CustomPopupController controller = loader.getController();
+            controller.setTitle(title);
+            controller.setSubtitle(subtitle);
+            javafx.scene.layout.VBox content = controller.getPopupContent();
+            content.getChildren().clear();
+            javafx.scene.control.Label label = new javafx.scene.control.Label(message);
+            label.setWrapText(true);
+            javafx.scene.control.Button yesBtn = new javafx.scene.control.Button("Sì");
+            javafx.scene.control.Button noBtn = new javafx.scene.control.Button("No");
+            yesBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-background-radius: 8;");
+            noBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-background-radius: 8;");
+            javafx.scene.layout.HBox btnBox = new javafx.scene.layout.HBox(16, yesBtn, noBtn);
+            btnBox.setStyle("-fx-alignment: center; -fx-padding: 18 0 0 0;");
+            content.getChildren().addAll(label, btnBox);
+            javafx.stage.Stage popupStage = new javafx.stage.Stage();
+            popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
+            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.setMinWidth(420);
+            popupStage.setMinHeight(220);
+            controller.setStage(popupStage);
+            yesBtn.setOnAction(ev -> { result[0] = true; popupStage.close(); });
+            noBtn.setOnAction(ev -> { result[0] = false; popupStage.close(); });
+            popupStage.showAndWait();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result[0];
     }
 
 

@@ -7,6 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 import java.io.IOException;
+import it.glucotrack.util.SessionManager;
 
 public class DoctorDashboardController {
 
@@ -81,7 +82,13 @@ public class DoctorDashboardController {
 
     @FXML
     private void onLogoutClick() {
-        // Qui puoi mettere la logica per il logout, ad esempio tornare alla schermata di login
+        try {
+            SessionManager.getInstance().logout();
+            System.out.println("👋 Logout eseguito con successo");
+        } catch (Exception e) {
+            System.err.println("❌ Errore durante il logout: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
 

@@ -59,7 +59,7 @@ public class MedicationDAO {
     
     // Convert LocalDate to java.sql.Date for proper database storage
     java.sql.Date startDate = java.sql.Date.valueOf(med.getStart_date());
-    java.sql.Date endDate = java.sql.Date.valueOf(med.getEnd_date());
+    java.sql.Date endDate = med.getEnd_date() != null ? java.sql.Date.valueOf(med.getEnd_date()) : null;
     
     int rows = DatabaseInteraction.executeUpdate(sql,
             med.getPatient_id(), 
@@ -67,17 +67,54 @@ public class MedicationDAO {
             med.getDose(), 
             med.getFreq().name(), // Use enum name for consistency
             startDate,           // Use java.sql.Date
-            endDate,            // Use java.sql.Date
+            endDate,            // Use java.sql.Date (can be null)
             med.getInstructions());
     return rows > 0;
 }
+
+    public int insertMedicationAndGetId(Medication med) throws SQLException {
+        String sql = "INSERT INTO medications (patient_id, name, dose, frequency, start_date, end_date, instructions) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        
+        // Convert LocalDate to java.sql.Date for proper database storage
+        java.sql.Date startDate = java.sql.Date.valueOf(med.getStart_date());
+        java.sql.Date endDate = med.getEnd_date() != null ? java.sql.Date.valueOf(med.getEnd_date()) : null;
+        
+        try (java.sql.Connection conn = DatabaseInteraction.connect();
+             java.sql.PreparedStatement pstmt = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
+            
+            pstmt.setInt(1, med.getPatient_id());
+            pstmt.setString(2, med.getName_medication());
+            pstmt.setString(3, med.getDose());
+            pstmt.setString(4, med.getFreq().name());
+            pstmt.setDate(5, startDate);
+            pstmt.setDate(6, endDate);
+            pstmt.setString(7, med.getInstructions());
+            
+            int affectedRows = pstmt.executeUpdate();
+            
+            if (affectedRows == 0) {
+                throw new SQLException("Creating medication failed, no rows affected.");
+            }
+            
+            // Get the last inserted row ID using SQLite's last_insert_rowid()
+            String getIdSql = "SELECT last_insert_rowid()";
+            try (java.sql.Statement stmt = conn.createStatement();
+                 java.sql.ResultSet rs = stmt.executeQuery(getIdSql)) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                } else {
+                    throw new SQLException("Creating medication failed, no ID obtained.");
+                }
+            }
+        }
+    }
 
 public boolean updateMedication(Medication med) throws SQLException {
     String sql = "UPDATE medications SET patient_id=?, name=?, dose=?, frequency=?, start_date=?, end_date=?, instructions=? WHERE id=?";
     
     // Convert LocalDate to java.sql.Date for proper database storage
     java.sql.Date startDate = java.sql.Date.valueOf(med.getStart_date());
-    java.sql.Date endDate = java.sql.Date.valueOf(med.getEnd_date());
+    java.sql.Date endDate = med.getEnd_date() != null ? java.sql.Date.valueOf(med.getEnd_date()) : null;
     
     int rows = DatabaseInteraction.executeUpdate(sql,
             med.getPatient_id(), 
@@ -85,7 +122,7 @@ public boolean updateMedication(Medication med) throws SQLException {
             med.getDose(), 
             med.getFreq().name(), // Use enum name for consistency
             startDate,           // Use java.sql.Date
-            endDate,            // Use java.sql.Date
+            endDate,            // Use java.sql.Date (can be null)
             med.getInstructions(), 
             med.getId());
     return rows > 0;

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<StackPane xmlns:fx="http://javafx.com/fxml" fx:id="popupRoot" minWidth="520" minHeight="340" maxWidth="700" maxHeight="600" style="-fx-background-color: #232946; -fx-border-radius: 18; -fx-background-radius: 18; -fx-effect: dropshadow(gaussian, #00000099, 32, 0.2, 0, 8);" fx:controller="it.glucotrack.component.CustomPopupController" stylesheets="@../css/glucose-form-style.css">
+    <children>
+        <VBox alignment="TOP_CENTER" spacing="0" style="-fx-padding: 0;">
+            <HBox alignment="TOP_RIGHT" style="-fx-padding: 18 18 0 0;">
+                <Region HBox.hgrow="ALWAYS" />
+                <Button fx:id="closeButton" text="✕" style="-fx-background-color: transparent; -fx-text-fill: #fff; -fx-font-size: 20px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 2 8 2 8;" onAction="#handleClose" />
+            </HBox>
+            <VBox fx:id="contentBox" alignment="TOP_CENTER" spacing="18" style="-fx-padding: 0 32 24 32;">
+                <Label fx:id="popupTitle" text="Titolo Popup" style="-fx-font-size: 2.1em; -fx-text-fill: #fff; -fx-font-family: 'Segoe UI Semibold', 'Arial', sans-serif; -fx-font-weight: bold; -fx-padding: 12 0 0 0;" />
+                <Label fx:id="popupSubtitle" text="Sottotitolo o descrizione" style="-fx-font-size: 1.1em; -fx-text-fill: #bfc6d1; -fx-font-family: 'Segoe UI', 'Arial', sans-serif; -fx-padding: 0 0 8 0;" />
+                <Separator style="-fx-background-color: #bfc6d1; -fx-opacity: 0.5;" />
+                <VBox fx:id="popupContent" spacing="10" />
+            </VBox>
+        </VBox>
+    </children>
+</StackPane>
