@@ -1,16 +1,18 @@
 package it.glucotrack.controller;
 
 import java.net.URL;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
-import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 
 import it.glucotrack.model.Gender;
 import it.glucotrack.model.GlucoseMeasurement;
 import it.glucotrack.model.Patient;
+import it.glucotrack.util.GlucoseMeasurementDAO;
+import it.glucotrack.util.PatientDAO;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -22,7 +24,9 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
@@ -32,7 +36,9 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 
 public class DoctorDashboardPatientsController implements Initializable {
 
@@ -62,13 +68,21 @@ public class DoctorDashboardPatientsController implements Initializable {
     @FXML private Label statusLabel;
     @FXML private Label totalPatientsLabel;
 
-    // Data
+    // Data and DAOs
     private ObservableList<PatientTableData> patientTableData;
     private FilteredList<PatientTableData> filteredPatients;
     private PatientTableData selectedPatient;
+    private PatientDAO patientDAO;
+    private GlucoseMeasurementDAO glucoseMeasurementDAO;
+    private int doctorId;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        this.patientDAO = new PatientDAO();
+        this.glucoseMeasurementDAO = new GlucoseMeasurementDAO();
+        // The doctorId should be set by the calling controller, e.g., after login
+        // For demonstration, let's use a placeholder value
+        this.doctorId = 1;
         setupTable();
         setupSearch();
         setupButtons();
@@ -77,24 +91,26 @@ public class DoctorDashboardPatientsController implements Initializable {
         updateStatusBar();
     }
 
+    // Set the doctorId from the login screen
+    public void setDoctorId(int doctorId) {
+        this.doctorId = doctorId;
+        refreshPatientsList();
+    }
+
     private void setupTable() {
-        // Initialize data structures
         patientTableData = FXCollections.observableArrayList();
         filteredPatients = new FilteredList<>(patientTableData);
         patientsTable.setItems(filteredPatients);
 
-        // Setup columns
         patientNameColumn.setCellValueFactory(new PropertyValueFactory<>("fullName"));
         lastGlucoseColumn.setCellValueFactory(new PropertyValueFactory<>("lastGlucoseReading"));
         riskStatusColumn.setCellValueFactory(new PropertyValueFactory<>("riskStatus"));
         lastVisitColumn.setCellValueFactory(new PropertyValueFactory<>("lastVisitFormatted"));
         ageColumn.setCellValueFactory(new PropertyValueFactory<>("age"));
 
-        // Setup custom cell factories for styling
         setupRiskStatusColumn();
         setupActionsColumn();
 
-        // Table styling
         patientsTable.setRowFactory(tv -> {
             TableRow<PatientTableData> row = new TableRow<PatientTableData>() {
                 @Override
@@ -104,7 +120,6 @@ public class DoctorDashboardPatientsController implements Initializable {
                         setStyle("");
                         getStyleClass().removeAll("table-row-high-risk", "table-row-moderate-risk", "table-row-normal");
                     } else {
-                        // Apply CSS classes based on risk status
                         getStyleClass().removeAll("table-row-high-risk", "table-row-moderate-risk", "table-row-normal");
                         switch (patientData.getRiskStatus()) {
                             case "High":
@@ -121,7 +136,6 @@ public class DoctorDashboardPatientsController implements Initializable {
                 }
             };
 
-            // Double-click to view patient
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && !row.isEmpty()) {
                     viewPatientProfile(getSelectedPatient());
@@ -131,11 +145,9 @@ public class DoctorDashboardPatientsController implements Initializable {
             return row;
         });
 
-        // Selection listener
         patientsTable.getSelectionModel().selectedItemProperty().addListener(
                 (obs, oldSelection, newSelection) -> selectedPatient = newSelection);
 
-        // Apply custom CSS styling
         patientsTable.getStyleClass().add("patients-table");
     }
 
@@ -144,7 +156,6 @@ public class DoctorDashboardPatientsController implements Initializable {
             @Override
             protected void updateItem(String riskStatus, boolean empty) {
                 super.updateItem(riskStatus, empty);
-
                 if (empty || riskStatus == null) {
                     setGraphic(null);
                     setText(null);
@@ -154,7 +165,6 @@ public class DoctorDashboardPatientsController implements Initializable {
                     statusLabel.setAlignment(Pos.CENTER);
                     statusLabel.getStyleClass().add("risk-status-label");
 
-                    // Apply CSS classes based on risk level
                     switch (riskStatus) {
                         case "Normal":
                             statusLabel.getStyleClass().add("risk-normal");
@@ -208,7 +218,6 @@ public class DoctorDashboardPatientsController implements Initializable {
             filterPatients(newValue);
         });
 
-        // Apply search field styling
         searchField.getStyleClass().add("search-field");
     }
 
@@ -216,7 +225,6 @@ public class DoctorDashboardPatientsController implements Initializable {
         addPatientBtn.setOnAction(e -> handleAddPatient());
         filterBtn.setOnAction(e -> handleFilter());
 
-        // Apply button styling
         addPatientBtn.getStyleClass().addAll("btn", "btn-primary");
         filterBtn.getStyleClass().addAll("btn", "btn-secondary");
     }
@@ -224,7 +232,7 @@ public class DoctorDashboardPatientsController implements Initializable {
     private void setupContextMenu() {
         viewPatientMenuItem.setOnAction(e -> {
             if (selectedPatient != null) {
-
+                viewPatientProfile(selectedPatient);
             }
         });
 
@@ -253,85 +261,30 @@ public class DoctorDashboardPatientsController implements Initializable {
         });
 
         patientsTable.setContextMenu(tableContextMenu);
-
-        // Apply context menu styling
         tableContextMenu.getStyleClass().add("context-menu");
     }
 
     private void loadPatientsData() {
-        // Create sample patients using the Patient model
-        List<Patient> samplePatients = createSamplePatients();
-
-        // Convert to table data and add to observable list
-        for (Patient patient : samplePatients) {
-            PatientTableData tableData = new PatientTableData(patient);
-            patientTableData.add(tableData);
+        patientTableData.clear();
+        try {
+            // Fetch patients from the database assigned to this doctor
+            List<Patient> patients = patientDAO.getPatientsByDoctorId(this.doctorId);
+            if (patients != null) {
+                for (Patient patient : patients) {
+                    // Fetch the latest glucose measurement for each patient
+                    GlucoseMeasurement lastMeasurement = glucoseMeasurementDAO.getLatestMeasurementByPatientId(patient.getId());
+                    if (lastMeasurement != null) {
+                        patient.getGlucoseReadings().add(lastMeasurement);
+                    }
+                    PatientTableData tableData = new PatientTableData(patient);
+                    patientTableData.add(tableData);
+                }
+            }
+            statusLabel.setText("Patients loaded successfully from the database");
+        } catch (SQLException e) {
+            statusLabel.setText("Error loading patients: " + e.getMessage());
+            e.printStackTrace();
         }
-
-        statusLabel.setText("Patients loaded successfully");
-    }
-
-    private List<Patient> createSamplePatients() {
-        return Arrays.asList(
-                createPatientWithData(1, "Sophia", "Clark", "sophia.clark@email.com",
-                        LocalDate.of(1990, 3, 15), "+1234567890", 1, 120, "Normal"),
-                createPatientWithData(2, "Ethan", "Harris", "ethan.harris@email.com",
-                        LocalDate.of(1982, 7, 22), "+1234567891", 1, 250, "High"),
-                createPatientWithData(3, "Olivia", "Turner", "olivia.turner@email.com",
-                        LocalDate.of(1996, 11, 8), "+1234567892", 1, 180, "Moderate"),
-                createPatientWithData(4, "Liam", "Foster", "liam.foster@email.com",
-                        LocalDate.of(1969, 4, 12), "+1234567893", 1, 110, "Normal"),
-                createPatientWithData(5, "Ava", "Bennett", "ava.bennett@email.com",
-                        LocalDate.of(1986, 9, 25), "+1234567894", 1, 300, "High"),
-                createPatientWithData(6, "Noah", "Peterson", "noah.peterson@email.com",
-                        LocalDate.of(1993, 1, 18), "+1234567895", 1, 95, "Normal"),
-                createPatientWithData(7, "Isabella", "Rodriguez", "isabella.rodriguez@email.com",
-                        LocalDate.of(1979, 6, 30), "+1234567896", 1, 165, "Moderate"),
-                createPatientWithData(8, "Mason", "Taylor", "mason.taylor@email.com",
-                        LocalDate.of(1972, 12, 5), "+1234567897", 1, 275, "High"),
-                createPatientWithData(9, "Emma", "Wilson", "emma.wilson@email.com",
-                        LocalDate.of(1995, 8, 14), "+1234567898", 1, 135, "Normal"),
-                createPatientWithData(10, "William", "Brown", "william.brown@email.com",
-                        LocalDate.of(1977, 2, 28), "+1234567899", 1, 195, "Moderate"),
-                createPatientWithData(11, "Charlotte", "Davis", "charlotte.davis@email.com",
-                        LocalDate.of(1988, 5, 10), "+1234567800", 1, 160, "Moderate"),
-                createPatientWithData(12, "James", "Miller", "james.miller@email.com",
-                        LocalDate.of(1983, 10, 3), "+1234567801", 1, 85, "Normal"),
-                createPatientWithData(13, "Amelia", "Garcia", "amelia.garcia@email.com",
-                        LocalDate.of(1991, 12, 20), "+1234567802", 1, 320, "High"),
-                createPatientWithData(14, "Benjamin", "Wilson", "benjamin.wilson@email.com",
-                        LocalDate.of(1995, 4, 7), "+1234567803", 1, 145, "Normal"),
-                createPatientWithData(15, "Mia", "Martinez", "mia.martinez@email.com",
-                        LocalDate.of(1980, 8, 16), "+1234567804", 1, 210, "Moderate")
-        );
-    }
-
-    private Patient createPatientWithData(int id, String name, String surname, String email,
-                                          LocalDate birthDate, String phone, int doctorId,
-                                          int glucoseReading, String riskStatus) {
-        Patient patient = new Patient(id, name, surname, email, "defaultPassword",
-                birthDate, Gender.MALE, phone, "Unknown", "FC" + id, doctorId);
-
-        // Add sample glucose reading
-        GlucoseMeasurement measurement = new GlucoseMeasurement();
-        measurement.setGlucoseLevel(glucoseReading);
-        measurement.setDateAndTime(LocalDateTime.now().minusDays((int)(Math.random() * 14)));
-        patient.getGlucoseReadings().add(measurement);
-
-        // Add sample symptoms based on risk status
-        switch (riskStatus) {
-            case "High":
-                patient.getSymptoms().addAll(Arrays.asList("Frequent urination", "Excessive thirst", "Fatigue"));
-                break;
-            case "Moderate":
-                patient.getSymptoms().addAll(Arrays.asList("Mild fatigue", "Occasional dizziness"));
-                break;
-            case "Normal":
-                patient.getSymptoms().add("No significant symptoms");
-                break;
-        }
-
-        return patient;
     }
 
     private void filterPatients(String searchText) {
@@ -362,18 +315,6 @@ public class DoctorDashboardPatientsController implements Initializable {
         }
     }
 
-    private String formatLastVisit(LocalDateTime lastVisit) {
-        if (lastVisit == null) return "Never";
-
-        long daysAgo = java.time.temporal.ChronoUnit.DAYS.between(lastVisit.toLocalDate(), LocalDate.now());
-        if (daysAgo == 0) return "Today";
-        if (daysAgo == 1) return "Yesterday";
-        if (daysAgo < 7) return daysAgo + " days ago";
-        if (daysAgo < 14) return "1 week ago";
-        if (daysAgo < 30) return (daysAgo / 7) + " weeks ago";
-        return (daysAgo / 30) + " months ago";
-    }
-
     // Action handlers - just make buttons clickable without implementing full functionality
     private void handleAddPatient() {
         System.out.println("Add Patient button clicked - functionality not implemented yet");
@@ -390,19 +331,23 @@ public class DoctorDashboardPatientsController implements Initializable {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/ProfileView.fxml"));
             Parent profileRoot = loader.load();
 
-            // Passa i dati al controller del profilo
-            Object controller = loader.getController();
-            if (controller != null && controller.getClass().getMethod("setPatient", Patient.class) != null) {
-                controller.getClass().getMethod("setPatient", Patient.class).invoke(controller, patientData.getPatient());
-            }
+            ProfileViewController profileController = loader.getController();
+            profileController.setPatient(patientData.getPatient());
+            profileController.setDoctorView(true);
 
-            // Sostituisci la root della scena
             Scene scene = addPatientBtn.getScene();
-            scene.setRoot(profileRoot);
+            BorderPane rootPane = (BorderPane) scene.getRoot();
+            StackPane contentPane = (StackPane) rootPane.getCenter();
+
+            profileController.setParentContentPane(contentPane);
+
+            contentPane.getChildren().clear();
+            contentPane.getChildren().add(profileRoot);
+
             statusLabel.setText("Opened profile for " + patientData.getFullName());
         } catch (Exception e) {
             e.printStackTrace();
-            statusLabel.setText("Errore nel caricamento del profilo");
+            statusLabel.setText("Errore nel caricamento del profilo: " + e.getMessage());
         }
     }
 
@@ -422,13 +367,28 @@ public class DoctorDashboardPatientsController implements Initializable {
     }
 
     private void deletePatient(PatientTableData patientData) {
-        System.out.println("Delete patient: " + patientData.getFullName());
-        statusLabel.setText("Delete functionality not available yet");
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you want to delete " + patientData.getFullName() + "?", ButtonType.YES, ButtonType.NO);
+        alert.setHeaderText("Confirm Deletion");
+        alert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.YES) {
+                try {
+                    boolean success = patientDAO.deletePatient(patientData.getPatient().getId());
+                    if (success) {
+                        refreshPatientsList();
+                        statusLabel.setText(patientData.getFullName() + " deleted successfully.");
+                    } else {
+                        statusLabel.setText("Failed to delete " + patientData.getFullName() + ".");
+                    }
+                } catch (SQLException e) {
+                    statusLabel.setText("Error deleting patient: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     // Public methods for external use
     public void refreshPatientsList() {
-        patientTableData.clear();
         loadPatientsData();
         updateStatusBar();
         statusLabel.setText("Patients list refreshed");
@@ -465,27 +425,27 @@ public class DoctorDashboardPatientsController implements Initializable {
             this.patient = patient;
             this.fullName = new SimpleStringProperty(patient.getFullName());
 
-            // Get last glucose reading
             String glucoseDisplay = "No readings";
             String riskLevel = "Unknown";
-            if (!patient.getGlucoseReadings().isEmpty()) {
+            LocalDateTime lastVisitDateTime = null;
+            if (patient.getGlucoseReadings() != null && !patient.getGlucoseReadings().isEmpty()) {
                 GlucoseMeasurement lastReading = patient.getGlucoseReadings().get(patient.getGlucoseReadings().size() - 1);
-                glucoseDisplay = lastReading.getGlucoseLevel() + " mg/dL";
-                riskLevel = calculateRiskStatus((int) lastReading.getGlucoseLevel());
+                if (lastReading != null) {
+                    glucoseDisplay = lastReading.getGlucoseLevel() + " mg/dL";
+                    riskLevel = calculateRiskStatus((int) lastReading.getGlucoseLevel());
+                    lastVisitDateTime = lastReading.getDateAndTime();
+                }
             }
 
             this.lastGlucoseReading = new SimpleStringProperty(glucoseDisplay);
             this.riskStatus = new SimpleStringProperty(riskLevel);
 
-            // Calculate age
             int calculatedAge = Period.between(patient.getBornDate(), LocalDate.now()).getYears();
             this.age = new SimpleIntegerProperty(calculatedAge);
 
-            // Format last visit (using last glucose measurement date as proxy)
             String lastVisit = "Never";
-            if (!patient.getGlucoseReadings().isEmpty()) {
-                GlucoseMeasurement lastReading = patient.getGlucoseReadings().get(patient.getGlucoseReadings().size() - 1);
-                lastVisit = formatLastVisit(lastReading.getDateAndTime());
+            if (lastVisitDateTime != null) {
+                lastVisit = formatLastVisit(lastVisitDateTime);
             }
             this.lastVisitFormatted = new SimpleStringProperty(lastVisit);
         }
@@ -512,7 +472,6 @@ public class DoctorDashboardPatientsController implements Initializable {
             return (daysAgo / 30) + " months ago";
         }
 
-        // Getters for table binding
         public String getFullName() { return fullName.get(); }
         public String getLastGlucoseReading() { return lastGlucoseReading.get(); }
         public String getRiskStatus() { return riskStatus.get(); }
@@ -520,7 +479,6 @@ public class DoctorDashboardPatientsController implements Initializable {
         public int getAge() { return age.get(); }
         public Patient getPatient() { return patient; }
 
-        // Property getters for TableView
         public SimpleStringProperty fullNameProperty() { return fullName; }
         public SimpleStringProperty lastGlucoseReadingProperty() { return lastGlucoseReading; }
         public SimpleStringProperty riskStatusProperty() { return riskStatus; }

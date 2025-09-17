@@ -33,24 +33,24 @@ public class PatientDashboardHomeController {
 
     @FXML
     private LineChart<String, Number> glucoseChart;
-    
+
     private GlucoseMeasurementDAO glucoseMeasurementDAO;
 
     @FXML
     public void initialize() {
         System.out.println("🏠 PatientDashboardHomeController inizializzato!");
-        
+
         // Initialize DAO
         glucoseMeasurementDAO = new GlucoseMeasurementDAO();
-        
+
         // Inizializza la combo dei range temporali
         timeRangeCombo.getItems().addAll("Ultimi 7 giorni", "Ultimi 30 giorni", "Ultimo anno");
-        
+
         // Listener per il cambio di periodo temporale
         timeRangeCombo.setOnAction(e -> {
             String selectedPeriod = timeRangeCombo.getSelectionModel().getSelectedItem();
             System.out.println("🔄 Cambio periodo: " + selectedPeriod);
-            
+
             // Pausa breve per evitare conflitti nel refresh del grafico
             javafx.application.Platform.runLater(() -> {
                 try {
@@ -64,7 +64,7 @@ public class PatientDashboardHomeController {
                 }
             });
         });
-        
+
         // Seleziona il default (7 giorni) e trigger del listener
         timeRangeCombo.getSelectionModel().select("Ultimi 7 giorni");
 
@@ -78,13 +78,13 @@ public class PatientDashboardHomeController {
             User currentUser = SessionManager.getInstance().getCurrentUser();
             if (currentUser != null) {
                 List<GlucoseMeasurement> allMeasurements = glucoseMeasurementDAO.getGlucoseMeasurementsByPatientId(currentUser.getId());
-                
+
                 if (!allMeasurements.isEmpty()) {
                     // Filtra i dati in base al periodo selezionato
                     String selectedPeriod = timeRangeCombo.getSelectionModel().getSelectedItem();
                     int daysBack = getDaysFromPeriod(selectedPeriod);
                     List<GlucoseMeasurement> filteredMeasurements = filterMeasurementsByPeriod(allMeasurements, daysBack);
-                    
+
                     if (!filteredMeasurements.isEmpty()) {
                         // Calcola statistiche sui dati filtrati
                         calculateAndDisplayStatistics(filteredMeasurements);
@@ -113,39 +113,39 @@ public class PatientDashboardHomeController {
         try {
             User currentUser = SessionManager.getInstance().getCurrentUser();
             if (currentUser == null) return;
-            
+
             // Pulizia completa del grafico
             glucoseChart.getData().clear();
             glucoseChart.getXAxis().setAnimated(false);
             glucoseChart.getYAxis().setAnimated(false);
             glucoseChart.setAnimated(false);
-            
+
             // Ottieni i dati dal database
             List<GlucoseMeasurement> measurements = glucoseMeasurementDAO.getGlucoseMeasurementsByPatientId(currentUser.getId());
-            
+
             if (measurements.isEmpty()) {
                 System.out.println("⚠️ Nessuna misurazione trovata per il grafico");
                 return;
             }
-            
+
             // Filtra i dati in base al periodo selezionato
             String selectedPeriod = timeRangeCombo.getSelectionModel().getSelectedItem();
             int daysBack = getDaysFromPeriod(selectedPeriod);
-            
+
             // Filtra e ordina i dati per il periodo
             java.time.LocalDateTime cutoffDate = java.time.LocalDateTime.now().minusDays(daysBack);
             List<GlucoseMeasurement> filteredMeasurements = measurements.stream()
                 .filter(m -> m.getDateAndTime().isAfter(cutoffDate))
                 .sorted((a, b) -> a.getDateAndTime().compareTo(b.getDateAndTime()))
                 .collect(Collectors.toList());
-            
+
             // Crea serie dati per il grafico
             XYChart.Series<String, Number> series = new XYChart.Series<>();
             series.setName("Glicemia (mg/dL)");
-            
+
             // Limita il numero di punti visualizzati per evitare sovrapposizioni delle date
             int maxPoints = getMaxPointsForPeriod(selectedPeriod);
-            
+
             if (filteredMeasurements.size() > maxPoints) {
                 // Campionamento uniforme per distribuire i punti nel tempo
                 double step = (double) filteredMeasurements.size() / maxPoints;
@@ -166,19 +166,19 @@ public class PatientDashboardHomeController {
                     series.getData().add(new XYChart.Data<>(dateStr, measurement.getGlucoseLevel()));
                 }
             }
-            
+
             glucoseChart.getData().add(series);
-            
-            System.out.println("📊 Grafico aggiornato - Periodo: " + selectedPeriod + 
-                             ", Punti visualizzati: " + series.getData().size() + 
+
+            System.out.println("📊 Grafico aggiornato - Periodo: " + selectedPeriod +
+                             ", Punti visualizzati: " + series.getData().size() +
                              "/" + filteredMeasurements.size());
-            
+
             // Forza il refresh completo del grafico
             javafx.application.Platform.runLater(() -> {
                 glucoseChart.requestLayout();
                 glucoseChart.autosize();
             });
-            
+
         } catch (SQLException e) {
             System.err.println("❌ Errore nell'aggiornamento del grafico: " + e.getMessage());
             e.printStackTrace();
@@ -187,7 +187,7 @@ public class PatientDashboardHomeController {
             e.printStackTrace();
         }
     }
-    
+
     private int getMaxPointsForPeriod(String period) {
         switch (period) {
             case "Ultimi 7 giorni": return 15;
@@ -196,7 +196,7 @@ public class PatientDashboardHomeController {
             default: return 15;
         }
     }
-    
+
     private String formatDateForChart(java.time.LocalDateTime dateTime, String period) {
         try {
             switch (period) {
@@ -215,7 +215,7 @@ public class PatientDashboardHomeController {
             return dateTime.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM"));
         }
     }
-    
+
     private int getDaysFromPeriod(String period) {
         switch (period) {
             case "Ultimi 7 giorni": return 7;
@@ -418,3 +418,4 @@ public class PatientDashboardHomeController {
         }
     }
 }
+

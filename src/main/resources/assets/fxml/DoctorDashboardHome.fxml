@@ -49,7 +49,6 @@
                         <TableColumn text="Last Reading" prefWidth="120"/>
                         <TableColumn text="Medication Adherence" prefWidth="180"/>
                         <TableColumn text="Status" prefWidth="100"/>
-                        <TableColumn text="Actions" prefWidth="100"/>
                     </columns>
                 </TableView>
             </VBox>

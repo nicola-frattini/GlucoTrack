@@ -143,4 +143,15 @@ public class GlucoseMeasurementDAO {
         
         return measurement;
     }
+
+
+    public GlucoseMeasurement getLatestMeasurementByPatientId(int patientId) throws SQLException {
+        String sql = "SELECT * FROM glucose_measurements WHERE patient_id = ? ORDER BY measurement_time DESC LIMIT 1";
+        try (ResultSet rs = DatabaseInteraction.executeQuery(sql, patientId)) {
+            if (rs.next()) {
+                return mapResultSetToGlucoseMeasurement(rs);
+            }
+        }
+        return null;
+    }
 }

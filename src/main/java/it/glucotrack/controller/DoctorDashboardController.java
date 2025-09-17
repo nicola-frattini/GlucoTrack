@@ -8,6 +8,8 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 import java.io.IOException;
 import it.glucotrack.util.SessionManager;
+import it.glucotrack.model.User;
+import it.glucotrack.model.Doctor; // Importa la classe Doctor se esiste
 
 public class DoctorDashboardController {
 
@@ -31,13 +33,42 @@ public class DoctorDashboardController {
 
     @FXML
     public void initialize() {
-        // Imposta il nome del medico/paziente se necessario
-        doctorNameLabel.setText("Amelia Chen"); // We'll get dynamically the name of the doctor
-        doctorRoleLabel.setText("Endocrinologist"); // We'll get dynamically the role of the doctor
+        // Carica le informazioni del medico
+        loadDoctorInfo();
+
         // Carica la dashboard di default
         loadCenterContent("DoctorDashboardHome.fxml");
-        setActiveButton(dashboardBtn); // Active the dashboard button by default
+        setActiveButton(dashboardBtn); // Attiva il pulsante della dashboard per default
+    }
 
+    private void loadDoctorInfo() {
+        try {
+            User currentUser = SessionManager.getInstance().getCurrentUser();
+            if (currentUser != null) {
+                String displayName = currentUser.getName() + " " + currentUser.getSurname();
+                doctorNameLabel.setText(displayName);
+
+                // Assicurati che il ruolo sia disponibile nell'oggetto User o Doctor
+                // Se hai una classe Doctor, puoi fare un cast
+                if (currentUser instanceof Doctor) {
+                    Doctor currentDoctor = (Doctor) currentUser;
+                    doctorRoleLabel.setText(currentDoctor.getSpecialization()); // Assumendo che esista un metodo getRole()
+                } else {
+                    // Imposta un ruolo di default se non è un medico o se il ruolo non è specificato
+                    doctorRoleLabel.setText("Medico generico");
+                }
+                System.out.println("📊 Dashboard caricato per medico: " + displayName);
+            } else {
+                doctorNameLabel.setText("Dottore non trovato");
+                doctorRoleLabel.setText("");
+                System.err.println("❌ Nessun utente in sessione nel DoctorDashboard!");
+            }
+        } catch (Exception e) {
+            doctorNameLabel.setText("Errore caricamento");
+            doctorRoleLabel.setText("");
+            System.err.println("❌ Errore nel caricamento info medico: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -52,10 +83,9 @@ public class DoctorDashboardController {
         setActiveButton(patientsBtn);
     }
 
-
     @FXML
     private void onAppointmentsClick() {
-        loadCenterContent("DoctorDashboardMessages.fxml");
+        loadCenterContent("DoctorDashboardAppointments.fxml"); // Corretto il file FXML
         setActiveButton(appointmentsBtn);
     }
 
@@ -67,7 +97,7 @@ public class DoctorDashboardController {
 
     @FXML
     private void onSettingsClick() {
-        // Logica per aprire le impostazioni, oppure lascia vuoto se non ti serve
+        // Logica per le impostazioni
     }
 
     private void loadCenterContent(String fxmlFile) {
@@ -90,8 +120,6 @@ public class DoctorDashboardController {
             e.printStackTrace();
         }
     }
-
-
 
     private void setActiveButton(Button activeBtn) {
         // Cambia lo stile dei pulsanti per evidenziare quello attivo

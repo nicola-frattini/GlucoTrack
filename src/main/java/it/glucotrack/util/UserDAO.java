@@ -1,3 +1,4 @@
+
 package it.glucotrack.util;
 
 import it.glucotrack.model.User;
@@ -8,6 +9,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserDAO{
+
+    public List<User> getPatientsByDoctorId(int doctorId) throws SQLException {
+        String sql = "SELECT id, name, surname, email, password, born_date, gender, phone, birth_place, fiscal_code, type, role, specialization, doctor_id FROM users WHERE type = 'PATIENT' AND doctor_id = ? ORDER BY surname, name";
+        List<User> users = new ArrayList<>();
+        try (ResultSet rs = DatabaseInteraction.executeQuery(sql, doctorId)) {
+            while (rs.next()) {
+                users.add(mapResultSetToUser(rs));
+            }
+        }
+        return users;
+    }
 
     // Metodi generici per tutti i tipi di utenti
     public User getUserById(int id) throws SQLException {

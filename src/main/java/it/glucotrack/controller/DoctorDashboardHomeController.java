@@ -4,6 +4,16 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import it.glucotrack.util.SessionManager;
+import it.glucotrack.util.UserDAO;
+import it.glucotrack.util.GlucoseMeasurementDAO;
+import it.glucotrack.util.MedicationDAO;
+import it.glucotrack.util.LogMedicationDAO;
+import it.glucotrack.model.User;
+import it.glucotrack.model.GlucoseMeasurement;
+import it.glucotrack.model.Medication;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 public class DoctorDashboardHomeController {
     @FXML
@@ -27,40 +37,88 @@ public class DoctorDashboardHomeController {
     @FXML
     public void initialize() {
         setupPatientTable();
-        loadFakeData();
+        loadSummaryWithLatestPatients();
     }
 
+    @SuppressWarnings("unchecked")
     private void setupPatientTable() {
-        // Colonne già definite in FXML
-        TableColumn<String[], String> nameCol = (TableColumn<String[], String>) patientTable.getColumns().get(0);
-        TableColumn<String[], String> readingCol = (TableColumn<String[], String>) patientTable.getColumns().get(1);
-        TableColumn<String[], String> adherenceCol = (TableColumn<String[], String>) patientTable.getColumns().get(2);
-        TableColumn<String[], String> statusCol = (TableColumn<String[], String>) patientTable.getColumns().get(3);
-        TableColumn<String[], String> actionCol = (TableColumn<String[], String>) patientTable.getColumns().get(4);
+    // Colonne già definite in FXML
+    TableColumn<String[], String> nameCol = (TableColumn<String[], String>) patientTable.getColumns().get(0);
+    TableColumn<String[], String> readingCol = (TableColumn<String[], String>) patientTable.getColumns().get(1);
+    TableColumn<String[], String> adherenceCol = (TableColumn<String[], String>) patientTable.getColumns().get(2);
+    TableColumn<String[], String> statusCol = (TableColumn<String[], String>) patientTable.getColumns().get(3);
 
-        nameCol.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue()[0]));
-        readingCol.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue()[1]));
-        adherenceCol.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue()[2]));
-        statusCol.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue()[3]));
-        actionCol.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue()[4]));
+    nameCol.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue()[0]));
+    readingCol.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue()[1]));
+    adherenceCol.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue()[2]));
+    statusCol.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue()[3]));
     }
 
-    private void loadFakeData() {
-        ObservableList<String[]> patients = FXCollections.observableArrayList(
-                new String[]{"Sophia Clark", "120 mg/dL", "85%", "Stable", "View Details"},
-                new String[]{"Ethan Harris", "250 mg/dL", "60%", "High Risk", "View Details"},
-                new String[]{"Olivia Turner", "180 mg/dL", "75%", "Monitor", "View Details"},
-                new String[]{"Liam Foster", "110 mg/dL", "90%", "Stable", "View Details"},
-                new String[]{"Ava Bennett", "300 mg/dL", "50%", "Critical", "View Details"}
-        );
+    private void loadSummaryWithLatestPatients() {
+        try {
+            int doctorId = SessionManager.getInstance().getCurrentUserId();
+            UserDAO userDAO = new UserDAO();
+            GlucoseMeasurementDAO glucoseDAO = new GlucoseMeasurementDAO();
+            MedicationDAO medicationDAO = new MedicationDAO();
+            LogMedicationDAO logMedicationDAO = new LogMedicationDAO();
 
-        patientTable.setItems(patients);
+            // Prendi solo i pazienti associati a questo dottore
+            java.util.List<User> doctorPatients = userDAO.getPatientsByDoctorId(doctorId);
 
-        // Alerts fake
-        alertsList.setItems(FXCollections.observableArrayList(
-                "⚠ Ethan Harris - High Glucose (250 mg/dL)",
-                "⛔ Ava Bennett - Missed Medication: Insulin"
-        ));
+            // Per ogni paziente, prendi l'ultima misurazione
+            java.util.List<PatientSummaryRow> summaryRows = new java.util.ArrayList<>();
+            for (User p : doctorPatients) {
+                GlucoseMeasurement last = glucoseDAO.getLatestGlucoseMeasurement(p.getId());
+                if (last != null) {
+                    double adherence = calculateMedicationAdherence(p.getId(), medicationDAO, logMedicationDAO);
+                    summaryRows.add(new PatientSummaryRow(
+                        p.getName() + " " + p.getSurname(),
+                        last.getDateAndTime().toString() + " - " + (int)last.getGlucoseLevel() + " mg/dL",
+                        String.format("%.0f%%", adherence),
+                        getStatusFromGlucose(last.getGlucoseLevel())
+                    ));
+                }
+            }
+            // Ordina per data ultima misurazione (decrescente)
+            summaryRows.sort(Comparator.comparing((PatientSummaryRow r) -> r.lastReading).reversed());
+            // Prendi i primi 4
+            ObservableList<String[]> patients = FXCollections.observableArrayList(
+                summaryRows.stream().limit(4).map(PatientSummaryRow::toArray).collect(Collectors.toList())
+            );
+            patientTable.setItems(patients);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private double calculateMedicationAdherence(int patientId, MedicationDAO medicationDAO, LogMedicationDAO logMedicationDAO) {
+        try {
+            java.util.List<Medication> meds = medicationDAO.getActiveMedicationsByPatientId(patientId);
+            if (meds.isEmpty()) return 100.0;
+            double total = 0, count = 0;
+            for (Medication med : meds) {
+                java.util.List<it.glucotrack.model.LogMedication> logs = logMedicationDAO.getLogMedicationsByMedicationIdUpToNow(med.getId());
+                if (logs.isEmpty()) continue;
+                long taken = logs.stream().filter(it.glucotrack.model.LogMedication::isTaken).count();
+                total += (double)taken / logs.size();
+                count++;
+            }
+            return count > 0 ? (total / count) * 100.0 : 100.0;
+        } catch (Exception e) {
+            return 0.0;
+        }
+    }
+
+    private String getStatusFromGlucose(float value) {
+        if (value < 70) return "Low";
+        if (value > 180) return "High";
+        return "Normal";
+    }
+
+    private static class PatientSummaryRow {
+        String name, lastReading, adherence, status;
+        PatientSummaryRow(String n, String l, String a, String s) { name=n; lastReading=l; adherence=a; status=s; }
+        String[] toArray() { return new String[]{name, lastReading, adherence, status}; }
     }
     
     @FXML
