@@ -47,6 +47,7 @@ public class Patient extends User {
         this.medications = new ArrayList<>();
     }
 
+
     // ===== Full constructor =====
     public Patient(int id, String name, String surname, String email, String password, LocalDate bornDate,
                    Gender gender, String phone, String birthPlace, String fiscalCode, int doctorId,
