@@ -107,12 +107,6 @@ public class UserDAO{
         return false;
     }
 
-    public boolean updatePassword(int userId, String newPassword) throws SQLException {
-        String sql = "UPDATE users SET password = ? WHERE id = ?";
-        int rows = DatabaseInteraction.executeUpdate(sql, newPassword, userId);
-        return rows > 0;
-    }
-
     public boolean updateEmail(int userId, String newEmail) throws SQLException {
         String sql = "UPDATE users SET email = ? WHERE id = ?";
         int rows = DatabaseInteraction.executeUpdate(sql, newEmail, userId);
@@ -160,13 +154,13 @@ public class UserDAO{
 
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         System.out.println("🔍 Mapping user: " + rs.getString("name") + " " + rs.getString("surname"));
-        
+
         // Handle potentially problematic born_date parsing
         LocalDate bornDate = null;
         try {
             Object dateObj = rs.getObject("born_date");
             System.out.println("🔍 born_date raw value: " + dateObj + " (type: " + (dateObj != null ? dateObj.getClass().getSimpleName() : "null") + ")");
-            
+
             if (dateObj != null) {
                 if (dateObj instanceof String) {
                     // If it's a string, try to parse it
@@ -182,7 +176,7 @@ public class UserDAO{
             System.err.println("⚠️ Error parsing born_date: " + e.getMessage() + ". Setting to null.");
             bornDate = null;
         }
-        
+
         return new User(
             rs.getInt("id"),
             rs.getString("name"),
@@ -195,5 +189,49 @@ public class UserDAO{
             rs.getString("birth_place"),
             rs.getString("fiscal_code"), rs.getString("type")
         );
+    }
+
+
+    public boolean updatePassword(int userId, String newPassword) throws SQLException {
+        // Hash the new password before storing it
+        String hashedPassword = PasswordEncryption.hashPassword(newPassword, userId);
+        String sql = "UPDATE users SET password = ? WHERE id = ?";
+        int rows = DatabaseInteraction.executeUpdate(sql, hashedPassword, userId);
+        return rows > 0;
+    }
+
+    // Method to create/register a new user with encrypted password
+    public boolean createUser(User user, String plainPassword) throws SQLException {
+        String sql = "INSERT INTO users (name, surname, email, password, born_date, gender, phone, birth_place, fiscal_code, type, role, specialization, doctor_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        // First insert the user to get the generated ID
+        String insertSql = "INSERT INTO users (name, surname, email, password, born_date, gender, phone, birth_place, fiscal_code, type, role, specialization, doctor_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        // Use a temporary password first, then update with hashed version
+        int rows = DatabaseInteraction.executeUpdate(insertSql,
+                user.getName(),
+                user.getSurname(),
+                user.getEmail(),
+                "temp", // Temporary password
+                user.getBornDate(),
+                user.getGender().toString(),
+                user.getPhone(),
+                user.getBirthPlace(),
+                user.getFiscalCode(),
+                user.getType(),
+                null, // specialization
+                null  // doctor_id
+        );
+
+        if (rows > 0) {
+            // Get the newly created user to get the ID
+            User newUser = getUserByEmail(user.getEmail());
+            if (newUser != null) {
+                // Now update with the properly hashed password
+                return updatePassword(newUser.getId(), plainPassword);
+            }
+        }
+
+        return false;
     }
 }

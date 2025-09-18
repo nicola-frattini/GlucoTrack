@@ -15,14 +15,14 @@ public class Admin extends User {
     // ===== Constructor without ID (for new records) =====
     public Admin(String name, String surname, String email, String password, LocalDate bornDate,
                  Gender gender, String phone, String birthPlace, String fiscalCode, String role) {
-        super(name, surname, email, password, bornDate, gender, phone, birthPlace, fiscalCode);
+        super(name, surname, email, password, bornDate, gender, phone, birthPlace, fiscalCode, "ADMIN");
         this.role = role;
     }
 
     // ===== Full constructor =====
     public Admin(int id, String name, String surname, String email, String password, LocalDate bornDate,
                  Gender gender, String phone, String birthPlace, String fiscalCode, String role) {
-        super(id, name, surname, email, password, bornDate, gender, phone, birthPlace, fiscalCode, "Admin");
+        super(id, name, surname, email, password, bornDate, gender, phone, birthPlace, fiscalCode, "ADMIN");
         this.role = role;
     }
 

@@ -3,6 +3,7 @@ package it.glucotrack.controller;
 import it.glucotrack.model.User;
 import it.glucotrack.util.InputCheck;
 import it.glucotrack.util.SessionManager;
+import it.glucotrack.util.PasswordEncryption; // Add this import
 import it.glucotrack.view.ViewNavigator;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -45,7 +46,6 @@ public class LoginController {
         if (passwordField != null) {
             passwordField.setOnAction(this::handleLogin);
         }
-
     }
 
     @FXML
@@ -69,8 +69,6 @@ public class LoginController {
         }
     }
 
-
-
     private boolean validateInput(String email, String password) {
         if (!InputCheck.isValidString(email)) {
             showErrorAlert("Validation Error", "Please enter your email or email.");
@@ -83,14 +81,14 @@ public class LoginController {
             passwordField.requestFocus();
             return false;
         }
-        
+
         return true;
     }
 
     public boolean authenticateUser(String email, String password) {
-        // Usa SessionManager per l'autenticazione
+        // Usa SessionManager per l'autenticazione con password encryption
         boolean loginSuccess = sessionManager.login(email, password);
-        
+
         if (loginSuccess) {
             // Naviga in base al tipo di utente
             String userType = sessionManager.getCurrentUserType();
@@ -129,6 +127,8 @@ public class LoginController {
         alert.setContentText(message);
         alert.showAndWait();
     }
+
+
 
     // Metodi statici per compatibilità - delegano a SessionManager
     public static User getCurrentUser() {

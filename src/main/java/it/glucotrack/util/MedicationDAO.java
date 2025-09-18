@@ -3,11 +3,13 @@ package it.glucotrack.util;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import it.glucotrack.model.Frequency;
 import it.glucotrack.model.Medication;
+import it.glucotrack.model.MedicationEdit;
 
 public class MedicationDAO {
 
@@ -54,7 +56,7 @@ public class MedicationDAO {
         return meds;
     }
 
-   public boolean insertMedication(Medication med) throws SQLException {
+   public boolean insertMedication(Medication med, int doctorId) throws SQLException {
     String sql = "INSERT INTO medications (patient_id, name, dose, frequency, start_date, end_date, instructions) VALUES (?, ?, ?, ?, ?, ?, ?)";
     
     // Convert LocalDate to java.sql.Date for proper database storage
@@ -69,10 +71,12 @@ public class MedicationDAO {
             startDate,           // Use java.sql.Date
             endDate,            // Use java.sql.Date (can be null)
             med.getInstructions());
-    return rows > 0;
-}
+       createMedicationsEdit(med.getPatient_id(), doctorId, med);
+       return rows > 0;
 
-    public int insertMedicationAndGetId(Medication med) throws SQLException {
+    }
+
+    public int insertMedicationAndGetId(Medication med,int doctorId) throws SQLException {
         String sql = "INSERT INTO medications (patient_id, name, dose, frequency, start_date, end_date, instructions) VALUES (?, ?, ?, ?, ?, ?, ?)";
         
         // Convert LocalDate to java.sql.Date for proper database storage
@@ -95,7 +99,9 @@ public class MedicationDAO {
             if (affectedRows == 0) {
                 throw new SQLException("Creating medication failed, no rows affected.");
             }
-            
+            createMedicationsEdit(med.getPatient_id(), doctorId, med);
+
+
             // Get the last inserted row ID using SQLite's last_insert_rowid()
             String getIdSql = "SELECT last_insert_rowid()";
             try (java.sql.Statement stmt = conn.createStatement();
@@ -133,6 +139,64 @@ public boolean updateMedication(Medication med) throws SQLException {
         int rows = DatabaseInteraction.executeUpdate(sql, id);
         return rows > 0;
     }
+
+    public void deleteMedicationsByPatientId(int patientId) throws SQLException {
+        String sql = "DELETE FROM medications WHERE patient_id = ?";
+        DatabaseInteraction.executeUpdate(sql, patientId);
+    }
+
+    public void createMedicationsEdit(int patientId, int doctorId, Medication med) throws SQLException {
+
+        // Inserisce nel DB i MedicationEdit
+        String sql = "INSERT INTO medication_edits (medication_id, edited_by, dose, frequency, start_date, end_date, instructions,edit_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        // Convert LocalDate to java.sql.Date for proper database storage
+        java.sql.Date startDate = java.sql.Date.valueOf(med.getStart_date());
+        java.sql.Date endDate = med.getEnd_date() != null ? java.sql.Date.valueOf(med.getEnd_date()) : null;
+        DatabaseInteraction.executeUpdate(sql,
+                med.getId(),
+                doctorId,
+                med.getDose(),
+                med.getFreq().name(), // Use enum name for consistency
+                startDate,           // Use java.sql.Date
+                endDate,            // Use java.sql.Date (can be null)
+                med.getInstructions(),
+                LocalDateTime.now());
+
+    };
+
+    public List<MedicationEdit> getMedicationEditsByPatientId(int patientId) throws SQLException {
+        String sql = "SELECT * FROM medication_edits WHERE patient_id = ?";
+        List<MedicationEdit> medsEdits = new ArrayList<>();
+        try (ResultSet rs = DatabaseInteraction.executeQuery(sql, patientId)) {
+            while (rs.next()) {
+                medsEdits.add(mapResultSetToMedicationEdit(rs));
+            }
+        }
+        return medsEdits;
+    }
+
+
+
+    private MedicationEdit mapResultSetToMedicationEdit(ResultSet rs) throws SQLException {
+
+        return new MedicationEdit(
+            rs.getInt("id"),
+            rs.getInt("patient_id"),
+                rs.getTimestamp("edit_time") != null ? rs.getTimestamp("edit_time").toLocalDateTime() : null,
+            rs.getInt("doctor_id"),
+            rs.getInt("medication_id"),
+            rs.getString("name"),
+            rs.getString("dose"),
+            Frequency.fromString(rs.getString("frequency")),
+                rs.getString("instructions"),
+            rs.getDate("start_date") != null ? rs.getDate("start_date").toLocalDate() : null,
+            rs.getDate("end_date") != null ? rs.getDate("end_date").toLocalDate() : null
+
+
+        );
+
+    }
+
 
     private static Medication mapResultSetToMedication(ResultSet rs) throws SQLException {
     String frequencyStr = rs.getString("frequency");

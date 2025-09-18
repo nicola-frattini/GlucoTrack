@@ -7,7 +7,6 @@ import it.glucotrack.model.Symptom;
 import it.glucotrack.util.GlucoseMeasurementDAO;
 import it.glucotrack.util.MedicationDAO;
 import it.glucotrack.util.SymptomDAO;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -15,18 +14,14 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
-import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
@@ -51,8 +46,6 @@ public class ProfileViewController implements Initializable {
     }
 
     // Header elements
-    @FXML private Circle profileImageCircle;
-    @FXML private ImageView profileImageView;
     @FXML private Label patientNameLabel;
     @FXML private Label patientIdLabel;
     @FXML private Label lastVisitLabel;
@@ -77,10 +70,14 @@ public class ProfileViewController implements Initializable {
     @FXML private ProgressBar adheranceProgressBar;
 
     @FXML private VBox symptomsContainer;
-    @FXML private TableView<TherapyModification> therapyModificationsTable;
-    @FXML private TableColumn<TherapyModification, String> dateColumn;
-    @FXML private TableColumn<TherapyModification, String> modificationColumn;
-    @FXML private TableColumn<TherapyModification, String> modifiedByColumn;
+    // New Containers
+    @FXML private VBox riskFactorsContainer;
+
+    @FXML private TableView<Medication> prescribedMedicationsTable;
+    @FXML private TableColumn<PatientDashboardMedicationsController.Medication, String> drugNameColumn;
+    @FXML private TableColumn<PatientDashboardMedicationsController.Medication, String> dosageColumn;
+    @FXML private TableColumn<PatientDashboardMedicationsController.Medication, String> frequencyColumn;
+    @FXML private TableColumn<PatientDashboardMedicationsController.Medication, String> instructionsColumn;
 
     // Action buttons
     @FXML private Button modifyTherapyBtn;
@@ -272,9 +269,9 @@ public class ProfileViewController implements Initializable {
         }
 
         // Nascondi tabella modifiche terapia
-        if (therapyModificationsTable != null) {
-            therapyModificationsTable.setVisible(false);
-            therapyModificationsTable.setManaged(false);
+        if (prescribedMedicationsTable != null) {
+            prescribedMedicationsTable.setVisible(false);
+            prescribedMedicationsTable.setManaged(false);
         }
     }
 
@@ -785,21 +782,24 @@ public class ProfileViewController implements Initializable {
     }
 
     private void setupTable() {
-        therapyModifications = FXCollections.observableArrayList();
-        dateColumn.setCellValueFactory(cellData ->
-                new SimpleStringProperty(cellData.getValue().getDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))));
-        modificationColumn.setCellValueFactory(cellData ->
-                new SimpleStringProperty(cellData.getValue().getModification()));
-        modifiedByColumn.setCellValueFactory(cellData ->
-                new SimpleStringProperty(cellData.getValue().getModifiedBy()));
-        therapyModificationsTable.setItems(therapyModifications);
 
-        therapyModificationsTable.setRowFactory(tv -> {
-            TableRow<TherapyModification> row = new TableRow<>();
-            row.setStyle("-fx-background-color: #34495E; -fx-text-fill: white;");
-            return row;
-        });
+        drugNameColumn.setCellValueFactory(new PropertyValueFactory<>("drugName"));
+        dosageColumn.setCellValueFactory(new PropertyValueFactory<>("dosage"));
+        frequencyColumn.setCellValueFactory(new PropertyValueFactory<>("frequency"));
+        instructionsColumn.setCellValueFactory(new PropertyValueFactory<>("instructions"));
+
+        prescribedMedicationsTable.setStyle("-fx-background-color: #2C3E50; -fx-text-fill: white;");
+
     }
+
+
+    private void loadData() throws SQLException {
+
+        List<Medication> medications = medicationDAO.getMedicationsByPatientId(currentPatient.getId());
+        currentPatient.setMedications(medications);
+    }
+
+
 
     private void setupCharts() {
         if (glucoseTrendsChart != null) {
@@ -1118,28 +1118,18 @@ public class ProfileViewController implements Initializable {
         medicationTitle.setTextFill(Color.WHITE);
         medicationTitle.setFont(Font.font("System", FontWeight.BOLD, 18));
 
-        VBox medicationsList = new VBox(10);
         if (currentPatient != null && !currentPatient.getMedications().isEmpty()) {
-            for (Medication medication : currentPatient.getMedications()) {
-                HBox medBox = createMedicationBox(
-                        medication.getName_medication(),
-                        medication.getDose(),
-                        medication.getFreq().getDisplayName(),
-                        medication.getInstructions()
-                );
-                medicationsList.getChildren().add(medBox);
-            }
+            ObservableList<Medication> meds = FXCollections.observableArrayList(currentPatient.getMedications());
+            prescribedMedicationsTable.setItems(meds);
+            medicationBox.getChildren().addAll(medicationTitle, prescribedMedicationsTable);
         } else {
             Label noMedsLabel = new Label("No medications currently prescribed.");
             noMedsLabel.setTextFill(Color.web("#BDC3C7"));
             noMedsLabel.setFont(Font.font(14));
-            medicationsList.getChildren().add(noMedsLabel);
+            medicationBox.getChildren().addAll(medicationTitle, noMedsLabel);
         }
 
-        medicationBox.getChildren().addAll(medicationTitle, medicationsList);
-        if (medicationContent != null) {
-            medicationContent.getChildren().add(medicationBox);
-        }
+        medicationContent.getChildren().add(medicationBox);
     }
 
     private HBox createMedicationBox(String name, String dosage, String frequency, String instructions) {

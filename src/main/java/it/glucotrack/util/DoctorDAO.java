@@ -61,6 +61,7 @@ public class DoctorDAO {
         return rows > 0;
     }
 
+
     public boolean updateDoctor(Doctor doctor) throws SQLException {
         String sql = "UPDATE users SET name=?, surname=?, email=?, password=?, born_date=?, gender=?, phone=?, birth_place=?, fiscal_code=?, specialization=? WHERE id=? AND type='DOCTOR'";
         int rows = DatabaseInteraction.executeUpdate(sql,
@@ -69,6 +70,8 @@ public class DoctorDAO {
                 doctor.getBirthPlace(), doctor.getFiscalCode(), doctor.getSpecialization(), doctor.getId());
         return rows > 0;
     }
+
+
 
     public boolean deleteDoctor(int id) throws SQLException {
         String sql = "DELETE FROM users WHERE id = ? AND type = 'DOCTOR'";

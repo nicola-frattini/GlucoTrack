@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import it.glucotrack.model.Admin;
+import it.glucotrack.model.Doctor;
 import it.glucotrack.model.Gender;
 
 public class AdminDAO {
@@ -19,6 +20,16 @@ public class AdminDAO {
         }
         return null;
     }
+
+    public boolean insertAdmin(Admin admin) throws SQLException {
+        String sql = "INSERT INTO users (name, surname, email, password, born_date, gender, phone, birth_place, fiscal_code, type, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'ADMIN', ?)";
+        int rows = DatabaseInteraction.executeUpdate(sql,
+                admin.getName(), admin.getSurname(), admin.getEmail(), admin.getPassword(),
+                admin.getBornDate(), admin.getGender().toString(), admin.getPhone(),
+                admin.getBirthPlace(), admin.getFiscalCode(), admin.getRole());
+        return rows > 0;
+    }
+
 
     public List<Admin> getAllAdmins() throws SQLException {
         String sql = "SELECT * FROM users WHERE type = 'ADMIN' ORDER BY surname, name";
@@ -52,14 +63,7 @@ public class AdminDAO {
         return admins;
     }
 
-    public boolean insertAdmin(Admin admin) throws SQLException {
-        String sql = "INSERT INTO users (name, surname, email, password, born_date, gender, phone, birth_place, fiscal_code, type, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'ADMIN', ?)";
-        int rows = DatabaseInteraction.executeUpdate(sql,
-                admin.getName(), admin.getSurname(), admin.getEmail(), admin.getPassword(),
-                admin.getBornDate(), admin.getGender().toString(), admin.getPhone(),
-                admin.getBirthPlace(), admin.getFiscalCode(), admin.getRole());
-        return rows > 0;
-    }
+
 
     public boolean updateAdmin(Admin admin) throws SQLException {
         String sql = "UPDATE users SET name=?, surname=?, email=?, password=?, born_date=?, gender=?, phone=?, birth_place=?, fiscal_code=?, role=? WHERE id=? AND type='ADMIN'";

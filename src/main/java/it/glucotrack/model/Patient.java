@@ -52,7 +52,7 @@ public class Patient extends User {
     public Patient(int id, String name, String surname, String email, String password, LocalDate bornDate,
                    Gender gender, String phone, String birthPlace, String fiscalCode, int doctorId,
                    List<GlucoseMeasurement> glucoseReadings, List<String> symptoms, List<RiskFactor> riskFactors, List<Medication> medications) {
-        super(id, name, surname, email, password, bornDate, gender, phone, birthPlace, fiscalCode, "Patient");
+        super(id, name, surname, email, password, bornDate, gender, phone, birthPlace, fiscalCode, "PATIENT");
         this.doctorId = doctorId;
         this.glucoseReadings = (glucoseReadings != null) ? glucoseReadings : glucoseReadingsSetup();
         this.symptoms = (symptoms != null) ? symptoms : symptomsSetup();

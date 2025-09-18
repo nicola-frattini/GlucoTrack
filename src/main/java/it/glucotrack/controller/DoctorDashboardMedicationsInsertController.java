@@ -1,5 +1,6 @@
 package it.glucotrack.controller;
 
+import it.glucotrack.util.SessionManager;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -180,7 +181,7 @@ public class DoctorDashboardMedicationsInsertController {
             );
 
             // Save to database and get the ID
-            int medicationId = medicationDAO.insertMedicationAndGetId(medication);
+            int medicationId = medicationDAO.insertMedicationAndGetId(medication, SessionManager.getCurrentUser().getId());
             medication.setId(medicationId); // Set the ID in our object
             
             if (medicationId > 0) {

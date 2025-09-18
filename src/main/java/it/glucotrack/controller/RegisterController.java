@@ -11,13 +11,14 @@ import javafx.stage.Stage;
 import it.glucotrack.model.User;
 import it.glucotrack.model.Gender;
 import it.glucotrack.util.InputCheck;
+import it.glucotrack.util.UserDAO;
 import it.glucotrack.view.ViewNavigator;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.time.LocalDate;
 
 public class RegisterController {
-
 
     @FXML
     private TextField firstNameField;
@@ -52,10 +53,12 @@ public class RegisterController {
     @FXML
     private Label loginLabel;
 
+    private UserDAO userDAO;
+
     public void initialize() {
+        userDAO = new UserDAO();
         setupComboBoxes();
         setupEventHandlers();
-
     }
 
     private void setupEventHandlers() {
@@ -76,6 +79,7 @@ public class RegisterController {
         if (!validateInput()) {
             return;
         }
+
         try {
             String firstName = firstNameField.getText().trim();
             String lastName = lastNameField.getText().trim();
@@ -85,21 +89,48 @@ public class RegisterController {
             LocalDate birthDate = birthDatePicker.getValue();
             String accountType = accountTypeComboBox.getValue();
 
+            // Check if email already exists
+            if (userDAO.emailExists(email)) {
+                showErrorAlert("Registration Error", "An account with this email already exists.");
+                return;
+            }
+
             // Converti la stringa gender in enum usando il metodo fromString
             Gender gender = Gender.fromString(genderStr);
 
+            // Convert account type to uppercase for consistency
+            String userType = accountType.toUpperCase();
+
+            // Create new user object
             User newUser = new User();
             newUser.setName(firstName);
             newUser.setSurname(lastName);
             newUser.setEmail(email);
-            newUser.setPassword(password);
             newUser.setGender(gender);
             newUser.setBornDate(birthDate);
+            newUser.setType(userType);
 
-            showSuccessAlert("Registration Successful", "Your account has been created successfully!");
-            navigateToLogin();
+            // Set additional fields if needed
+            newUser.setPhone(""); // You might want to add phone field to form
+            newUser.setBirthPlace(""); // You might want to add birth place field to form
+            newUser.setFiscalCode(""); // You might want to add fiscal code field to form
 
+            // Save user to database with encrypted password
+            boolean success = userDAO.createUser(newUser, password);
+
+            if (success) {
+                showSuccessAlert("Registration Successful", "Your account has been created successfully!");
+                clearForm();
+                navigateToLogin();
+            } else {
+                showErrorAlert("Registration Error", "Failed to create account. Please try again.");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Database error during registration: " + e.getMessage());
+            showErrorAlert("Registration Error", "Database error occurred. Please try again later.");
         } catch (Exception e) {
+            System.err.println("Unexpected error during registration: " + e.getMessage());
             showErrorAlert("Registration Error", "An unexpected error occurred: " + e.getMessage());
         }
     }
@@ -155,6 +186,17 @@ public class RegisterController {
         // Valida birth date
         if (birthDatePicker.getValue() == null) {
             errors.append("• Please select your birth date\n");
+        } else {
+            LocalDate birthDate = birthDatePicker.getValue();
+            LocalDate today = LocalDate.now();
+            if (birthDate.isAfter(today)) {
+                errors.append("• Birth date cannot be in the future\n");
+            }
+            // Check if user is at least 13 years old (reasonable minimum)
+            LocalDate minDate = today.minusYears(13);
+            if (birthDate.isAfter(minDate)) {
+                errors.append("• You must be at least 13 years old to register\n");
+            }
         }
 
         // Valida account type
@@ -173,6 +215,18 @@ public class RegisterController {
         }
 
         return true;
+    }
+
+    private void clearForm() {
+        firstNameField.clear();
+        lastNameField.clear();
+        emailField.clear();
+        passwordField.clear();
+        confirmPasswordField.clear();
+        genderComboBox.setValue(null);
+        birthDatePicker.setValue(null);
+        accountTypeComboBox.setValue(null);
+        termsCheckBox.setSelected(false);
     }
 
     private void showErrorAlert(String title, String message) {

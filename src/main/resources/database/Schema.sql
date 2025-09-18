@@ -83,6 +83,25 @@ CREATE TABLE risk_factors (
 );
 
 -- ============================
+-- Table: medication_edits
+-- ============================
+CREATE TABLE medication_edits (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    medication_id INTEGER NOT NULL,
+    edited_by INTEGER NOT NULL, -- FK to user(id)
+    dose VARCHAR(50) NOT NULL,
+    frequency VARCHAR(50) NOT NULL, -- es: 'ONCE_A_DAY', 'TWICE_A_DAY'
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    instructions VARCHAR(255),
+    edit_time DATETIME NOT NULL,
+    FOREIGN KEY (medication_id) REFERENCES medications(id) ON DELETE CASCADE,
+    FOREIGN KEY (edited_by) REFERENCES user(id) ON DELETE CASCADE
+);
+
+
+
+-- ============================
 -- Table: admin_managed_users
 -- ============================
 CREATE TABLE admin_managed_users (
