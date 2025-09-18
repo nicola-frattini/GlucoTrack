@@ -1,19 +1,26 @@
 package it.glucotrack.controller;
 
+import it.glucotrack.model.Alert;
+import it.glucotrack.util.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import it.glucotrack.util.SessionManager;
-import it.glucotrack.util.UserDAO;
-import it.glucotrack.util.GlucoseMeasurementDAO;
-import it.glucotrack.util.MedicationDAO;
-import it.glucotrack.util.LogMedicationDAO;
 import it.glucotrack.model.User;
+import it.glucotrack.model.Patient;
 import it.glucotrack.model.GlucoseMeasurement;
 import it.glucotrack.model.Medication;
+
+import java.sql.SQLException;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+
 
 public class DoctorDashboardHomeController {
     @FXML
@@ -35,10 +42,76 @@ public class DoctorDashboardHomeController {
     private Button newPrescriptionBtn;
 
     @FXML
-    public void initialize() {
+    private VBox alertsContainer;
+
+    private int doctorId;
+    private GlucoseMeasurementDAO glucoseMeasurementDAO;
+
+
+
+    @FXML
+    public void initialize() throws SQLException {
         setupPatientTable();
         loadSummaryWithLatestPatients();
+        doctorId = 1;
+        loadAlerts();
     }
+
+    public void setDoctorId(int doctorId) {
+        this.doctorId = doctorId;
+    }
+
+    private void loadAlerts() throws SQLException {
+
+        alertsContainer.getChildren().clear();
+
+        List<it.glucotrack.model.Alert> alerts = AlertManagement.generateDoctorAlerts(this.doctorId);
+
+
+        for (it.glucotrack.model.Alert alert : alerts) {
+            HBox alertBox = createAlertBox(alert);
+            alertsContainer.getChildren().add(alertBox);
+        }
+    }
+
+    private HBox createAlertBox(Alert alert) {
+        HBox box = new HBox(10);
+        box.setStyle("-fx-background-radius: 10; -fx-padding: 15;");
+
+        // Colore di sfondo in base al tipo di alert
+        switch (alert.getType()) {
+            case INFO:
+                box.setStyle(box.getStyle() + "-fx-background-color: #0f1c35;");
+            case WARNING:
+                box.setStyle(box.getStyle() + "-fx-background-color: #2d1b1b; -fx-border-color: #ff9800; -fx-border-width: 1;");
+            case CRITICAL:
+                box.setStyle(box.getStyle() + "-fx-background-color: #2d1b1b; -fx-border-color: #f44336; -fx-border-width: 1;");
+        }
+        Label icon = new Label();
+        switch(alert.getType()) {
+            case INFO : icon.setText("ℹ️");
+            case WARNING : icon.setText("⚠️");
+            case CRITICAL : icon.setText("❗");
+        }
+        icon.setStyle("-fx-font-size: 16px;");
+
+        VBox content = new VBox(5);
+        Label title = new Label(alert.getMessage());
+        title.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;");
+
+        Label patientName = new Label(alert.getPatient().getNameAndSurname());
+        patientName.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
+
+        Label date = new Label(alert.getDate().toLocalDate().toString());
+        date.setStyle("-fx-text-fill: #8892b0; -fx-font-size: 12px;");
+
+        content.getChildren().addAll(title,patientName, date);
+
+        box.getChildren().addAll(icon, content);
+        return box;
+    }
+
+
 
     @SuppressWarnings("unchecked")
     private void setupPatientTable() {
@@ -57,39 +130,65 @@ public class DoctorDashboardHomeController {
     private void loadSummaryWithLatestPatients() {
         try {
             int doctorId = SessionManager.getInstance().getCurrentUserId();
-            UserDAO userDAO = new UserDAO();
+            PatientDAO patientDAO = new PatientDAO();
             GlucoseMeasurementDAO glucoseDAO = new GlucoseMeasurementDAO();
             MedicationDAO medicationDAO = new MedicationDAO();
             LogMedicationDAO logMedicationDAO = new LogMedicationDAO();
 
             // Prendi solo i pazienti associati a questo dottore
-            java.util.List<User> doctorPatients = userDAO.getPatientsByDoctorId(doctorId);
+            List<Patient> doctorPatients = patientDAO.getPatientsByDoctorId(this.doctorId);
 
-            // Per ogni paziente, prendi l'ultima misurazione
-            java.util.List<PatientSummaryRow> summaryRows = new java.util.ArrayList<>();
-            for (User p : doctorPatients) {
-                GlucoseMeasurement last = glucoseDAO.getLatestGlucoseMeasurement(p.getId());
-                if (last != null) {
-                    double adherence = calculateMedicationAdherence(p.getId(), medicationDAO, logMedicationDAO);
-                    summaryRows.add(new PatientSummaryRow(
-                        p.getName() + " " + p.getSurname(),
-                        last.getDateAndTime().toString() + " - " + (int)last.getGlucoseLevel() + " mg/dL",
-                        String.format("%.0f%%", adherence),
-                        getStatusFromGlucose(last.getGlucoseLevel())
-                    ));
+
+            System.out.println("Trovati " + doctorPatients.size() + " pazienti per il dottore con ID " + doctorId);
+
+
+            // Per ogni paziente, prendi l'ultima misurazione e la inserisce in un hashmap
+
+            // HashMap dove la chiave è l'ID del paziente e il valore è l'ultima misurazione
+            Map<Integer, GlucoseMeasurement> latestMeasurementsMap = new HashMap<>();
+
+            if (doctorPatients != null) {
+                for (Patient patient : doctorPatients) {
+                    // Prendi l'ultima misurazione del paziente
+                    GlucoseMeasurement lastMeasurement = glucoseMeasurementDAO.getLatestMeasurementByPatientId(patient.getId());
+                    if (lastMeasurement != null) {
+                        latestMeasurementsMap.put(patient.getId(), lastMeasurement);
+                    }
                 }
             }
-            // Ordina per data ultima misurazione (decrescente)
-            summaryRows.sort(Comparator.comparing((PatientSummaryRow r) -> r.lastReading).reversed());
-            // Prendi i primi 4
-            ObservableList<String[]> patients = FXCollections.observableArrayList(
-                summaryRows.stream().limit(4).map(PatientSummaryRow::toArray).collect(Collectors.toList())
-            );
-            patientTable.setItems(patients);
+
+            // Ordina per data ultima misurazione (decrescente) e prendi i primi 4
+            List<GlucoseMeasurement> top4Measurements = latestMeasurementsMap.values().stream()
+                    .sorted((m1, m2) -> m2.getDateAndTime().compareTo(m1.getDateAndTime())) // decrescente
+                    .limit(4)
+                    .collect(Collectors.toList());
+
+            // Crea la lista di 4 pazienti da inserire nella tabella patient name = name surname, last reading = date time - value, adherence = % calcolata, status = from glucose value
+            ObservableList<String[]> tableData = FXCollections.observableArrayList();
+            for (GlucoseMeasurement measurement : top4Measurements) {
+                Patient patient = doctorPatients.stream()
+                        .filter(p -> p.getId() == measurement.getPatientId())
+                        .findFirst()
+                        .orElse(null);
+                if (patient != null) {
+                    String name = patient.getName() + " " + patient.getSurname();
+                    String lastReading = measurement.getDateAndTime().toLocalDate().toString() + " " +
+                            measurement.getDateAndTime().toLocalTime().toString() + " - " +
+                            measurement.getGlucoseLevel() + " mg/dL";
+                    double adherencePercent = calculateMedicationAdherence(patient.getId(), medicationDAO, logMedicationDAO);
+                    String adherence = String.format("%.1f%%", adherencePercent);
+                    String status = getStatusFromGlucose(measurement.getGlucoseLevel());
+                    tableData.add(new PatientSummaryRow(name, lastReading, adherence, status).toArray());
+                }
+
+
+                patientTable.getItems().addAll();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
 
     private double calculateMedicationAdherence(int patientId, MedicationDAO medicationDAO, LogMedicationDAO logMedicationDAO) {
         try {

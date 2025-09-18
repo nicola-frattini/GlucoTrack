@@ -1,5 +1,9 @@
 package it.glucotrack.controller;
 
+import it.glucotrack.model.Alert;
+import it.glucotrack.model.Patient;
+import it.glucotrack.util.AlertManagement;
+import it.glucotrack.util.PatientDAO;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -16,6 +20,8 @@ import it.glucotrack.model.GlucoseMeasurement;
 import it.glucotrack.model.User;
 import it.glucotrack.util.GlucoseMeasurementDAO;
 import it.glucotrack.util.SessionManager;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 public class PatientDashboardHomeController {
 
@@ -34,11 +40,16 @@ public class PatientDashboardHomeController {
     @FXML
     private LineChart<String, Number> glucoseChart;
 
+    @FXML
+    private VBox alertsContainer;
+
     private GlucoseMeasurementDAO glucoseMeasurementDAO;
 
     @FXML
-    public void initialize() {
+    public void initialize() throws SQLException {
         System.out.println("🏠 PatientDashboardHomeController inizializzato!");
+
+        loadAlerts();
 
         // Initialize DAO
         glucoseMeasurementDAO = new GlucoseMeasurementDAO();
@@ -107,6 +118,53 @@ public class PatientDashboardHomeController {
             trendLabel.setText("N/A");
             statusLabel.setText("Errore");
         }
+    }
+
+    private void loadAlerts() throws SQLException {
+
+        alertsContainer.getChildren().clear();
+
+        List<Alert> alerts = AlertManagement.generatePatientAlerts(PatientDAO.getPatientById(
+                SessionManager.getInstance().getCurrentUser().getId()));
+
+        for (Alert alert : alerts) {
+            HBox alertBox = createAlertBox(alert);
+            alertsContainer.getChildren().add(alertBox);
+        }
+    }
+
+    private HBox createAlertBox(Alert alert) {
+        HBox box = new HBox(10);
+        box.setStyle("-fx-background-radius: 10; -fx-padding: 15;");
+
+        // Colore di sfondo in base al tipo di alert
+        switch (alert.getType()) {
+            case INFO:
+                box.setStyle(box.getStyle() + "-fx-background-color: #0f1c35;");
+            case WARNING:
+                box.setStyle(box.getStyle() + "-fx-background-color: #2d1b1b; -fx-border-color: #ff9800; -fx-border-width: 1;");
+            case CRITICAL:
+                box.setStyle(box.getStyle() + "-fx-background-color: #2d1b1b; -fx-border-color: #f44336; -fx-border-width: 1;");
+        }
+        Label icon = new Label();
+        switch(alert.getType()) {
+            case INFO : icon.setText("ℹ️");
+            case WARNING : icon.setText("⚠️");
+            case CRITICAL : icon.setText("❗");
+        }
+        icon.setStyle("-fx-font-size: 16px;");
+
+        VBox content = new VBox(5);
+        Label title = new Label(alert.getMessage());
+        title.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;");
+
+        Label date = new Label(alert.getDate().toLocalDate().toString());
+        date.setStyle("-fx-text-fill: #8892b0; -fx-font-size: 12px;");
+
+        content.getChildren().addAll(title, date);
+
+        box.getChildren().addAll(icon, content);
+        return box;
     }
 
     private void updateChart() {
@@ -239,16 +297,6 @@ public class PatientDashboardHomeController {
         openSymptomInsertForm();
     }
 
-    @FXML
-    private void onAddMedicationClick(ActionEvent event) {
-        // Logica per aggiungere farmaco
-    }
-
-    @FXML
-    private void onViewHistoryClick(ActionEvent event) {
-        // Logica per visualizzare la cronologia
-    }
-
     private List<GlucoseMeasurement> filterMeasurementsByPeriod(List<GlucoseMeasurement> measurements, int daysBack) {
         java.time.LocalDateTime cutoffDate = java.time.LocalDateTime.now().minusDays(daysBack);
         return measurements.stream()
@@ -321,8 +369,6 @@ public class PatientDashboardHomeController {
     // Metodo per aprire il form di inserimento glicemia nel pannello centrale
     private void openGlucoseInsertForm() {
         try {
-            System.out.println("🔄 Apertura form inserimento glicemia...");
-            
             // Carica il form nel pannello centrale del dashboard principale
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/PatientDashboardGlucoseInsert.fxml"));
             Parent glucoseInsertView = loader.load();
@@ -330,8 +376,6 @@ public class PatientDashboardHomeController {
             
             // Ottieni il controller del form
             PatientDashboardGlucoseInsertController insertController = loader.getController();
-            System.out.println("✅ Controller ottenuto: " + (insertController != null ? "OK" : "NULL"));
-            
             // Imposta il callback per refresh dei dati quando si salva
             insertController.setOnDataSaved(() -> {
                 updateGlucoseData();
@@ -341,8 +385,7 @@ public class PatientDashboardHomeController {
             
             // Imposta il callback per l'annullamento
             insertController.setOnCancel(this::returnToHome);
-            System.out.println("✅ Callback impostati");
-            
+
             // Sostituisce il contenuto centrale con il form
             loadContentInMainDashboard(glucoseInsertView);
             
@@ -417,5 +460,6 @@ public class PatientDashboardHomeController {
             e.printStackTrace();
         }
     }
+
 }
 

@@ -76,8 +76,10 @@ CREATE TABLE patient_symptoms (
 -- ============================
 CREATE TABLE risk_factors (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    patient_id INTEGER NOT NULL,
     type VARCHAR(100) NOT NULL,
-    gravity VARCHAR(10) NOT NULL
+    gravity VARCHAR(10) NOT NULL,
+    FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- ============================
@@ -99,3 +101,4 @@ CREATE INDEX idx_glucose_patient ON glucose_measurements(patient_id);
 CREATE INDEX idx_medication_patient ON medications(patient_id);
 CREATE INDEX idx_log_medication ON log_medications(medication_id);
 CREATE INDEX idx_symptom_patient ON patient_symptoms(patient_id);
+CREATE INDEX idx_risk_factor_patient ON risk_factors(patient_id);

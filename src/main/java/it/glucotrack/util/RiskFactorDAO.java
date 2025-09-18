@@ -2,7 +2,6 @@ package it.glucotrack.util;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,8 +10,8 @@ import it.glucotrack.model.RiskFactor;
 
 public class RiskFactorDAO {
 
-    public List<RiskFactor> getRiskFactorsByPatientId(int patientId) throws SQLException {
-        String sql = "SELECT * FROM risk_factors WHERE patient_id = ? ORDER BY detected_date DESC";
+    public static List<RiskFactor> getRiskFactorsByPatientId(int patientId) throws SQLException {
+        String sql = "SELECT * FROM risk_factors WHERE patient_id = ? ORDER BY id DESC";
         List<RiskFactor> riskFactors = new ArrayList<>();
         try (ResultSet rs = DatabaseInteraction.executeQuery(sql, patientId)) {
             while (rs.next()) {
@@ -32,21 +31,21 @@ public class RiskFactorDAO {
         return null;
     }
 
-    public boolean insertRiskFactor(RiskFactor riskFactor) throws SQLException {
-        String sql = "INSERT INTO risk_factors (type, gravity) VALUES (?, ?)";
-        int rows = DatabaseInteraction.executeUpdate(sql, riskFactor.getType(), riskFactor.getGravity().toString());
-        return rows > 0;
-    }
-    
-    public boolean insertRiskFactor(String type, Gravity gravity) throws SQLException {
-        String sql = "INSERT INTO risk_factors (type, gravity) VALUES (?, ?)";
-        int rows = DatabaseInteraction.executeUpdate(sql, type, gravity.toString());
+    public boolean insertRiskFactor(int patientId, RiskFactor riskFactor) throws SQLException {
+        String sql = "INSERT INTO risk_factors (patient_id, type, gravity) VALUES (?, ?, ?)";
+        int rows = DatabaseInteraction.executeUpdate(sql, patientId, riskFactor.getType(), riskFactor.getGravity().toString());
         return rows > 0;
     }
 
-    public boolean updateRiskFactor(int id, int patientId, String factor, String description, LocalDate detectedDate) throws SQLException {
-        String sql = "UPDATE risk_factors SET patient_id=?, factor=?, description=?, detected_date=? WHERE id=?";
-        int rows = DatabaseInteraction.executeUpdate(sql, patientId, factor, description, detectedDate, id);
+    public boolean insertRiskFactor(int patientId, String type, Gravity gravity) throws SQLException {
+        String sql = "INSERT INTO risk_factors (patient_id, type, gravity) VALUES (?, ?, ?)";
+        int rows = DatabaseInteraction.executeUpdate(sql, patientId, type, gravity.toString());
+        return rows > 0;
+    }
+
+    public boolean updateRiskFactor(int id, int patientId, String type, String description, Gravity gravity) throws SQLException {
+        String sql = "UPDATE risk_factors SET patient_id=?, type=?, description=?, gravity=? WHERE id=?";
+        int rows = DatabaseInteraction.executeUpdate(sql, patientId, type, description, gravity.toString(), id);
         return rows > 0;
     }
 
@@ -63,33 +62,33 @@ public class RiskFactorDAO {
     }
 
     public List<String> getUniqueRiskFactors() throws SQLException {
-        String sql = "SELECT DISTINCT factor FROM risk_factors ORDER BY factor";
+        String sql = "SELECT DISTINCT type FROM risk_factors ORDER BY type";
         List<String> factors = new ArrayList<>();
         try (ResultSet rs = DatabaseInteraction.executeQuery(sql)) {
             while (rs.next()) {
-                factors.add(rs.getString("factor"));
+                factors.add(rs.getString("type"));
             }
         }
         return factors;
     }
 
-    private RiskFactor mapResultSetToRiskFactor(ResultSet rs) throws SQLException {
-        // Mappa i campi del DB alla classe RiskFactor esistente
-        // Nota: c'è un disallineamento tra schema DB e classe Java
+    private static RiskFactor mapResultSetToRiskFactor(ResultSet rs) throws SQLException {
         RiskFactor riskFactor = new RiskFactor();
         riskFactor.setId(rs.getInt("id"));
-        riskFactor.setType(rs.getString("factor")); // factor -> type
-        
-        // La classe RiskFactor non ha gravity nel DB, usa un default
-        String description = rs.getString("description");
-        if (description != null && description.toLowerCase().contains("high")) {
-            riskFactor.setGravity(Gravity.HIGH);
-        } else if (description != null && description.toLowerCase().contains("medium")) {
-            riskFactor.setGravity(Gravity.MEDIUM);
+        riskFactor.setType(rs.getString("type"));
+
+        // Imposta gravità usando la colonna gravity, se esiste
+        String gravityStr = rs.getString("gravity");
+        if (gravityStr != null) {
+            switch (gravityStr.toUpperCase()) {
+                case "HIGH": riskFactor.setGravity(Gravity.HIGH); break;
+                case "MEDIUM": riskFactor.setGravity(Gravity.MEDIUM); break;
+                default: riskFactor.setGravity(Gravity.LOW); break;
+            }
         } else {
             riskFactor.setGravity(Gravity.LOW);
         }
-        
+
         return riskFactor;
     }
 }

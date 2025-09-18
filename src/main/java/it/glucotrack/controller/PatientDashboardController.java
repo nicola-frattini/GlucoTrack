@@ -3,6 +3,7 @@ package it.glucotrack.controller;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
@@ -29,8 +30,11 @@ public class PatientDashboardController {
     private Button medicationBtn;
     @FXML
     private Button symptomsBtn;
+
     @FXML
-    private Button messageBtn;
+    private Button contactBtn;
+
+    private User patient;
 
     @FXML
     public void initialize() {
@@ -38,9 +42,9 @@ public class PatientDashboardController {
         
         // Imposta l'istanza globale
         instance = this;
-        
+
         // Imposta il nome del paziente dalla sessione corrente
-        loadPatientInfo();
+        User patient = loadPatientInfo();
         
         // Carica la dashboard di default
         System.out.println("🔄 Caricamento PatientDashboardHome.fxml...");
@@ -49,7 +53,7 @@ public class PatientDashboardController {
 
     }
     
-    private void loadPatientInfo() {
+    private User loadPatientInfo() {
         try {
             User currentUser = SessionManager.getInstance().getCurrentUser();
             if (currentUser != null) {
@@ -60,10 +64,12 @@ public class PatientDashboardController {
                 patientNameLabel.setText("Paziente non trovato");
                 System.err.println("❌ Nessun utente in sessione nel PatientDashboard!");
             }
+            return currentUser;
         } catch (Exception e) {
             patientNameLabel.setText("Errore caricamento");
             System.err.println("❌ Errore nel caricamento info paziente: " + e.getMessage());
             e.printStackTrace();
+            return null;
         }
     }
 
@@ -92,15 +98,16 @@ public class PatientDashboardController {
         setActiveButton(symptomsBtn);
     }
 
-    @FXML
-    private void onMessagesClick() {
-        loadCenterContent("PatientMessages.fxml");
-        setActiveButton(messageBtn);
-    }
 
     @FXML
-    private void onProfileClick() {
-        loadCenterContent("ProfileView.fxml");
+    private void onProfileClick() throws IOException {
+
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/ProfileView.fxml"));
+        Parent profileRoot = loader.load();
+
+        ProfileViewController profileController = loader.getController();
+        profileController.setUserRole(ProfileViewController.UserRole.PATIENT_OWN_PROFILE, patient, null);
+
         // Non imposto nessun pulsante come attivo per il profilo
         clearActiveButtons();
     }
@@ -160,7 +167,6 @@ public class PatientDashboardController {
         readingsBtn.setStyle(getButtonStyle(readingsBtn == activeBtn));
         medicationBtn.setStyle(getButtonStyle(medicationBtn == activeBtn));
         symptomsBtn.setStyle(getButtonStyle(symptomsBtn == activeBtn));
-        messageBtn.setStyle(getButtonStyle(messageBtn == activeBtn));
     }
 
     private void clearActiveButtons() {
@@ -169,7 +175,6 @@ public class PatientDashboardController {
         readingsBtn.setStyle(getButtonStyle(false));
         medicationBtn.setStyle(getButtonStyle(false));
         symptomsBtn.setStyle(getButtonStyle(false));
-        messageBtn.setStyle(getButtonStyle(false));
     }
 
     private String getButtonStyle(boolean isActive) {

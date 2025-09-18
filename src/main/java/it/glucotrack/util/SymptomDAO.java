@@ -12,7 +12,7 @@ import it.glucotrack.model.Symptom;
 
 public class SymptomDAO {
 
-    public List<String> getSymptomsByPatientId(int patientId) throws SQLException {
+    public static List<String> getSymptomsByPatientId(int patientId) throws SQLException {
         String sql = "SELECT symptom FROM patient_symptoms WHERE patient_id = ? ORDER BY symptom_date DESC";
         List<String> symptoms = new ArrayList<>();
         try (ResultSet rs = DatabaseInteraction.executeQuery(sql, patientId)) {

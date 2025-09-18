@@ -1,5 +1,6 @@
 package it.glucotrack.model;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class LogMedication {
@@ -38,6 +39,8 @@ public class LogMedication {
 
     public boolean isTaken() { return taken; }
     public void setTaken(boolean taken) { this.taken = taken; }
+
+    public LocalDate getDate() { return dateAndTime.toLocalDate(); }
 
     @Override
     public String toString() {

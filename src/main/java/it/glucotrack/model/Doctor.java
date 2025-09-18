@@ -22,7 +22,7 @@ public class Doctor extends User {
     // ===== Full constructor =====
     public Doctor(int id, String name, String surname, String email, String password, LocalDate bornDate,
                   Gender gender, String phone, String birthPlace, String fiscalCode, String specialization) {
-        super(id, name, surname, email, password, bornDate, gender, phone, birthPlace, fiscalCode);
+        super(id, name, surname, email, password, bornDate, gender, phone, birthPlace, fiscalCode, "Doctor");
         this.specialization = specialization;
     }
 

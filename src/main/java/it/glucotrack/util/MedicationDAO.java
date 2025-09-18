@@ -11,7 +11,7 @@ import it.glucotrack.model.Medication;
 
 public class MedicationDAO {
 
-    public Medication getMedicationById(int id) throws SQLException {
+    public static Medication getMedicationById(int id) throws SQLException {
         String sql = "SELECT * FROM medications WHERE id = ?";
         try (ResultSet rs = DatabaseInteraction.executeQuery(sql, id)) {
             if (rs.next()) {
@@ -21,7 +21,7 @@ public class MedicationDAO {
         return null;
     }
 
-    public List<Medication> getMedicationsByPatientId(int patientId) throws SQLException {
+    public static List<Medication> getMedicationsByPatientId(int patientId) throws SQLException {
         String sql = "SELECT * FROM medications WHERE patient_id = ?";
         List<Medication> meds = new ArrayList<>();
         try (ResultSet rs = DatabaseInteraction.executeQuery(sql, patientId)) {
@@ -134,7 +134,7 @@ public boolean updateMedication(Medication med) throws SQLException {
         return rows > 0;
     }
 
-    private Medication mapResultSetToMedication(ResultSet rs) throws SQLException {
+    private static Medication mapResultSetToMedication(ResultSet rs) throws SQLException {
     String frequencyStr = rs.getString("frequency");
     
     // Try to parse as enum name first, then as display name for backward compatibility

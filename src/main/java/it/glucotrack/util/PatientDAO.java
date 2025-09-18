@@ -10,7 +10,7 @@ import it.glucotrack.model.Patient;
 
 public class PatientDAO {
 
-    public Patient getPatientById(int id) throws SQLException {
+    public static Patient getPatientById(int id) throws SQLException {
         String sql = "SELECT * FROM users WHERE id = ? AND type = 'PATIENT'";
         try (ResultSet rs = DatabaseInteraction.executeQuery(sql, id)) {
             if (rs.next()) {
@@ -20,7 +20,8 @@ public class PatientDAO {
         return null;
     }
 
-    public List<Patient> getAllPatients() throws SQLException {
+    public static List<Patient> getAllPatients() throws SQLException {
+
         String sql = "SELECT * FROM users WHERE type = 'PATIENT' ORDER BY surname, name";
         List<Patient> patients = new ArrayList<>();
         try (ResultSet rs = DatabaseInteraction.executeQuery(sql)) {
@@ -31,14 +32,28 @@ public class PatientDAO {
         return patients;
     }
 
-    public List<Patient> getPatientsByDoctorId(int doctorId) throws SQLException {
+    public static List<Patient> getPatientsByDoctorId(int doctorId) throws SQLException {
         String sql = "SELECT * FROM users WHERE type = 'PATIENT' AND doctor_id = ? ORDER BY surname, name";
         List<Patient> patients = new ArrayList<>();
+
+
+        System.out.println(getAllPatients());
+
+        System.out.println("Eseguo query: " + sql + " con doctorId=" + doctorId);
+
+
+
         try (ResultSet rs = DatabaseInteraction.executeQuery(sql, doctorId)) {
+            System.out.println("ResultSet aperto: " + rs);
+            int count = 0;
             while (rs.next()) {
+                count++;
+                System.out.println("Paziente trovato: " + rs.getString("name") + " " + rs.getString("surname") + " (doctor_id=" + rs.getInt("doctor_id") + ")");
                 patients.add(mapResultSetToPatient(rs));
             }
+            System.out.println("Totale pazienti trovati: " + count);
         }
+
         return patients;
     }
 
@@ -88,7 +103,7 @@ public class PatientDAO {
         return patients;
     }
 
-    private Patient mapResultSetToPatient(ResultSet rs) throws SQLException {
+    private static Patient mapResultSetToPatient(ResultSet rs) throws SQLException {
         // Parse born_date as string since it's stored as ISO date string in database
         String bornDateStr = rs.getString("born_date");
         java.time.LocalDate bornDate = null;

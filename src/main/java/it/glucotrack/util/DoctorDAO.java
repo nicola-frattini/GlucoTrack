@@ -10,7 +10,7 @@ import it.glucotrack.model.Gender;
 
 public class DoctorDAO {
 
-    public Doctor getDoctorById(int id) throws SQLException {
+    public static Doctor getDoctorById(int id) throws SQLException {
         String sql = "SELECT * FROM users WHERE id = ? AND type = 'DOCTOR'";
         try (ResultSet rs = DatabaseInteraction.executeQuery(sql, id)) {
             if (rs.next()) {
@@ -109,15 +109,15 @@ public class DoctorDAO {
         return specializations;
     }
 
-    private Doctor mapResultSetToDoctor(ResultSet rs) throws SQLException {
+    private static Doctor mapResultSetToDoctor(ResultSet rs) throws SQLException {
         return new Doctor(
             rs.getInt("id"),
             rs.getString("name"),
             rs.getString("surname"),
             rs.getString("email"),
             rs.getString("password"),
-            rs.getDate("born_date").toLocalDate(),
-            Gender.valueOf(rs.getString("gender")),
+                java.time.LocalDate.parse(rs.getString("born_date")),
+            Gender.valueOf(rs.getString("gender").toUpperCase()),
             rs.getString("phone"),
             rs.getString("birth_place"),
             rs.getString("fiscal_code"),

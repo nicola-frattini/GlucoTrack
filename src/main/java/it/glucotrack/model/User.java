@@ -14,7 +14,9 @@ public class User {
     private String phone;
     private String birthPlace;
     private String fiscalCode;
+    private String type;
 
+    
     // ===== Default constructor =====
     public User() {
         this.id = -1;
@@ -27,6 +29,7 @@ public class User {
         this.phone = "";
         this.birthPlace = "";
         this.fiscalCode = "";
+        this.type = "";
     }
 
     // ===== Constructor without ID (for new records) =====
@@ -42,11 +45,28 @@ public class User {
         this.phone = phone;
         this.birthPlace = birthPlace;
         this.fiscalCode = fiscalCode;
+        this.type = "";
     }
+
+    public User(String name, String surname, String email, String password, LocalDate bornDate,
+                Gender gender, String phone, String birthPlace, String fiscalCode,String type) {
+        this.id = -1; // Will be set by database
+        this.name = name;
+        this.surname = surname;
+        this.email = email;
+        this.password = password;
+        this.bornDate = bornDate;
+        this.gender = gender;
+        this.phone = phone;
+        this.birthPlace = birthPlace;
+        this.fiscalCode = fiscalCode;
+        this.type = type;
+    }
+
 
     // ===== Full constructor =====
     public User(int id, String name, String surname, String email, String password, LocalDate bornDate,
-                Gender gender, String phone, String birthPlace, String fiscalCode) {
+                Gender gender, String phone, String birthPlace, String fiscalCode,String type) {
         this.id = id;
         this.name = name;
         this.surname = surname;
@@ -57,6 +77,7 @@ public class User {
         this.phone = phone;
         this.birthPlace = birthPlace;
         this.fiscalCode = fiscalCode;
+        this.type = type;
     }
 
     // ===== Get full name =====
@@ -109,6 +130,10 @@ public class User {
     public String getFiscalCode() { return fiscalCode; }
     public void setFiscalCode(String fiscalCode) { this.fiscalCode = fiscalCode; }
 
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
+
+
     @Override
     public String toString() {
         return "User{" +
@@ -120,6 +145,11 @@ public class User {
                 ", phone='" + phone + '\'' +
                 ", birthPlace='" + birthPlace + '\'' +
                 ", fiscalCode='" + fiscalCode + '\'' +
-                '}';
+                ", type='" + type + '\'' +
+                '}';    
+    }
+
+    public String getNameAndSurname() {
+        return name + " " + surname;
     }
 }

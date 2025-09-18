@@ -193,7 +193,7 @@ public class UserDAO{
             Gender.valueOf(rs.getString("gender").toUpperCase()),
             rs.getString("phone"),
             rs.getString("birth_place"),
-            rs.getString("fiscal_code")
+            rs.getString("fiscal_code"), rs.getString("type")
         );
     }
 }

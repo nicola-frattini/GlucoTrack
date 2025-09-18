@@ -133,7 +133,7 @@ public class DatabaseMockData {
             String fiscalCode = "FISCAL" + String.format("%02d", i + 1) + "X";
             
             // Assegna ai dottori (ID 1 o 2)
-            int doctorId = (i % 2) + 1;
+            int doctorId = (i % 2) + 3;
             
             Patient patient = new Patient(nome, cognome, email, password, birthDate, gender, 
                                         phone, birthPlace, fiscalCode, doctorId);
@@ -365,29 +365,36 @@ public class DatabaseMockData {
     
     private static void createMockRiskFactors(RiskFactorDAO riskFactorDAO, UserDAO userDAO) throws SQLException {
         System.out.println("  ⚠️ Creazione Risk Factors...");
-        
-        String[] riskTypes = {"Smoking", "Obesity", "Family History", "High Blood Pressure", "High Cholesterol", 
-                              "Sedentary Lifestyle", "Poor Diet", "Stress", "Age Factor", "Genetic Predisposition"};
+
+        String[] riskTypes = {"Smoking", "Obesity", "Family History", "High Blood Pressure", "High Cholesterol",
+                "Sedentary Lifestyle", "Poor Diet", "Stress", "Age Factor", "Genetic Predisposition"};
         Gravity[] gravityLevels = {Gravity.LOW, Gravity.MEDIUM, Gravity.HIGH};
-        
+
         int riskFactorCount = 0;
-        
-        // Crea un risk factor per ogni tipo con diverse gravità
-        for (String type : riskTypes) {
-            for (Gravity gravity : gravityLevels) {
-                try {
-                    riskFactorDAO.insertRiskFactor(type, gravity);
-                    riskFactorCount++;
-                } catch (Exception e) {
-                    System.err.println("    ❌ Errore creando risk factor " + type + " con gravità " + gravity + ": " + e.getMessage());
-                    throw e;
+
+        // Prendi tutti i pazienti
+        List<User> patients = userDAO.getUsersByType("PATIENT");
+
+        for (User patient : patients) {
+            for (String type : riskTypes) {
+                for (Gravity gravity : gravityLevels) {
+                    try {
+                        // Inserisce il risk factor per il paziente specifico
+                        riskFactorDAO.insertRiskFactor(patient.getId(), type, gravity);
+                        riskFactorCount++;
+                    } catch (Exception e) {
+                        System.err.println("    ❌ Errore creando risk factor " + type + " per paziente "
+                                + patient.getName() + ": " + e.getMessage());
+                        throw e;
+                    }
                 }
             }
         }
-        
+
         System.out.println("  ✅ " + riskFactorCount + " Risk Factors creati");
     }
-    
+
+
     private static void createMockLogMedications(LogMedicationDAO logMedicationDAO, MedicationDAO medicationDAO, UserDAO userDAO) throws SQLException {
         System.out.println("  📅 Creazione Log Medications (pianificazioni)...");
         

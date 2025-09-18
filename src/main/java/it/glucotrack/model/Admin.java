@@ -22,7 +22,7 @@ public class Admin extends User {
     // ===== Full constructor =====
     public Admin(int id, String name, String surname, String email, String password, LocalDate bornDate,
                  Gender gender, String phone, String birthPlace, String fiscalCode, String role) {
-        super(id, name, surname, email, password, bornDate, gender, phone, birthPlace, fiscalCode);
+        super(id, name, surname, email, password, bornDate, gender, phone, birthPlace, fiscalCode, "Admin");
         this.role = role;
     }
 

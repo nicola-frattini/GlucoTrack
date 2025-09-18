@@ -1,6 +1,9 @@
 package it.glucotrack.model;
 
+
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 //ASSOLUTAMENTE DA RIVEDERE
 public class Medication {
@@ -13,6 +16,7 @@ public class Medication {
     private LocalDate start_date;
     private LocalDate end_date;
     private String instructions; // text
+    private List<LogMedication> log_medications;
 
     // ===== Default constructor =====
     public Medication() {
@@ -24,6 +28,7 @@ public class Medication {
         this.start_date = LocalDate.now();
         this.end_date = LocalDate.now();
         this.instructions = "";
+        this.log_medications = new ArrayList<>();
     }
 
     // ===== Constructor without ID (for new records) =====
@@ -36,6 +41,7 @@ public class Medication {
         this.start_date = start_date;
         this.end_date = end_date;
         this.instructions = instructions;
+        this.log_medications = new ArrayList<>();
     }
 
     // ===== Full constructor =====
@@ -48,6 +54,7 @@ public class Medication {
         this.start_date = start_date;
         this.end_date = end_date;
         this.instructions = instructions;
+        this.log_medications = new ArrayList<>();
     }
 
     // ===== Getters and Setters =====
@@ -75,6 +82,10 @@ public class Medication {
 
     public String getInstructions() { return instructions; }
     public void setInstructions(String instructions) { this.instructions = instructions; }
+
+    public List<LogMedication> getLogMedications() { return this.log_medications; }
+    public void setLogMedications(List<LogMedication> log_medications) { this.log_medications = log_medications; }
+
 
     @Override
     public String toString() {
@@ -117,7 +128,7 @@ public class Medication {
             }
             currentDate = currentDate.plusDays(1);
         }
-
+        this.log_medications = logMedications;
         return logMedications;
     }
 

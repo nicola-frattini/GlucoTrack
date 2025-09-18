@@ -8,11 +8,13 @@ import java.time.Period;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import it.glucotrack.model.Doctor;
 import it.glucotrack.model.Gender;
 import it.glucotrack.model.GlucoseMeasurement;
 import it.glucotrack.model.Patient;
 import it.glucotrack.util.GlucoseMeasurementDAO;
 import it.glucotrack.util.PatientDAO;
+import it.glucotrack.util.DoctorDAO;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -64,6 +66,7 @@ public class DoctorDashboardPatientsController implements Initializable {
     @FXML private MenuItem sendMessageMenuItem;
     @FXML private MenuItem deletePatientMenuItem;
 
+
     // Status elements
     @FXML private Label statusLabel;
     @FXML private Label totalPatientsLabel;
@@ -74,7 +77,8 @@ public class DoctorDashboardPatientsController implements Initializable {
     private PatientTableData selectedPatient;
     private PatientDAO patientDAO;
     private GlucoseMeasurementDAO glucoseMeasurementDAO;
-    private int doctorId;
+    private Doctor doctorUser;
+    private int doctorId; // ID of the logged-in doctor
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -82,7 +86,12 @@ public class DoctorDashboardPatientsController implements Initializable {
         this.glucoseMeasurementDAO = new GlucoseMeasurementDAO();
         // The doctorId should be set by the calling controller, e.g., after login
         // For demonstration, let's use a placeholder value
-        this.doctorId = 1;
+        this.doctorId = it.glucotrack.util.SessionManager.getInstance().getCurrentUser().getId();
+        try {
+            this.doctorUser = DoctorDAO.getDoctorById(it.glucotrack.util.SessionManager.getInstance().getCurrentUser().getId());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         setupTable();
         setupSearch();
         setupButtons();
@@ -91,11 +100,7 @@ public class DoctorDashboardPatientsController implements Initializable {
         updateStatusBar();
     }
 
-    // Set the doctorId from the login screen
-    public void setDoctorId(int doctorId) {
-        this.doctorId = doctorId;
-        refreshPatientsList();
-    }
+
 
     private void setupTable() {
         patientTableData = FXCollections.observableArrayList();
@@ -332,8 +337,8 @@ public class DoctorDashboardPatientsController implements Initializable {
             Parent profileRoot = loader.load();
 
             ProfileViewController profileController = loader.getController();
-            profileController.setPatient(patientData.getPatient());
-            profileController.setDoctorView(true);
+            profileController.setUserRole(ProfileViewController.UserRole.DOCTOR_VIEWING_PATIENT, doctorUser, selectedPatient.getPatient());
+
 
             Scene scene = addPatientBtn.getScene();
             BorderPane rootPane = (BorderPane) scene.getRoot();

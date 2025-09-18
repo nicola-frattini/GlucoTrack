@@ -15,7 +15,7 @@
                 <!-- Header Section -->
                 <VBox spacing="10.0" style="-fx-padding: 30 40 20 40;">
                     <children>
-                        <Label text="Patient Profile" textFill="WHITE">
+                        <Label text="User Profile" textFill="WHITE">
                             <font>
                                 <Font name="System Bold" size="28.0" />
                             </font>
@@ -166,40 +166,19 @@
                                                                     </font>
                                                                 </Label>
                                                                 <Region HBox.hgrow="ALWAYS" />
-                                                                <Label fx:id="metforminPercentageLabel" text="85%" textFill="WHITE">
+                                                                <Label fx:id="adherancePercentageLabel" text="85%" textFill="WHITE">
                                                                     <font>
                                                                         <Font size="14.0" />
                                                                     </font>
                                                                 </Label>
                                                             </children>
                                                         </HBox>
-                                                        <ProgressBar fx:id="metforminProgressBar" prefWidth="260.0" progress="0.85" 
+                                                        <ProgressBar fx:id="adheranceProgressBar" prefWidth="260.0" progress="0.85"
                                                                     style="-fx-accent: #3498DB;" />
                                                     </children>
                                                 </VBox>
-                                                
+
                                                 <!-- Insulin Progress -->
-                                                <VBox spacing="8.0">
-                                                    <children>
-                                                        <HBox alignment="CENTER_LEFT">
-                                                            <children>
-                                                                <Label text="Insulin" textFill="WHITE">
-                                                                    <font>
-                                                                        <Font size="14.0" />
-                                                                    </font>
-                                                                </Label>
-                                                                <Region HBox.hgrow="ALWAYS" />
-                                                                <Label fx:id="insulinPercentageLabel" text="70%" textFill="WHITE">
-                                                                    <font>
-                                                                        <Font size="14.0" />
-                                                                    </font>
-                                                                </Label>
-                                                            </children>
-                                                        </HBox>
-                                                        <ProgressBar fx:id="insulinProgressBar" prefWidth="260.0" progress="0.70" 
-                                                                    style="-fx-accent: #3498DB;" />
-                                                    </children>
-                                                </VBox>
                                             </children>
                                         </VBox>
                                     </children>
@@ -266,6 +245,18 @@
                         <Button fx:id="updatePatientInfoBtn" mnemonicParsing="false" prefHeight="40.0" prefWidth="150.0"
                                 style="-fx-background-color: transparent; -fx-border-color: #3498DB; -fx-border-width: 1; -fx-text-fill: #3498DB; -fx-background-radius: 5;"
                                 text="Update Patient Info" />
+                        <Button fx:id="addRiskBtn" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0"
+                                style="-fx-background-color: #F39C12; -fx-text-fill: white; -fx-background-radius: 5;"
+                                text="Add Risk" visible="false" />
+                        <Button fx:id="deleteUserBtn" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0"
+                                style="-fx-background-color: #E74C3C; -fx-text-fill: white; -fx-background-radius: 5;"
+                                text="Delete User" visible="false" />
+                        <Button fx:id="exportDataBtn" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0"
+                                style="-fx-background-color: #27AE60; -fx-text-fill: white; -fx-background-radius: 5;"
+                                text="Export Data" visible="false" />
+                        <Button fx:id="sendMessageBtn" mnemonicParsing="false" prefHeight="40.0" prefWidth="130.0"
+                                style="-fx-background-color: #9B59B6; -fx-text-fill: white; -fx-background-radius: 5;"
+                                text="Send Message" visible="false" />
                     </children>
                 </HBox>
             </children>

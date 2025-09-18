@@ -1,5 +1,6 @@
 package it.glucotrack.model;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 
@@ -70,6 +71,8 @@ public class GlucoseMeasurement {
     public String getStatusString(){
         return Status.fromGlucoseValue(glucoseLevel).toString();
     }
+
+    public LocalDate getDate() {return dateAndTime.toLocalDate();}
 
     @Override
     public String toString() {

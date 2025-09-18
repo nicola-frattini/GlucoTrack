@@ -20,7 +20,7 @@ public class GlucoseMeasurementDAO {
         return null;
     }
 
-    public List<GlucoseMeasurement> getGlucoseMeasurementsByPatientId(int patientId) throws SQLException {
+    public static List<GlucoseMeasurement> getGlucoseMeasurementsByPatientId(int patientId) throws SQLException {
         String sql = "SELECT * FROM glucose_measurements WHERE patient_id = ? ORDER BY measurement_time DESC";
         List<GlucoseMeasurement> measurements = new ArrayList<>();
         try (ResultSet rs = DatabaseInteraction.executeQuery(sql, patientId)) {
@@ -118,7 +118,7 @@ public class GlucoseMeasurementDAO {
         return measurements;
     }
 
-    private GlucoseMeasurement mapResultSetToGlucoseMeasurement(ResultSet rs) throws SQLException {
+    private static GlucoseMeasurement mapResultSetToGlucoseMeasurement(ResultSet rs) throws SQLException {
         GlucoseMeasurement measurement = new GlucoseMeasurement();
         measurement.setId(rs.getInt("id"));
         measurement.setPatientId(rs.getInt("patient_id"));

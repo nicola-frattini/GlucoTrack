@@ -1,6 +1,7 @@
 package it.glucotrack.model;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,18 +26,20 @@ public class Patient extends User {
     // Questo costruttore è specifico per caricare i dati dal database
     public Patient(int id, String name, String surname, String email, String password, LocalDate bornDate,
                    Gender gender, String phone, String birthPlace, String fiscalCode, int doctorId) {
-        super(id, name, surname, email, password, bornDate, gender, phone, birthPlace, fiscalCode);
+        super(id, name, surname, email, password, bornDate, gender, phone, birthPlace, fiscalCode, "PATIENT");
         this.doctorId = doctorId;
-        this.glucoseReadings = new ArrayList<>();
-        this.symptoms = new ArrayList<>();
-        this.riskFactors = new ArrayList<>();
-        this.medications = new ArrayList<>();
+        this.glucoseReadings = glucoseReadingsSetup();
+        this.symptoms = symptomsSetup();
+        this.riskFactors = riskFactorsSetup();
+        this.medications = medicationsSetup();
     }
+
+
 
     // ===== Constructor for new records =====
     public Patient(String name, String surname, String email, String password, LocalDate bornDate,
                    Gender gender, String phone, String birthPlace, String fiscalCode, int doctorId) {
-        super(name, surname, email, password, bornDate, gender, phone, birthPlace, fiscalCode);
+        super(name, surname, email, password, bornDate, gender, phone, birthPlace, fiscalCode, "PATIENT");
         this.doctorId = doctorId;
         this.glucoseReadings = new ArrayList<>();
         this.symptoms = new ArrayList<>();
@@ -48,12 +51,28 @@ public class Patient extends User {
     public Patient(int id, String name, String surname, String email, String password, LocalDate bornDate,
                    Gender gender, String phone, String birthPlace, String fiscalCode, int doctorId,
                    List<GlucoseMeasurement> glucoseReadings, List<String> symptoms, List<RiskFactor> riskFactors, List<Medication> medications) {
-        super(id, name, surname, email, password, bornDate, gender, phone, birthPlace, fiscalCode);
+        super(id, name, surname, email, password, bornDate, gender, phone, birthPlace, fiscalCode, "Patient");
         this.doctorId = doctorId;
-        this.glucoseReadings = (glucoseReadings != null) ? glucoseReadings : new ArrayList<>();
-        this.symptoms = (symptoms != null) ? symptoms : new ArrayList<>();
-        this.riskFactors = (riskFactors != null) ? riskFactors : new ArrayList<>();
-        this.medications = (medications != null) ? medications : new ArrayList<>();
+        this.glucoseReadings = (glucoseReadings != null) ? glucoseReadings : glucoseReadingsSetup();
+        this.symptoms = (symptoms != null) ? symptoms : symptomsSetup();
+        this.riskFactors = (riskFactors != null) ? riskFactors : riskFactorsSetup();
+        this.medications = (medications != null) ? medications : getMedications();
+    }
+
+
+
+
+    public LogMedication getLastMedicationLog() {
+        if (medications.isEmpty()) return null;
+        LogMedication latestLog = null;
+        for (Medication med : medications) {
+            for (LogMedication log : med.getLogMedications()) {
+                if (latestLog == null || log.getDateAndTime().isAfter(latestLog.getDateAndTime())) {
+                    latestLog = log;
+                }
+            }
+        }
+        return latestLog;
     }
 
     // ===== Getters and setters =====
@@ -82,4 +101,80 @@ public class Patient extends User {
                 ", riskFactors=" + riskFactors.size() +
                 '}';
     }
+
+    public GlucoseMeasurement getLastGlucoseMeasurement() {
+
+        if (glucoseReadings.isEmpty()) return null;
+        GlucoseMeasurement latestMeasurement = null;
+        for (GlucoseMeasurement gm : glucoseReadings) {
+            if (latestMeasurement == null || gm.getDateAndTime().isAfter(latestMeasurement.getDateAndTime())) {
+                latestMeasurement = gm;
+            }
+        }
+        return latestMeasurement;
+
+
+    }
+
+    public List<LogMedication> getUpcomingMedications(int medicationAlertMinutes) {
+
+        List<LogMedication> upcoming = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime alertThreshold = now.plusMinutes(medicationAlertMinutes);
+
+        for (Medication med : medications) {
+            for (LogMedication log : med.getLogMedications()) {
+                if (!log.isTaken() && !log.getDateAndTime().isBefore(now) && !log.getDateAndTime().isAfter(alertThreshold)) {
+                    upcoming.add(log);
+                }
+            }
+        }
+        return upcoming;
+
+    }
+
+    private List<GlucoseMeasurement> glucoseReadingsSetup() {
+        // Interroga l'sql per il suo id, se non ci sono misurazioni ritorna lista vuota
+        try {
+            return it.glucotrack.util.GlucoseMeasurementDAO.getGlucoseMeasurementsByPatientId(this.getId());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+
+    }
+
+    private List <String> symptomsSetup() {
+        // Interroga l'sql per il suo id, se non ci sono sintomi ritorna lista vuota
+        try {
+            return it.glucotrack.util.SymptomDAO.getSymptomsByPatientId(this.getId());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+
+    private List <RiskFactor> riskFactorsSetup() {
+        // Interroga l'sql per il suo id, se non ci sono fattori di rischio ritorna lista vuota
+        try {
+            return it.glucotrack.util.RiskFactorDAO.getRiskFactorsByPatientId(this.getId());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    private List <Medication> medicationsSetup() {
+        // Interroga l'sql per il suo id, se non ci sono farmaci ritorna lista vuota
+        try {
+            return it.glucotrack.util.MedicationDAO.getMedicationsByPatientId(this.getId());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+
+
 }
