@@ -164,12 +164,13 @@ public boolean updateMedication(Medication med) throws SQLException {
 
     };
 
-    public List<MedicationEdit> getMedicationEditsByPatientId(int patientId) throws SQLException {
+    public static List<MedicationEdit> getMedicationEditsByPatientId(int patientId) throws SQLException {
         String sql = "SELECT * FROM medication_edits WHERE patient_id = ?";
         List<MedicationEdit> medsEdits = new ArrayList<>();
         try (ResultSet rs = DatabaseInteraction.executeQuery(sql, patientId)) {
             while (rs.next()) {
-                medsEdits.add(mapResultSetToMedicationEdit(rs));
+                medsEdits.add(
+                        mapResultSetToMedicationEdit(rs));
             }
         }
         return medsEdits;
@@ -177,7 +178,7 @@ public boolean updateMedication(Medication med) throws SQLException {
 
 
 
-    private MedicationEdit mapResultSetToMedicationEdit(ResultSet rs) throws SQLException {
+    private static MedicationEdit mapResultSetToMedicationEdit(ResultSet rs) throws SQLException {
 
         return new MedicationEdit(
             rs.getInt("id"),

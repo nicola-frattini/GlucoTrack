@@ -1,9 +1,6 @@
 package it.glucotrack.controller;
 
-import it.glucotrack.model.GlucoseMeasurement;
-import it.glucotrack.model.Medication;
-import it.glucotrack.model.Patient;
-import it.glucotrack.model.Symptom;
+import it.glucotrack.model.*;
 import it.glucotrack.util.GlucoseMeasurementDAO;
 import it.glucotrack.util.MedicationDAO;
 import it.glucotrack.util.SymptomDAO;
@@ -17,6 +14,7 @@ import javafx.scene.Parent;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
+import javafx.scene.control.Alert;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -35,6 +33,10 @@ import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
 public class ProfileViewController implements Initializable {
+
+    public void setParentContentPane(StackPane contentPane) {
+        this.parentContentPane = contentPane;
+    }
 
     // Enum per i tipi di utente
     public enum UserRole {
@@ -93,7 +95,7 @@ public class ProfileViewController implements Initializable {
     private Patient currentPatient;
     private Object currentUser; // L'utente che sta usando l'applicazione (può essere Doctor, Admin, o Patient)
     private UserRole currentUserRole;
-    private ObservableList<TherapyModification> therapyModifications;
+    private ObservableList<MedicationEdit> therapyModifications;
     private StackPane parentContentPane;
 
     // DAOs
@@ -563,6 +565,21 @@ public class ProfileViewController implements Initializable {
         });
     }
 
+    private void handleBackToPatientsList() {
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/AdminDashboardView.fxml"));
+            Parent adminDashboard = loader.load();
+            // Supponendo che AdminDashboardController abbia un metodo per impostare il contenuto
+            AdminDashboardController controller = loader.getController();
+            controller.setContentPane(parentContentPane);
+            parentContentPane.getChildren().setAll(adminDashboard);
+        } catch (Exception e) {
+            showError("Navigation Error", "Failed to navigate back to Admin Dashboard", e.getMessage());
+        }
+
+    }
+
     private void handleExportData() {
         if (currentPatient == null) return;
 
@@ -1008,40 +1025,14 @@ public class ProfileViewController implements Initializable {
         return (daysAgo / 30) + " months ago";
     }
 
-    private void loadTherapyModifications() {
+    private void loadTherapyModifications() throws SQLException {
         if (therapyModifications != null) {
             therapyModifications.clear();
             if (currentPatient != null) {
-                therapyModifications.add(new TherapyModification(
-                        LocalDate.now().minusDays(5),
-                        "Updated glucose monitoring frequency",
-                        "Dr. Smith"
-                ));
-                if (!currentPatient.getGlucoseReadings().isEmpty()) {
-                    double avgGlucose = currentPatient.getGlucoseReadings().stream()
-                            .mapToDouble(GlucoseMeasurement::getGlucoseLevel)
-                            .average()
-                            .orElse(0);
-                    if (avgGlucose > 180) {
-                        therapyModifications.add(new TherapyModification(
-                                LocalDate.now().minusDays(12),
-                                "Increased insulin dosage due to high glucose levels",
-                                "Dr. Johnson"
-                        ));
-                    } else if (avgGlucose > 140) {
-                        therapyModifications.add(new TherapyModification(
-                                LocalDate.now().minusDays(12),
-                                "Adjusted Metformin dosage",
-                                "Dr. Johnson"
-                        ));
-                    }
-                }
-                therapyModifications.add(new TherapyModification(
-                        LocalDate.now().minusDays(25),
-                        "Initial diabetes management plan established",
-                        "Dr. Smith"
-                ));
+                List<MedicationEdit> medicationEdits = MedicationDAO.getMedicationEditsByPatientId(currentPatient.getId());
+                // Popola il therapyModifications con i dati ottenuti
             }
+
         }
     }
 
@@ -1163,55 +1154,5 @@ public class ProfileViewController implements Initializable {
         alert.showAndWait();
     }
 
-    public static class TherapyModification {
-        private LocalDate date;
-        private String modification;
-        private String modifiedBy;
-        public TherapyModification(LocalDate date, String modification, String modifiedBy) {
-            this.date = date;
-            this.modification = modification;
-            this.modifiedBy = modifiedBy;
-        }
-        public LocalDate getDate() { return date; }
-        public void setDate(LocalDate date) { this.date = date; }
-        public String getModification() { return modification; }
-        public void setModification(String modification) { this.modification = modification; }
-        public String getModifiedBy() { return modifiedBy; }
-        public void setModifiedBy(String modifiedBy) { this.modifiedBy = modifiedBy; }
-    }
 
-    private void handleBackToPatientsList() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/DoctorDashboardPatients.fxml"));
-            Parent patientsView = loader.load();
-            if (parentContentPane != null) {
-                parentContentPane.getChildren().clear();
-                parentContentPane.getChildren().add(patientsView);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText("Navigation Error");
-            alert.setContentText("Could not return to patients list: " + e.getMessage());
-            alert.showAndWait();
-        }
-    }
-
-    public void setParentContentPane(StackPane contentPane) {
-        this.parentContentPane = contentPane;
-    }
-
-    // Getter per il ruolo corrente (utile per debug o altre funzionalità)
-    public UserRole getCurrentUserRole() {
-        return currentUserRole;
-    }
-
-    public Object getCurrentUser() {
-        return currentUser;
-    }
-
-    public Patient getCurrentPatient() {
-        return currentPatient;
-    }
 }

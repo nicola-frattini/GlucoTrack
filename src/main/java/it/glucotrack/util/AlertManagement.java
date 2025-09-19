@@ -34,12 +34,16 @@ public class AlertManagement {
         }
 
         // 2. Misurazioni mancanti
-        LocalDateTime lastMeasurementDate = patient.getLastGlucoseMeasurement().getDateAndTime();
-        if (isTooOld(lastMeasurementDate, DAYS_WITHOUT_MEASUREMENT)) {
-            alerts.add(new Alert("Non ci sono misurazioni da più di " + DAYS_WITHOUT_MEASUREMENT + " giorni",
-                    AlertType.WARNING, patient, LocalDateTime.now()));
-        }
+        try {
+            LocalDateTime lastMeasurementDate = patient.getLastGlucoseMeasurement().getDateAndTime();
+            if (isTooOld(lastMeasurementDate, DAYS_WITHOUT_MEASUREMENT)) {
+                alerts.add(new Alert("Non ci sono misurazioni da più di " + DAYS_WITHOUT_MEASUREMENT + " giorni",
+                        AlertType.WARNING, patient, LocalDateTime.now()));
+            }
 
+        }catch (Exception e) {
+            // Nessuna misurazione presente
+        }
         // 3. Farmaci non loggati
         LogMedication lastLog = patient.getLastMedicationLog();
         if (lastLog != null) {

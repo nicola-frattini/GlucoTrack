@@ -102,12 +102,18 @@ public class PatientDashboardController {
     @FXML
     private void onProfileClick() throws IOException {
 
+        System.out.println("🔄 Caricamento profilo paziente...");
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/ProfileView.fxml"));
         Parent profileRoot = loader.load();
-
+        System.out.println("✅ FXML ProfileView caricato con successo");
         ProfileViewController profileController = loader.getController();
         profileController.setUserRole(ProfileViewController.UserRole.PATIENT_OWN_PROFILE, patient, null);
 
+        profileController.setParentContentPane(contentPane);
+        loadCenterContentDirect(profileRoot);
+
+
+        System.out.println("🔄 Impostazione contenuto profilo nel contentPane...");
         // Non imposto nessun pulsante come attivo per il profilo
         clearActiveButtons();
     }

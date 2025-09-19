@@ -296,6 +296,15 @@ public class AdminDashboardController implements Initializable {
         return UserTableData;
     }
 
+    public void setContentPane(StackPane parentContentPane) {
+        // It is used to navigate back to this view from ProfileView
+        BorderPane rootPane = (BorderPane) addUserBtn.getScene().getRoot();
+        StackPane contentPane = (StackPane) rootPane.getCenter();
+        contentPane.getChildren().clear();
+        contentPane.getChildren().add(parentContentPane);
+
+    }
+
     // Wrapper class for table display
     public static class UserTableData {
         private final User user;

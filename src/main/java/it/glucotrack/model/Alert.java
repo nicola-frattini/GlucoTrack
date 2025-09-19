@@ -8,20 +8,20 @@ public class Alert {
     private String message;
     private AlertType type;
     private Patient patient;
-    private LocalDateTime date;
+    private LocalDateTime dateAndTime;
 
-    public Alert(String message, AlertType type, Patient patient, LocalDateTime date) {
+    public Alert(String message, AlertType type, Patient patient, LocalDateTime dateAndTime) {
         this.message = message;
         this.type = type;
         this.patient = patient;
-        this.date = date;
+        this.dateAndTime = dateAndTime;
     }
 
     public Alert(){
         this.message = "";
         this.type = null;
         this.patient = null;
-        this.date = null;
+        this.dateAndTime = null;
     }
 
     public Alert(String message, AlertType type) {
@@ -42,8 +42,8 @@ public class Alert {
     public Patient getPatient() {return patient;}
     public void setPatient(Patient patient) {this.patient = patient;}
 
-    public LocalDateTime getDate() {return date;}
-    public void setDate(LocalDateTime date){this.date = date;}
+    public LocalDateTime getDate() {return dateAndTime;}
+    public void setDate(LocalDateTime date){this.dateAndTime = dateAndTime;}
 
 
     @Override
@@ -52,7 +52,7 @@ public class Alert {
                 "message='" + message + '\'' +
                 ", type=" + type + '\'' +
                 ", patient=" + patient + '\'' +
-                ", date=" + date +
+                ", date=" + dateAndTime +
                 '}';
     }
 }

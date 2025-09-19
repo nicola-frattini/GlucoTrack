@@ -3,6 +3,7 @@ package it.glucotrack.controller;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
@@ -83,6 +84,23 @@ public class DoctorDashboardController {
         setActiveButton(patientsBtn);
     }
 
+    @FXML void onProfileClick() throws IOException {
+        System.out.println("🔄 Caricamento profilo paziente...");
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/ProfileView.fxml"));
+        Parent profileRoot = loader.load();
+        System.out.println("✅ FXML ProfileView caricato con successo");
+        ProfileViewController profileController = loader.getController();
+        profileController.setUserRole(ProfileViewController.UserRole.DOCTOR_OWN_PROFILE, SessionManager.getInstance().getCurrentUser(), null);
+
+        profileController.setParentContentPane(contentPane);
+        loadCenterContentDirect(profileRoot);
+
+
+        System.out.println("🔄 Impostazione contenuto profilo nel contentPane...");
+        // Non imposto nessun pulsante come attivo per il profilo
+        clearActiveButtons();
+    }
+
     @FXML
     private void onAppointmentsClick() {
         loadCenterContent("DoctorDashboardAppointments.fxml"); // Corretto il file FXML
@@ -110,6 +128,11 @@ public class DoctorDashboardController {
         }
     }
 
+    public void loadCenterContentDirect(Node content) {
+        contentPane.getChildren().setAll(content);
+    }
+
+
     @FXML
     private void onLogoutClick() {
         try {
@@ -128,6 +151,16 @@ public class DoctorDashboardController {
         appointmentsBtn.setStyle(getButtonStyle(appointmentsBtn == activeBtn));
         messageBtn.setStyle(getButtonStyle(messageBtn == activeBtn));
     }
+
+    private void clearActiveButtons() {
+        // Imposta tutti i pulsanti come non attivi
+        dashboardBtn.setStyle(getButtonStyle(false));
+        patientsBtn.setStyle(getButtonStyle(false));
+        appointmentsBtn.setStyle(getButtonStyle(false));
+        messageBtn.setStyle(getButtonStyle(false));
+    }
+
+
 
     private String getButtonStyle(boolean isActive) {
         if (isActive) {

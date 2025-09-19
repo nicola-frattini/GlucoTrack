@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class MedicationEdit {
-
+    
     private int medicationId;
     private int doctorId;
     private Medication medication;
