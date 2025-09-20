@@ -147,12 +147,12 @@ public class DatabaseMockData {
 
 
     private static void createMockMedications(MedicationDAO medicationDAO, UserDAO userDAO) throws SQLException {
-        System.out.println("  💊 Creazione Medications...");
+        System.out.println("Creazione Medications...");
 
         // Prendi tutti i pazienti
-        System.out.println("  🔍 Recupero pazienti per medications...");
+        System.out.println("Recupero pazienti per medications...");
         List<User> patients = userDAO.getUsersByType("PATIENT");
-        System.out.println("  🔍 Trovati " + patients.size() + " pazienti");
+        System.out.println("Trovati " + patients.size() + " pazienti");
 
         String[] farmaci = {"Metformina", "Insulina Rapida", "Insulina Lenta", "Glibenclamide",
                            "Gliclazide", "Sitagliptin", "Canagliflozin", "Empagliflozin", "Linagliptin"};
@@ -163,7 +163,7 @@ public class DatabaseMockData {
 
         int medicationCount = 0;
         for (User patient : patients) {
-            System.out.println("  🔍 Creando medications per: " + patient.getName() + " " + patient.getSurname());
+            System.out.println("Creando medications per: " + patient.getName() + " " + patient.getSurname());
 
             // Ogni paziente ha 2-4 farmaci (almeno 2)
             int numFarmaci = 2 + random.nextInt(3);
@@ -175,7 +175,8 @@ public class DatabaseMockData {
                     String dose = dosiStr[farmacoIndex];
                     Frequency frequency = frequenze[random.nextInt(frequenze.length)];
 
-                    LocalDate startDate = LocalDate.now().minusDays(random.nextInt(30));
+                    // Date di inizio e fine che possono partire massimo fino al 19/09/2025
+                    LocalDate startDate = LocalDate.now().minusDays(random.nextInt(60));
                     LocalDate endDate = startDate.plusMonths(1 + random.nextInt(6));
 
                     String instructions = "Assumere " + frequency.getDisplayName().toLowerCase() + " prima dei pasti";
@@ -186,20 +187,20 @@ public class DatabaseMockData {
 
                     medicationDAO.insertMedication(medication, (i%2)+3);
                     medicationCount++;
-                    System.out.println("    ✅ Medication creata: " + farmaco + " per paziente " + patient.getName());
+                    System.out.println("    Medication creata: " + farmaco + " per paziente " + patient.getName());
 
                 } catch (Exception e) {
-                    System.err.println("    ❌ Errore creando medication per paziente " + patient.getName() + ": " + e.getMessage());
+                    System.err.println("    Errore creando medication per paziente " + patient.getName() + ": " + e.getMessage());
                     throw e; // Re-throw per fermare il processo
                 }
             }
         }
 
-        System.out.println("  ✅ " + medicationCount + " Medications creati");
+        System.out.println(medicationCount + " Medications creati");
     }
 
     private static void createMockGlucoseMeasurements(GlucoseMeasurementDAO glucoseDAO, UserDAO userDAO) throws SQLException {
-        System.out.println("  📈 Creazione Glucose Measurements...");
+        System.out.println("Creazione Glucose Measurements...");
 
         List<User> patients = userDAO.getUsersByType("PATIENT");
 

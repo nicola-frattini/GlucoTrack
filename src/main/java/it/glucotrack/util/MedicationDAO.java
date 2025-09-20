@@ -115,7 +115,7 @@ public class MedicationDAO {
         }
     }
 
-public boolean updateMedication(Medication med) throws SQLException {
+public boolean updateMedication(Medication med, int doctorId) throws SQLException {
     String sql = "UPDATE medications SET patient_id=?, name=?, dose=?, frequency=?, start_date=?, end_date=?, instructions=? WHERE id=?";
     
     // Convert LocalDate to java.sql.Date for proper database storage
@@ -131,12 +131,16 @@ public boolean updateMedication(Medication med) throws SQLException {
             endDate,            // Use java.sql.Date (can be null)
             med.getInstructions(), 
             med.getId());
+    createMedicationsEdit(med.getPatient_id(), doctorId, med);
+
+
     return rows > 0;
 }
 
     public boolean deleteMedication(int id) throws SQLException {
         String sql = "DELETE FROM medications WHERE id = ?";
         int rows = DatabaseInteraction.executeUpdate(sql, id);
+
         return rows > 0;
     }
 

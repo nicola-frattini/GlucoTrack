@@ -5,6 +5,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import it.glucotrack.util.MedicationDAO;
+import it.glucotrack.util.RiskFactorDAO;
+import it.glucotrack.util.SymptomDAO;
+import it.glucotrack.util.GlucoseMeasurementDAO;
+import it.glucotrack.util.LogMedicationDAO;
+
 public class Patient extends User {
 
     private int doctorId;
@@ -74,6 +80,19 @@ public class Patient extends User {
             }
         }
         return latestLog;
+    }
+
+    public List<LogMedication> getAllMedicationLogsNotTaken(){
+        if(medications.isEmpty()) return new ArrayList<>();
+        List<LogMedication> notTakenLogs = new ArrayList<>();
+        for(Medication med : medications) {
+            for (LogMedication log : med.getLogMedications()) {
+                if (!log.isTaken()) {
+                    notTakenLogs.add(log);
+                }
+            }
+        }
+        return notTakenLogs;
     }
 
     // ===== Getters and setters =====

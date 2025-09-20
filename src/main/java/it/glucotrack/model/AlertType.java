@@ -1,7 +1,7 @@
 package it.glucotrack.model;
 
 public enum AlertType {
-    INFO("blue"),
+    INFO("green"),
     WARNING("orange"),
     CRITICAL("red");
 

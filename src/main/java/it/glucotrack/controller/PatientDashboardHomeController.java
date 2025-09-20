@@ -1,7 +1,6 @@
 package it.glucotrack.controller;
 
-import it.glucotrack.model.Alert;
-import it.glucotrack.model.Patient;
+import it.glucotrack.model.*;
 import it.glucotrack.util.AlertManagement;
 import it.glucotrack.util.PatientDAO;
 import javafx.fxml.FXML;
@@ -14,10 +13,10 @@ import javafx.scene.control.Label;
 import javafx.event.ActionEvent;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
-import it.glucotrack.model.GlucoseMeasurement;
-import it.glucotrack.model.User;
+
 import it.glucotrack.util.GlucoseMeasurementDAO;
 import it.glucotrack.util.SessionManager;
 import javafx.scene.layout.HBox;
@@ -47,7 +46,6 @@ public class PatientDashboardHomeController {
 
     @FXML
     public void initialize() throws SQLException {
-        System.out.println("🏠 PatientDashboardHomeController inizializzato!");
 
         loadAlerts();
 
@@ -60,7 +58,7 @@ public class PatientDashboardHomeController {
         // Listener per il cambio di periodo temporale
         timeRangeCombo.setOnAction(e -> {
             String selectedPeriod = timeRangeCombo.getSelectionModel().getSelectedItem();
-            System.out.println("🔄 Cambio periodo: " + selectedPeriod);
+            System.out.println("Cambio periodo: " + selectedPeriod);
 
             // Pausa breve per evitare conflitti nel refresh del grafico
             javafx.application.Platform.runLater(() -> {
@@ -68,9 +66,9 @@ public class PatientDashboardHomeController {
                     // Aggiorna sia i dati numerici che il grafico quando cambia il periodo
                     updateGlucoseData();
                     updateChart();
-                    System.out.println("✅ Aggiornamento completato per periodo: " + selectedPeriod);
+                    System.out.println("Aggiornamento completato per periodo: " + selectedPeriod);
                 } catch (Exception ex) {
-                    System.err.println("❌ Errore durante il cambio periodo: " + ex.getMessage());
+                    System.err.println("Errore durante il cambio periodo: " + ex.getMessage());
                     ex.printStackTrace();
                 }
             });
@@ -135,35 +133,29 @@ public class PatientDashboardHomeController {
 
     private HBox createAlertBox(Alert alert) {
         HBox box = new HBox(10);
-        box.setStyle("-fx-background-radius: 10; -fx-padding: 15;");
+        box.setStyle("-fx-background-radius: 10; -fx-padding: 15; -fx-pref-height: 80; -fx-alignment: center-left;");
 
         // Colore di sfondo in base al tipo di alert
         switch (alert.getType()) {
             case INFO:
-                box.setStyle(box.getStyle() + "-fx-background-color: #0f1c35;");
+                box.setStyle(box.getStyle() + "-fx-background-color: #4caf50;");
+                break;
             case WARNING:
-                box.setStyle(box.getStyle() + "-fx-background-color: #2d1b1b; -fx-border-color: #ff9800; -fx-border-width: 1;");
+                box.setStyle(box.getStyle() + "-fx-background-color: #ff9800;");
+                break;
             case CRITICAL:
-                box.setStyle(box.getStyle() + "-fx-background-color: #2d1b1b; -fx-border-color: #f44336; -fx-border-width: 1;");
+                box.setStyle(box.getStyle() + "-fx-background-color: #f44336;");
+                break;
         }
-        Label icon = new Label();
-        switch(alert.getType()) {
-            case INFO : icon.setText("ℹ️");
-            case WARNING : icon.setText("⚠️");
-            case CRITICAL : icon.setText("❗");
-        }
-        icon.setStyle("-fx-font-size: 16px;");
 
         VBox content = new VBox(5);
         Label title = new Label(alert.getMessage());
         title.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;");
+        title.setWrapText(true);
 
-        Label date = new Label(alert.getDate().toLocalDate().toString());
-        date.setStyle("-fx-text-fill: #8892b0; -fx-font-size: 12px;");
+        content.getChildren().addAll(title);
 
-        content.getChildren().addAll(title, date);
-
-        box.getChildren().addAll(icon, content);
+        box.getChildren().addAll(content);
         return box;
     }
 
@@ -182,7 +174,7 @@ public class PatientDashboardHomeController {
             List<GlucoseMeasurement> measurements = glucoseMeasurementDAO.getGlucoseMeasurementsByPatientId(currentUser.getId());
 
             if (measurements.isEmpty()) {
-                System.out.println("⚠️ Nessuna misurazione trovata per il grafico");
+                System.out.println("⚠Nessuna misurazione trovata per il grafico");
                 return;
             }
 
@@ -227,7 +219,7 @@ public class PatientDashboardHomeController {
 
             glucoseChart.getData().add(series);
 
-            System.out.println("📊 Grafico aggiornato - Periodo: " + selectedPeriod +
+            System.out.println("Grafico aggiornato - Periodo: " + selectedPeriod +
                              ", Punti visualizzati: " + series.getData().size() +
                              "/" + filteredMeasurements.size());
 
@@ -238,10 +230,10 @@ public class PatientDashboardHomeController {
             });
 
         } catch (SQLException e) {
-            System.err.println("❌ Errore nell'aggiornamento del grafico: " + e.getMessage());
+            System.err.println("Errore nell'aggiornamento del grafico: " + e.getMessage());
             e.printStackTrace();
         } catch (Exception e) {
-            System.err.println("❌ Errore generico nel grafico: " + e.getMessage());
+            System.err.println("Errore generico nel grafico: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -269,7 +261,7 @@ public class PatientDashboardHomeController {
                     return dateTime.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM"));
             }
         } catch (Exception e) {
-            System.err.println("❌ Errore nel formato data: " + e.getMessage());
+            System.err.println("Errore nel formato data: " + e.getMessage());
             return dateTime.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM"));
         }
     }
@@ -284,16 +276,17 @@ public class PatientDashboardHomeController {
     }
 
     @FXML
-    private void onLogReadingClick(javafx.event.ActionEvent event) {
-        System.out.println("=============================================");
-        System.out.println("🖱️ PULSANTE LOG READING CLICCATO!");
-        System.out.println("=============================================");
+    private void onLogReadingClick(ActionEvent event) {
         openGlucoseInsertForm();
     }
 
     @FXML
+    private void onContactClick(ActionEvent event) {
+
+    }
+
+    @FXML
     private void onRecordSymptomsClick(ActionEvent event) {
-        System.out.println("🩺 Pulsante Record Symptoms cliccato!");
         openSymptomInsertForm();
     }
 
@@ -372,7 +365,7 @@ public class PatientDashboardHomeController {
             // Carica il form nel pannello centrale del dashboard principale
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/PatientDashboardGlucoseInsert.fxml"));
             Parent glucoseInsertView = loader.load();
-            System.out.println("✅ FXML caricato con successo");
+            System.out.println("FXML caricato con successo");
             
             // Ottieni il controller del form
             PatientDashboardGlucoseInsertController insertController = loader.getController();
@@ -398,33 +391,26 @@ public class PatientDashboardHomeController {
     // Metodo per aprire il form di inserimento sintomi nel pannello centrale
     private void openSymptomInsertForm() {
         try {
-            System.out.println("🔄 Apertura form inserimento sintomi...");
-            
+
             // Carica il form nel pannello centrale del dashboard principale
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/PatientDashboardSymptomInsert.fxml"));
             Parent symptomInsertView = loader.load();
-            System.out.println("✅ FXML sintomi caricato con successo");
-            
+
             // Ottieni il controller del form
             PatientDashboardSymptomsInsertController insertController = loader.getController();
-            System.out.println("✅ Controller sintomi ottenuto: " + (insertController != null ? "OK" : "NULL"));
-            
-            // Imposta il callback per refresh dei dati quando si salva
+
             insertController.setOnDataSaved(() -> {
-                updateGlucoseData(); // Potremmo aggiungere un refresh dei sintomi se necessario
-                // Dopo il salvataggio, torna alla home
+                updateGlucoseData();
                 returnToHome();
             });
             
             // Imposta il callback per l'annullamento
             insertController.setOnCancel(this::returnToHome);
-            System.out.println("✅ Callback sintomi impostati");
-            
+
             // Sostituisce il contenuto centrale con il form
             loadContentInMainDashboard(symptomInsertView);
             
         } catch (IOException e) {
-            System.err.println("❌ Errore nell'apertura del form di inserimento sintomi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -435,9 +421,8 @@ public class PatientDashboardHomeController {
             PatientDashboardController mainController = PatientDashboardController.getInstance();
             if (mainController != null) {
                 mainController.loadCenterContentDirect(content);
-                System.out.println("✅ Contenuto caricato nel pannello centrale via controller principale");
             } else {
-                System.err.println("❌ Controller principale non disponibile");
+                System.err.println("Controller principale non disponibile per il caricamento del contenuto");
             }
         } catch (Exception e) {
             System.err.println("❌ Errore nel caricamento del contenuto nel dashboard: " + e.getMessage());

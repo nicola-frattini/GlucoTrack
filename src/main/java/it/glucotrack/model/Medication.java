@@ -4,6 +4,7 @@ package it.glucotrack.model;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import it.glucotrack.util.LogMedicationDAO;
 
 //ASSOLUTAMENTE DA RIVEDERE
 public class Medication {
@@ -54,7 +55,19 @@ public class Medication {
         this.start_date = start_date;
         this.end_date = end_date;
         this.instructions = instructions;
-        this.log_medications = new ArrayList<>();
+        this.log_medications = loadLogMedications();
+    }
+
+    private List<LogMedication> loadLogMedications() {
+        // Load medication logs from the database
+        LogMedicationDAO logMedicationDAO = new LogMedicationDAO();
+        try {
+            return logMedicationDAO.getLogMedicationsByMedicationId(this.id);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+
     }
 
     // ===== Getters and Setters =====

@@ -280,7 +280,24 @@ public class DoctorDashboardMedicationsInsertController {
                         createLogMedicationEntry(medicationId, currentDate, "20:00");
                         currentDate = currentDate.plusDays(1);
                         break;
-                        
+
+                    case "Every 6 hours":
+                        // Create four logs per day
+                        createLogMedicationEntry(medicationId, currentDate, "06:00");
+                        createLogMedicationEntry(medicationId, currentDate, "12:00");
+                        createLogMedicationEntry(medicationId, currentDate, "18:00");
+                        createLogMedicationEntry(medicationId, currentDate, "00:00");
+                        currentDate = currentDate.plusDays(1);
+                        break;
+
+                    case "Every 8 hours":
+                        // Create three logs per day
+                        createLogMedicationEntry(medicationId, currentDate, "06:00");
+                        createLogMedicationEntry(medicationId, currentDate, "14:00");
+                        createLogMedicationEntry(medicationId, currentDate, "22:00");
+                        currentDate = currentDate.plusDays(1);
+                        break;
+
                     case "once a week":
                         // Create one log per week (same day of week as start date)
                         createLogMedicationEntry(medicationId, currentDate, "09:00");

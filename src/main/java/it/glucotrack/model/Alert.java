@@ -1,6 +1,5 @@
 package it.glucotrack.model;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class Alert {
@@ -39,11 +38,12 @@ public class Alert {
     public AlertType getType() {return type;}
     public void setType(AlertType type) {this.type = type;}
 
+
     public Patient getPatient() {return patient;}
     public void setPatient(Patient patient) {this.patient = patient;}
 
-    public LocalDateTime getDate() {return dateAndTime;}
-    public void setDate(LocalDateTime date){this.dateAndTime = dateAndTime;}
+    public LocalDateTime getDateAndTime() {return dateAndTime;}
+    public void setDateAndTime(LocalDateTime dateAndTime){this.dateAndTime = dateAndTime;}
 
 
     @Override
