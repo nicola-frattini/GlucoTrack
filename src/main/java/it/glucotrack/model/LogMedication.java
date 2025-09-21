@@ -41,6 +41,10 @@ public class LogMedication {
     public void setTaken(boolean taken) { this.taken = taken; }
 
     public LocalDate getDate() { return dateAndTime.toLocalDate(); }
+    public String getFormattedDateTime(){
+        return dateAndTime.toLocalDate().toString();
+    }
+
 
     @Override
     public String toString() {
@@ -52,8 +56,6 @@ public class LogMedication {
                 '}';
 
     }
-
-
 
 
 }

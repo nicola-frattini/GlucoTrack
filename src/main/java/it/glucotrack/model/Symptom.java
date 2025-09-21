@@ -18,7 +18,7 @@ public class Symptom {
         this.patient_id = -1;
         this.dateAndTime = LocalDateTime.now();
         this.symptomName = "";
-        this.gravity = "Mild";
+        this.gravity = "";
         this.duration = LocalTime.of(0, 0);
         this.notes = "";
 

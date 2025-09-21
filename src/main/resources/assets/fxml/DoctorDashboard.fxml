@@ -21,17 +21,14 @@
 
             <!-- Profilo utente -->
                     <!-- Avatar sostitutivo -->
-                    <VBox>
-                        <Label fx:id="doctorNameLabel"
-                               style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;"/>
-                    </VBox>
+
             <Button fx:id="profileBtn" onAction="#onProfileClick"
                     style="-fx-background-color: #0f1c35; -fx-background-radius: 10; -fx-padding: 15; -fx-cursor: hand; -fx-border-color: transparent;"
                     prefWidth="210">
                 <graphic>
                     <HBox alignment="CENTER_LEFT" spacing="10">
                         <!-- Avatar sostitutivo -->
-                        <Label text="👨‍⚕️" style="-fx-font-size: 32px;" />
+                        <Label style="-fx-font-size: 32px;" />
                         <VBox>
                             <Label fx:id="doctorNameLabel"
                                    style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;"/>
@@ -44,33 +41,25 @@
 
             <!-- Menu di navigazione -->
             <VBox spacing="5" style="-fx-padding: 10 0;">
-                <Button fx:id="dashboardBtn" text="  📊  Dashboard"
+                <Button fx:id="dashboardBtn" text="Dashboard"
                         style="-fx-background-color: #64b5f6; -fx-text-fill: white; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
                         onAction="#onDashboardClick" prefWidth="210" />
 
-                <Button fx:id="patientsBtn" text="  📈  Patients"
+                <Button fx:id="patientsBtn" text="Patients"
                         style="-fx-background-color: transparent; -fx-text-fill: #8892b0; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
                         onAction="#onPatientsClick" prefWidth="210" />
 
-                <Button fx:id="appointmentsBtn" text="  💊  Appointments"
+                <Button fx:id="medicationsBtn" text="Therapies"
                         style="-fx-background-color: transparent; -fx-text-fill: #8892b0; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
-                        onAction="#onAppointmentsClick" prefWidth="210" />
-
-                <Button fx:id="messageBtn" text="  📋  Messages"
-                        style="-fx-background-color: transparent; -fx-text-fill: #8892b0; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
-                        onAction="#onMessagesClick" prefWidth="210" />
+                        onAction="#onMedicationsClick" prefWidth="210" />
             </VBox>
 
             <!-- Spacer -->
             <Region VBox.vgrow="ALWAYS"/>
 
-            <!-- Settings e Logout -->
+            <!-- Logout -->
             <VBox spacing="5">
-                <Button fx:id="settingsBtn" text="  ⚙️  Settings"
-                        style="-fx-background-color: transparent; -fx-text-fill: #8892b0; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
-                        onAction="#onSettingsClick" prefWidth="210" />
-
-                <Button fx:id="logoutBtn" text="  🚪  Logout"
+                <Button fx:id="logoutBtn" text="Logout"
                         style="-fx-background-color: transparent; -fx-text-fill: #8892b0; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
                         onAction="#onLogoutClick" prefWidth="210" />
             </VBox>

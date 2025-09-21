@@ -1,8 +1,7 @@
 package it.glucotrack.controller;
 
 import it.glucotrack.model.*;
-import it.glucotrack.util.AlertManagement;
-import it.glucotrack.util.PatientDAO;
+import it.glucotrack.util.*;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -17,8 +16,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import it.glucotrack.util.GlucoseMeasurementDAO;
-import it.glucotrack.util.SessionManager;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -44,10 +41,15 @@ public class PatientDashboardHomeController {
 
     private GlucoseMeasurementDAO glucoseMeasurementDAO;
 
+    private Patient patient;
+
     @FXML
     public void initialize() throws SQLException {
 
+        this.patient = PatientDAO.getPatientById(SessionManager.getInstance().getCurrentUser().getId());
+
         loadAlerts();
+
 
         // Initialize DAO
         glucoseMeasurementDAO = new GlucoseMeasurementDAO();
@@ -281,8 +283,9 @@ public class PatientDashboardHomeController {
     }
 
     @FXML
-    private void onContactClick(ActionEvent event) {
-
+    private void onContactClick(ActionEvent event)throws Exception {
+        Doctor doctor = DoctorDAO.getDoctorById(patient.getDoctorId());
+        MailHelper.openMailClient(doctor.getEmail());
     }
 
     @FXML

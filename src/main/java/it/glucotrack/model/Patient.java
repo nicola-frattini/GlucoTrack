@@ -15,7 +15,7 @@ public class Patient extends User {
 
     private int doctorId;
     private List<GlucoseMeasurement> glucoseReadings;
-    private List<String> symptoms;
+    private List<Symptom> symptoms;
     private List<RiskFactor> riskFactors;
     private List<Medication> medications;
 
@@ -57,7 +57,7 @@ public class Patient extends User {
     // ===== Full constructor =====
     public Patient(int id, String name, String surname, String email, String password, LocalDate bornDate,
                    Gender gender, String phone, String birthPlace, String fiscalCode, int doctorId,
-                   List<GlucoseMeasurement> glucoseReadings, List<String> symptoms, List<RiskFactor> riskFactors, List<Medication> medications) {
+                   List<GlucoseMeasurement> glucoseReadings, List<Symptom> symptoms, List<RiskFactor> riskFactors, List<Medication> medications) {
         super(id, name, surname, email, password, bornDate, gender, phone, birthPlace, fiscalCode, "PATIENT");
         this.doctorId = doctorId;
         this.glucoseReadings = (glucoseReadings != null) ? glucoseReadings : glucoseReadingsSetup();
@@ -66,7 +66,16 @@ public class Patient extends User {
         this.medications = (medications != null) ? medications : getMedications();
     }
 
-
+    public Patient(Patient patientById) {
+        super(patientById.getId(), patientById.getName(), patientById.getSurname(), patientById.getEmail(),
+                patientById.getPassword(), patientById.getBornDate(), patientById.getGender(), patientById.getPhone(),
+                patientById.getBirthPlace(), patientById.getFiscalCode(), "PATIENT");
+        this.doctorId = patientById.getDoctorId();
+        this.glucoseReadings = patientById.getGlucoseReadings();
+        this.symptoms = patientById.getSymptoms();
+        this.riskFactors = patientById.getRiskFactors();
+        this.medications = patientById.getMedications();
+    }
 
 
     public LogMedication getLastMedicationLog() {
@@ -102,8 +111,8 @@ public class Patient extends User {
     public List<GlucoseMeasurement> getGlucoseReadings() { return glucoseReadings; }
     public void setGlucoseReadings(List<GlucoseMeasurement> glucoseReadings) { this.glucoseReadings = glucoseReadings; }
 
-    public List<String> getSymptoms() { return symptoms; }
-    public void setSymptoms(List<String> symptoms) { this.symptoms = symptoms; }
+    public List<Symptom> getSymptoms() { return symptoms; }
+    public void setSymptoms(List<Symptom> symptoms) { this.symptoms = symptoms; }
 
     public List<RiskFactor> getRiskFactors() { return riskFactors; }
     public void setRiskFactors(List<RiskFactor> riskFactors) { this.riskFactors = riskFactors; }
@@ -164,7 +173,7 @@ public class Patient extends User {
 
     }
 
-    private List <String> symptomsSetup() {
+    private List <Symptom> symptomsSetup() {
         // Interroga l'sql per il suo id, se non ci sono sintomi ritorna lista vuota
         try {
             return it.glucotrack.util.SymptomDAO.getSymptomsByPatientId(this.getId());

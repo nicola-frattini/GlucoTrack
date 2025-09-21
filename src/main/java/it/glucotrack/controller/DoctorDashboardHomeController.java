@@ -20,8 +20,6 @@ import javafx.scene.layout.VBox;
 
 
 public class DoctorDashboardHomeController {
-    @FXML
-    private TableView<String[]> patientTable;
 
     @FXML
     private ListView<String> alertsList;
@@ -235,7 +233,7 @@ public class DoctorDashboardHomeController {
 
     private javafx.scene.layout.StackPane findContentPane() {
         // Find the StackPane in the parent hierarchy
-        javafx.scene.Node current = patientTable.getScene().getRoot();
+        javafx.scene.Node current = alertsContainer.getScene().getRoot();
         return findStackPaneRecursively(current);
     }
 

@@ -36,6 +36,7 @@ public class LoginController {
 
     @FXML
     private void initialize() {
+
         System.out.println("LoginController initialize() called");
         if (signUpLabel != null) {
             signUpLabel.setOnMouseClicked(event -> handleSignUp());

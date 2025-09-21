@@ -1,5 +1,6 @@
 package it.glucotrack.controller;
 
+import it.glucotrack.util.PatientDAO;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -8,6 +9,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 import java.io.IOException;
+import java.sql.SQLException;
+
 import it.glucotrack.view.ViewNavigator;
 import it.glucotrack.util.SessionManager;
 import it.glucotrack.model.User;
@@ -34,7 +37,7 @@ public class PatientDashboardController {
     @FXML
     private Button contactBtn;
 
-    private User patient;
+    private Patient patient;
 
     @FXML
     public void initialize() {
@@ -44,8 +47,8 @@ public class PatientDashboardController {
         instance = this;
 
         // Imposta il nome del paziente dalla sessione corrente
-        User patient = loadPatientInfo();
-        
+        this.patient = loadPatientInfo();
+        System.out.println("Patient loaded in dashboard: " + patient);
         // Carica la dashboard di default
         System.out.println("🔄 Caricamento PatientDashboardHome.fxml...");
         loadCenterContent("PatientDashboardHome.fxml");
@@ -53,7 +56,7 @@ public class PatientDashboardController {
 
     }
     
-    private User loadPatientInfo() {
+    private Patient loadPatientInfo() {
         try {
             User currentUser = SessionManager.getInstance().getCurrentUser();
             if (currentUser != null) {
@@ -64,7 +67,7 @@ public class PatientDashboardController {
                 patientNameLabel.setText("Paziente non trovato");
                 System.err.println("❌ Nessun utente in sessione nel PatientDashboard!");
             }
-            return currentUser;
+            return new Patient(PatientDAO.getPatientById(currentUser.getId()));
         } catch (Exception e) {
             patientNameLabel.setText("Errore caricamento");
             System.err.println("❌ Errore nel caricamento info paziente: " + e.getMessage());
@@ -100,14 +103,18 @@ public class PatientDashboardController {
 
 
     @FXML
-    private void onProfileClick() throws IOException {
+    private void onProfileClick() throws IOException, SQLException {
 
         System.out.println("🔄 Caricamento profilo paziente...");
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/ProfileView.fxml"));
         Parent profileRoot = loader.load();
         System.out.println("✅ FXML ProfileView caricato con successo");
         ProfileViewController profileController = loader.getController();
-        profileController.setUserRole(ProfileViewController.UserRole.PATIENT_OWN_PROFILE, patient, null);
+
+        System.out.println("Patient before passing: " + patient);
+        System.out.println("Patient ID: " + patient.getId());
+        System.out.println("Patient name: " + patient.getFullName());
+        profileController.setUserRole(ProfileViewController.UserRole.PATIENT_OWN_PROFILE, null);
 
         profileController.setParentContentPane(contentPane);
         loadCenterContentDirect(profileRoot);

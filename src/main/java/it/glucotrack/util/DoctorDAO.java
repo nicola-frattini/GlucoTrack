@@ -20,7 +20,7 @@ public class DoctorDAO {
         return null;
     }
 
-    public List<Doctor> getAllDoctors() throws SQLException {
+    public static List<Doctor> getAllDoctors() throws SQLException {
         String sql = "SELECT * FROM users WHERE type = 'DOCTOR' ORDER BY surname, name";
         List<Doctor> doctors = new ArrayList<>();
         try (ResultSet rs = DatabaseInteraction.executeQuery(sql)) {
@@ -62,7 +62,7 @@ public class DoctorDAO {
     }
 
 
-    public boolean updateDoctor(Doctor doctor) throws SQLException {
+    public static boolean updateDoctor(Doctor doctor) throws SQLException {
         String sql = "UPDATE users SET name=?, surname=?, email=?, password=?, born_date=?, gender=?, phone=?, birth_place=?, fiscal_code=?, specialization=? WHERE id=? AND type='DOCTOR'";
         int rows = DatabaseInteraction.executeUpdate(sql,
                 doctor.getName(), doctor.getSurname(), doctor.getEmail(), doctor.getPassword(),

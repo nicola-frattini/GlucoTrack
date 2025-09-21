@@ -6,22 +6,42 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import it.glucotrack.model.Symptom;
 
 public class SymptomDAO {
 
-    public static List<String> getSymptomsByPatientId(int patientId) throws SQLException {
-        String sql = "SELECT symptom FROM patient_symptoms WHERE patient_id = ? ORDER BY symptom_date DESC";
-        List<String> symptoms = new ArrayList<>();
+    public static List<Symptom> getSymptomsByPatientId(int patientId) throws SQLException {
+        String sql = "SELECT * FROM patient_symptoms WHERE patient_id = ? ORDER BY symptom_date DESC";
+        List<Symptom> symptoms = new ArrayList<>();
+
         try (ResultSet rs = DatabaseInteraction.executeQuery(sql, patientId)) {
             while (rs.next()) {
-                symptoms.add(rs.getString("symptom"));
+                Symptom symptom = new Symptom();
+                symptom.setPatient_id(patientId);
+                symptom.setSymptomName(rs.getString("symptom"));
+                symptom.setGravity(rs.getString("severity"));
+                symptom.setDuration(LocalTime.parse(rs.getString("duration")));
+                symptom.setNotes(rs.getString("notes"));
+                String dateTimeStr = rs.getString("symptom_date");
+                if (dateTimeStr != null && !dateTimeStr.isEmpty()) {
+                    // Use OffsetDateTime to handle nanoseconds safely, then convert to LocalDateTime
+                    symptom.setDateAndTime(LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                } else {
+                    symptom.setDateAndTime(LocalDateTime.now());
+                }
+                symptoms.add(symptom);
             }
         }
+
         return symptoms;
     }
+
+
+
+
 
     public List<String> getSymptomsByPatientIdAndDateRange(int patientId, LocalDate startDate, LocalDate endDate) throws SQLException {
         String sql = "SELECT symptom FROM patient_symptoms WHERE patient_id = ? AND symptom_date BETWEEN ? AND ? ORDER BY symptom_date DESC";
@@ -34,11 +54,34 @@ public class SymptomDAO {
         return symptoms;
     }
 
-    public boolean insertSymptom(int patientId, String symptom, LocalDate symptomDate) throws SQLException {
-        String sql = "INSERT INTO patient_symptoms (patient_id, symptom, symptom_date) VALUES (?, ?, ?)";
-        int rows = DatabaseInteraction.executeUpdate(sql, patientId, symptom, symptomDate);
-        return rows > 0;
+    public static boolean insertSymptom(Symptom symptom) throws SQLException {
+        String sql = "INSERT INTO patient_symptoms (patient_id, symptom, severity, duration, notes, symptom_date) VALUES (?, ?, ?, ?, ?, ?)";
+        int rows = DatabaseInteraction.executeUpdate(sql,
+                symptom.getPatient_id(),
+                symptom.getSymptomName(),
+                symptom.getGravity(),
+                symptom.getDuration().toString(),
+                symptom.getNotes(),
+                symptom.getDateAndTime());
+            return rows > 0;
     }
+
+    public static boolean insertSymptom(int PatiendId, Symptom symptom) throws SQLException {
+        {
+        String sql = "INSERT INTO patient_symptoms (patient_id, symptom, severity, duration, notes, symptom_date) VALUES (?, ?, ?, ?, ?, ?)";
+        int rows = DatabaseInteraction.executeUpdate(sql,
+                PatiendId,
+                symptom.getSymptomName(),
+                symptom.getGravity(),
+                symptom.getDuration().toString(),
+                symptom.getNotes(),
+                symptom.getDateAndTime());
+        return rows > 0;
+        }
+    }
+
+
+
 
     public boolean deleteSymptom(int patientId, String symptom) throws SQLException {
         String sql = "DELETE FROM patient_symptoms WHERE patient_id = ? AND symptom = ?";
@@ -130,19 +173,6 @@ public class SymptomDAO {
         return symptoms;
     }
 
-    // Nuovo metodo per inserire usando il modello Symptom
-    public boolean insertSymptom(int patientId, Symptom symptom) throws SQLException {
-        String sql = "INSERT INTO patient_symptoms (patient_id, symptom, severity, duration, notes, symptom_date) VALUES (?, ?, ?, ?, ?, ?)";
-        int rows = DatabaseInteraction.executeUpdate(sql, 
-            patientId, 
-            symptom.getSymptomName(), 
-            symptom.getGravity(), 
-            symptom.getDuration().toString(), 
-            symptom.getNotes(), 
-            symptom.getDateAndTime());
-        return rows > 0;
-    }
-    
     // Metodo per aggiornare un sintomo esistente
     public boolean updateSymptom(Symptom symptom) throws SQLException {
         String sql = "UPDATE patient_symptoms SET symptom=?, severity=?, duration=?, notes=?, symptom_date=? WHERE id=?";

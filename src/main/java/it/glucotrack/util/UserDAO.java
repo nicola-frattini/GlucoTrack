@@ -200,6 +200,16 @@ public class UserDAO{
         return rows > 0;
     }
 
+    public boolean updateUser(User user) throws SQLException {
+        //Update the user data by id
+        String sql = "UPDATE users SET name=?, surname=?, email=?, password=?, born_date=?, gender=?, phone=?, birth_place=?, fiscal_code=?, WHERE id=?";
+        int rows = DatabaseInteraction.executeUpdate(sql,
+                user.getName(), user.getSurname(), user.getEmail(), user.getPassword(),
+                user.getBornDate(), user.getGender().toString(), user.getPhone(),
+                user.getBirthPlace(), user.getFiscalCode(), user.getId());
+        return rows > 0;
+    }
+
     // Method to create/register a new user with encrypted password
     public boolean createUser(User user, String plainPassword) throws SQLException {
         String sql = "INSERT INTO users (name, surname, email, password, born_date, gender, phone, birth_place, fiscal_code, type, role, specialization, doctor_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -222,6 +232,8 @@ public class UserDAO{
                 null, // specialization
                 null  // doctor_id
         );
+
+
 
         if (rows > 0) {
             // Get the newly created user to get the ID

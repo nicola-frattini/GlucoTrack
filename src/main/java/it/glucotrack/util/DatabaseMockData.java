@@ -333,7 +333,7 @@ public class DatabaseMockData {
                     String symptomName = symptomNames[random.nextInt(symptomNames.length)];
 
                     // Genera dati casuali per severity, duration e notes
-                    String[] severities = {"Mild", "Moderate", "Severe"};
+                    String[] severities = {"Mild", "Moderate", "Severe", "VerySevere"};
                     String severity = severities[random.nextInt(severities.length)];
 
                     // Genera durata casuale (30 minuti a 4 ore)
@@ -378,18 +378,26 @@ public class DatabaseMockData {
         // Prendi tutti i pazienti
         List<User> patients = userDAO.getUsersByType("PATIENT");
 
-        for (User patient : patients) {
-            for (String type : riskTypes) {
-                for (Gravity gravity : gravityLevels) {
-                    try {
-                        // Inserisce il risk factor per il paziente specifico
-                        riskFactorDAO.insertRiskFactor(patient.getId(), type, gravity);
-                        riskFactorCount++;
-                    } catch (Exception e) {
-                        System.err.println("    ❌ Errore creando risk factor " + type + " per paziente "
-                                + patient.getName() + ": " + e.getMessage());
-                        throw e;
-                    }
+        // Inserisci dai 2 ai 4 risk factor per paziente
+        for(User patient : patients) {
+            int numRiskFactors = 2 + random.nextInt(3); // 2-4 risk factors
+
+            for (int i = 0; i < numRiskFactors; i++) {
+                try {
+                    String riskType = riskTypes[random.nextInt(riskTypes.length)];
+                    Gravity gravity = gravityLevels[random.nextInt(gravityLevels.length)];
+                    LocalDate recordedDate = LocalDate.now().minusDays(random.nextInt(365)); // Ultimo anno
+
+                    it.glucotrack.model.RiskFactor riskFactor = new it.glucotrack.model.RiskFactor();
+                    riskFactor.setType(riskType);
+                    riskFactor.setGravity(gravity);
+
+                    riskFactorDAO.insertRiskFactor(patient.getId(), riskFactor);
+                    riskFactorCount++;
+
+                } catch (Exception e) {
+                    System.err.println("    ❌ Errore creando risk factor per paziente " + patient.getName() + ": " + e.getMessage());
+                    throw e;
                 }
             }
         }

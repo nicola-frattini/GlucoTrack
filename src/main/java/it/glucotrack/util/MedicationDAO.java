@@ -168,16 +168,15 @@ public boolean updateMedication(Medication med, int doctorId) throws SQLExceptio
 
     };
 
-    public static List<MedicationEdit> getMedicationEditsByPatientId(int patientId) throws SQLException {
-        String sql = "SELECT * FROM medication_edits WHERE patient_id = ?";
-        List<MedicationEdit> medsEdits = new ArrayList<>();
-        try (ResultSet rs = DatabaseInteraction.executeQuery(sql, patientId)) {
+    public static List<MedicationEdit> getMedicationEditsByMedicationId(int medicationId) throws SQLException {
+        String sql = "SELECT * FROM medication_edits WHERE medication_id = ? ORDER BY edit_time DESC";
+        List<MedicationEdit> edits = new ArrayList<>();
+        try (ResultSet rs = DatabaseInteraction.executeQuery(sql, medicationId)) {
             while (rs.next()) {
-                medsEdits.add(
-                        mapResultSetToMedicationEdit(rs));
+                edits.add(mapResultSetToMedicationEdit(rs));
             }
         }
-        return medsEdits;
+        return edits;
     }
 
 
@@ -262,4 +261,5 @@ public boolean updateMedication(Medication med, int doctorId) throws SQLExceptio
         rs.getString("instructions")
     );
 }
+
 }

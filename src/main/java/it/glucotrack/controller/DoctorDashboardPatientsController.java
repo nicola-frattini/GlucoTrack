@@ -337,7 +337,7 @@ public class DoctorDashboardPatientsController implements Initializable {
             Parent profileRoot = loader.load();
 
             ProfileViewController profileController = loader.getController();
-            profileController.setUserRole(ProfileViewController.UserRole.DOCTOR_VIEWING_PATIENT, doctorUser, selectedPatient.getPatient());
+            profileController.setUserRole(ProfileViewController.UserRole.DOCTOR_VIEWING_PATIENT, selectedPatient.getPatient());
 
 
             Scene scene = addPatientBtn.getScene();

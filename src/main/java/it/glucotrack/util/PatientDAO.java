@@ -77,7 +77,7 @@ public class PatientDAO {
         return rows > 0;
     }
 
-    public boolean updatePatient(Patient patient) throws SQLException {
+    public static boolean updatePatient(Patient patient) throws SQLException {
         String sql = "UPDATE users SET name=?, surname=?, email=?, password=?, born_date=?, gender=?, phone=?, birth_place=?, fiscal_code=?, doctor_id=? WHERE id=? AND type='PATIENT'";
         int rows = DatabaseInteraction.executeUpdate(sql,
                 patient.getName(), patient.getSurname(), patient.getEmail(), patient.getPassword(),

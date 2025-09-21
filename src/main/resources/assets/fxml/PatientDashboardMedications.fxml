@@ -28,8 +28,9 @@
                         </VBox>
 
                         <Button fx:id="logMedicationBtn" mnemonicParsing="false"
-                                style="-fx-background-color: #3498DB; -fx-text-fill: white; -fx-padding: 12 20; -fx-background-radius: 5;"
-                                text="ⓘ Log Medication Intake" />
+                                style="-fx-background-color: #3498DB; -fx-text-fill: white; -fx-padding: 12 20; -fx-background-radius: 5;">
+
+                        </Button>
                     </children>
                 </HBox>
 
@@ -46,7 +47,7 @@
                         <TableView fx:id="prescribedMedicationsTable" prefHeight="200.0"
                                    style="-fx-background-color: #2C3E50;">
                             <columns>
-                                <TableColumn fx:id="drugNameColumn" prefWidth="200.0" text="Drug Name" />
+                                <TableColumn fx:id="MedicationNameColumn" prefWidth="200.0" text="Drug Name" />
                                 <TableColumn fx:id="dosageColumn" prefWidth="150.0" text="Dosage" />
                                 <TableColumn fx:id="frequencyColumn" prefWidth="150.0" text="Frequency" />
                                 <TableColumn fx:id="instructionsColumn" prefWidth="200.0" text="Instructions" />

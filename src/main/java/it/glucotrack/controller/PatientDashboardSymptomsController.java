@@ -1,5 +1,7 @@
 package it.glucotrack.controller;
 
+import it.glucotrack.model.Patient;
+import it.glucotrack.util.PatientDAO;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -10,15 +12,12 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.util.Callback;
+
 import java.net.URL;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ResourceBundle;
-import java.util.Optional;
-import it.glucotrack.model.User;
 import it.glucotrack.model.Symptom;
 import it.glucotrack.util.SymptomDAO;
 import it.glucotrack.util.SessionManager;
@@ -45,13 +44,21 @@ public class PatientDashboardSymptomsController implements Initializable {
 
     private ObservableList<Symptom> symptoms;
 
-    // Simulazione servizio database - da sostituire con dependency injection
-    private SymptomService symptomService;
+    private SymptomDAO symptomDAO;
+
+    private Patient currentPatient;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Inizializza servizi fittizi
+
+        try {
+            this.currentPatient = PatientDAO.getPatientById(SessionManager.getCurrentUser().getId());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
         initializeServices();
+
 
         // Setup tabella
         setupSymptomsTable();
@@ -60,12 +67,16 @@ public class PatientDashboardSymptomsController implements Initializable {
         setupEventHandlers();
 
         // Carica dati
-        loadData();
+        try {
+            loadData();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void initializeServices() {
         // Initialize DAO service
-        symptomService = new DatabaseSymptomService();
+        this.symptomDAO = new SymptomDAO();
     }
 
     private void setupSymptomsTable() {
@@ -233,7 +244,11 @@ public class PatientDashboardSymptomsController implements Initializable {
             
             // Set callbacks
             editController.setOnDataUpdated(() -> {
-                refreshData();
+                try {
+                    refreshData();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
                 returnToSymptoms();
             });
             
@@ -360,9 +375,9 @@ public class PatientDashboardSymptomsController implements Initializable {
         return result[0];
     }
 
-    private void loadData() {
+    private void loadData() throws SQLException {
         symptoms = FXCollections.observableArrayList(
-                symptomService.getAllSymptoms()
+                SymptomDAO.getSymptomsByPatientId(currentPatient.getId())
         );
         symptomsTable.setItems(symptoms);
     }
@@ -375,7 +390,7 @@ public class PatientDashboardSymptomsController implements Initializable {
 
 
     // Metodi per future integrazioni
-    public void refreshData() {
+    public void refreshData() throws SQLException {
         loadData();
     }
 
@@ -383,11 +398,6 @@ public class PatientDashboardSymptomsController implements Initializable {
         return symptoms;
     }
 
-    public void addSymptom(Symptom symptom) {
-        symptomService.saveSymptom(symptom);
-        symptoms.add(0, symptom);
-        symptomsTable.refresh();
-    }
     
     // Metodo per aprire il form di inserimento sintomi nel pannello centrale
     private void openSymptomInsertForm() {
@@ -405,7 +415,11 @@ public class PatientDashboardSymptomsController implements Initializable {
             
             // Imposta il callback per refresh dei dati quando si salva
             insertController.setOnDataSaved(() -> {
-                refreshData();
+                try {
+                    refreshData();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
                 // Dopo il salvataggio, torna alla sezione sintomi
                 returnToSymptoms();
             });
@@ -454,86 +468,4 @@ public class PatientDashboardSymptomsController implements Initializable {
             e.printStackTrace();
         }
     }
-
-
-
-    // ========== SERVIZIO INTERFACE ==========
-
-    public interface SymptomService {
-        java.util.List<Symptom> getAllSymptoms();
-        java.util.List<Symptom> getSymptomsByDateRange(LocalDateTime start, LocalDateTime end);
-        java.util.List<Symptom> getSymptomsBySeverity(String severity);
-        void saveSymptom(Symptom symptom);
-        void deleteSymptom(Long id);
-        Optional<Symptom> getSymptomById(Long id);
-    }
-
-    // ========== SERVIZI DATABASE E MOCK ==========
-
-    // Implementazione database
-    private static class DatabaseSymptomService implements SymptomService {
-        private SymptomDAO symptomDAO;
-        
-        public DatabaseSymptomService() {
-            this.symptomDAO = new SymptomDAO();
-        }
-        
-        @Override
-        public java.util.List<Symptom> getAllSymptoms() {
-            try {
-                User currentUser = SessionManager.getInstance().getCurrentUser();
-                if (currentUser != null) {
-                    // Usa il nuovo metodo che restituisce oggetti Symptom completi
-                    return symptomDAO.getSymptomsForTable(currentUser.getId());
-                }
-                return new java.util.ArrayList<>();
-            } catch (SQLException e) {
-                System.err.println("Errore nel recupero symptoms: " + e.getMessage());
-                return new java.util.ArrayList<>();
-            }
-        }
-        
-        @Override
-        public java.util.List<Symptom> getSymptomsByDateRange(LocalDateTime start, LocalDateTime end) {
-            // Implementation for date range filtering would go here
-            return getAllSymptoms(); // For now, return all
-        }
-        
-        @Override
-        public java.util.List<Symptom> getSymptomsBySeverity(String severity) {
-            // Implementation for severity filtering would go here
-            return getAllSymptoms(); // For now, return all
-        }
-        
-        @Override
-        public void saveSymptom(Symptom symptom) {
-            try {
-                // Convert from controller Symptom to model Symptom would be needed here
-                System.out.println("Save symptom called: " + symptom.getSymptomName());
-            } catch (Exception e) {
-                System.err.println("Errore nel salvataggio symptom: " + e.getMessage());
-            }
-        }
-        
-        @Override
-        public void deleteSymptom(Long id) {
-            try {
-                User currentUser = SessionManager.getInstance().getCurrentUser();
-                if (currentUser != null) {
-                    // For now, we can't delete by id since DAO only deletes by patient_id + symptom name
-                    System.out.println("Delete symptom called for id: " + id);
-                }
-            } catch (Exception e) {
-                System.err.println("Errore nella cancellazione symptom: " + e.getMessage());
-            }
-        }
-        
-        @Override
-        public Optional<Symptom> getSymptomById(Long id) {
-            // Implementation would go here
-            return Optional.empty();
-        }
-    }
-
-
 }

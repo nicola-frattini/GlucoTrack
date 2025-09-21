@@ -1,5 +1,6 @@
 package it.glucotrack.controller;
 
+import it.glucotrack.util.DoctorDAO;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -8,6 +9,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 import java.io.IOException;
+import java.sql.SQLException;
+
 import it.glucotrack.util.SessionManager;
 import it.glucotrack.model.User;
 import it.glucotrack.model.Doctor; // Importa la classe Doctor se esiste
@@ -28,14 +31,16 @@ public class DoctorDashboardController {
     @FXML
     private Button patientsBtn;
     @FXML
-    private Button appointmentsBtn;
-    @FXML
-    private Button messageBtn;
+    private Button medicationsBtn;
+
+    private Doctor doctor;
 
     @FXML
-    public void initialize() {
+    public void initialize() throws SQLException {
         // Carica le informazioni del medico
         loadDoctorInfo();
+
+        this.doctor = DoctorDAO.getDoctorById(SessionManager.getInstance().getCurrentUserId());
 
         // Carica la dashboard di default
         loadCenterContent("DoctorDashboardHome.fxml");
@@ -44,7 +49,7 @@ public class DoctorDashboardController {
 
     private void loadDoctorInfo() {
         try {
-            User currentUser = SessionManager.getInstance().getCurrentUser();
+            User currentUser = DoctorDAO.getDoctorById(SessionManager.getCurrentUser().getId());
             if (currentUser != null) {
                 String displayName = currentUser.getName() + " " + currentUser.getSurname();
                 doctorNameLabel.setText(displayName);
@@ -84,13 +89,19 @@ public class DoctorDashboardController {
         setActiveButton(patientsBtn);
     }
 
-    @FXML void onProfileClick() throws IOException {
+    @FXML
+    private void onMedicationsClick() {
+        loadCenterContent("DoctorDashboarMedications.fxml");
+        setActiveButton(medicationsBtn);
+    }
+
+    @FXML void onProfileClick() throws IOException, SQLException {
         System.out.println("🔄 Caricamento profilo paziente...");
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/ProfileView.fxml"));
         Parent profileRoot = loader.load();
         System.out.println("✅ FXML ProfileView caricato con successo");
         ProfileViewController profileController = loader.getController();
-        profileController.setUserRole(ProfileViewController.UserRole.DOCTOR_OWN_PROFILE, SessionManager.getInstance().getCurrentUser(), null);
+        profileController.setUserRole(ProfileViewController.UserRole.DOCTOR_OWN_PROFILE, null);
 
         profileController.setParentContentPane(contentPane);
         loadCenterContentDirect(profileRoot);
@@ -99,23 +110,6 @@ public class DoctorDashboardController {
         System.out.println("🔄 Impostazione contenuto profilo nel contentPane...");
         // Non imposto nessun pulsante come attivo per il profilo
         clearActiveButtons();
-    }
-
-    @FXML
-    private void onAppointmentsClick() {
-        loadCenterContent("DoctorDashboardAppointments.fxml"); // Corretto il file FXML
-        setActiveButton(appointmentsBtn);
-    }
-
-    @FXML
-    private void onMessagesClick() {
-        loadCenterContent("PatientMessages.fxml");
-        setActiveButton(messageBtn);
-    }
-
-    @FXML
-    private void onSettingsClick() {
-        // Logica per le impostazioni
     }
 
     private void loadCenterContent(String fxmlFile) {
@@ -148,16 +142,14 @@ public class DoctorDashboardController {
         // Cambia lo stile dei pulsanti per evidenziare quello attivo
         dashboardBtn.setStyle(getButtonStyle(dashboardBtn == activeBtn));
         patientsBtn.setStyle(getButtonStyle(patientsBtn == activeBtn));
-        appointmentsBtn.setStyle(getButtonStyle(appointmentsBtn == activeBtn));
-        messageBtn.setStyle(getButtonStyle(messageBtn == activeBtn));
+        medicationsBtn.setStyle(getButtonStyle(medicationsBtn == activeBtn));
     }
 
     private void clearActiveButtons() {
         // Imposta tutti i pulsanti come non attivi
         dashboardBtn.setStyle(getButtonStyle(false));
         patientsBtn.setStyle(getButtonStyle(false));
-        appointmentsBtn.setStyle(getButtonStyle(false));
-        messageBtn.setStyle(getButtonStyle(false));
+        medicationsBtn.setStyle(getButtonStyle(false));
     }
 
 

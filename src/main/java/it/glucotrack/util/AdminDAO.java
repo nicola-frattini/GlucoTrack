@@ -11,7 +11,7 @@ import it.glucotrack.model.Gender;
 
 public class AdminDAO {
 
-    public Admin getAdminById(int id) throws SQLException {
+    public static Admin getAdminById(int id) throws SQLException {
         String sql = "SELECT * FROM users WHERE id = ? AND type = 'ADMIN'";
         try (ResultSet rs = DatabaseInteraction.executeQuery(sql, id)) {
             if (rs.next()) {
@@ -65,7 +65,7 @@ public class AdminDAO {
 
 
 
-    public boolean updateAdmin(Admin admin) throws SQLException {
+    public static boolean updateAdmin(Admin admin) throws SQLException {
         String sql = "UPDATE users SET name=?, surname=?, email=?, password=?, born_date=?, gender=?, phone=?, birth_place=?, fiscal_code=?, role=? WHERE id=? AND type='ADMIN'";
         int rows = DatabaseInteraction.executeUpdate(sql,
                 admin.getName(), admin.getSurname(), admin.getEmail(), admin.getPassword(),
@@ -137,7 +137,7 @@ public class AdminDAO {
         return roles;
     }
 
-    private Admin mapResultSetToAdmin(ResultSet rs) throws SQLException {
+    private static Admin mapResultSetToAdmin(ResultSet rs) throws SQLException {
         return new Admin(
             rs.getInt("id"),
             rs.getString("name"),

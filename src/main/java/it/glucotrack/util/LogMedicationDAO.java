@@ -22,7 +22,7 @@ public class LogMedicationDAO {
         return null;
     }
 
-    public List<LogMedication> getLogMedicationsByMedicationId(int medicationId) throws SQLException {
+    public static List<LogMedication> getLogMedicationsByMedicationId(int medicationId) throws SQLException {
         String sql = "SELECT * FROM log_medications WHERE medication_id = ? ORDER BY date_time DESC";
         List<LogMedication> logs = new ArrayList<>();
         try (ResultSet rs = DatabaseInteraction.executeQuery(sql, medicationId)) {
@@ -31,6 +31,18 @@ public class LogMedicationDAO {
             }
         }
         return logs;
+    }
+
+    public static void insertLogMedicationStatic(LogMedication log) throws SQLException {
+        String sql = "INSERT INTO log_medications (medication_id, date_time, taken) VALUES (?, ?, ?)";
+
+        // Convert LocalDateTime to java.sql.Timestamp for proper database storage
+        java.sql.Timestamp dateTime = java.sql.Timestamp.valueOf(log.getDateAndTime());
+
+        DatabaseInteraction.executeUpdate(sql,
+                log.getMedication_id(),
+                dateTime,
+                log.isTaken());
     }
 
     public List<LogMedication> getPendingLogMedications(int medicationId) throws SQLException {
@@ -75,7 +87,7 @@ public class LogMedicationDAO {
         return rows > 0;
     }
 
-    public boolean updateLogMedication(LogMedication log) throws SQLException {
+    public static boolean updateLogMedication(LogMedication log) throws SQLException {
         String sql = "UPDATE log_medications SET medication_id=?, date_time=?, taken=? WHERE id=?";
         
         // Convert LocalDateTime to java.sql.Timestamp for proper database storage
@@ -121,7 +133,7 @@ public class LogMedicationDAO {
         }
     }
 
-    private LogMedication mapResultSetToLogMedication(ResultSet rs) throws SQLException {
+    private static LogMedication mapResultSetToLogMedication(ResultSet rs) throws SQLException {
         LogMedication log = new LogMedication();
         log.setId(rs.getInt("id"));
         log.setMedication_id(rs.getInt("medication_id"));
