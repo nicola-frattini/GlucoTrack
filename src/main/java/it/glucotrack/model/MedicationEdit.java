@@ -39,7 +39,14 @@ public class MedicationEdit {
         this(id, doctorId, time, new Medication(medicationId, patientId, name, dosage, frequency, start, end, notes));
     }
 
+    public MedicationEdit(int id, int medicationId, int editedBy, String medicationName, String dose, Frequency frequency, LocalDate localDate, LocalDate localDate1, String instructions, LocalDateTime localDateTime) {
+        this(id, editedBy, localDateTime, new Medication(medicationId, -1 , medicationName, dose, frequency, localDate, localDate1, instructions));
+    }
+
     // ===== Getters and Setters =====
+
+    public int getId() { return medicationId; }
+    public void setId(int id) { this.medicationId = id; }
 
     public int getMedicationId() { return medicationId; }
     public void setMedicationId(int medicationId) { this.medicationId = medicationId; }

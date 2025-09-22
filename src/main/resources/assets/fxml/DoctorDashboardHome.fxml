@@ -20,15 +20,6 @@
             <VBox spacing="10" style="-fx-background-color: #1e293b; -fx-background-radius: 10; -fx-padding: 15;">
                 <Label text="Quick Actions" style="-fx-text-fill: white; -fx-font-size: 18; -fx-font-weight: bold;"/>
                 <HBox spacing="15">
-                    <Button fx:id="managePatientsBtn" text="👥 Manage Patients"
-                            style="-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand;"
-                            onAction="#onManagePatientsClick" prefWidth="150"/>
-                    <Button fx:id="manageMedicationsBtn" text="💊 Manage Medications"
-                            style="-fx-background-color: #10b981; -fx-text-fill: white; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand;"
-                            onAction="#onManageMedicationsClick" prefWidth="180"/>
-                    <Button fx:id="viewReportsBtn" text="📊 View Reports"
-                            style="-fx-background-color: #8b5cf6; -fx-text-fill: white; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand;"
-                            onAction="#onViewReportsClick" prefWidth="140"/>
                     <Button fx:id="newPrescriptionBtn" text="📝 New Prescription"
                             style="-fx-background-color: #f59e0b; -fx-text-fill: white; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand;"
                             onAction="#onNewPrescriptionClick" prefWidth="160"/>

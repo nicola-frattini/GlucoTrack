@@ -71,12 +71,10 @@
                         <TableColumn fx:id="lastGlucoseColumn" prefWidth="180.0" text="Last Glucose Reading" />
                         <!-- Risk Status Column -->
                         <TableColumn fx:id="riskStatusColumn" prefWidth="150.0" text="Risk Status" />
-                        <!-- Last Visit Column -->
-                        <TableColumn fx:id="lastVisitColumn" prefWidth="150.0" text="Last Visit" />
+                        <!-- Last Reading Column -->
+                        <TableColumn fx:id="lastReadingColumn" prefWidth="150.0" text="Last Visit" />
                         <!-- Age Column -->
                         <TableColumn fx:id="ageColumn" prefWidth="80.0" text="Age" />
-                        <!-- Actions Column -->
-                        <TableColumn fx:id="actionsColumn" prefWidth="100.0" text="Actions" sortable="false" />
                     </columns>
 
                     <!-- Table styling will be applied in controller -->
@@ -108,9 +106,6 @@
                             <items>
                                 <MenuItem fx:id="viewPatientMenuItem" mnemonicParsing="false" text="View Profile" />
                                 <MenuItem fx:id="editPatientMenuItem" mnemonicParsing="false" text="Edit Patient" />
-                                <SeparatorMenuItem />
-                                <MenuItem fx:id="scheduleAppointmentMenuItem" mnemonicParsing="false" text="Schedule Appointment" />
-                                <MenuItem fx:id="sendMessageMenuItem" mnemonicParsing="false" text="Send Message" />
                                 <SeparatorMenuItem />
                                 <MenuItem fx:id="deletePatientMenuItem" mnemonicParsing="false" text="Delete Patient"
                                           style="-fx-text-fill: #E74C3C;" />

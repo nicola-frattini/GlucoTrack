@@ -44,4 +44,8 @@ public class CustomPopupController {
     public VBox getPopupContent() {
         return popupContent;
     }
+
+    public void setContent(VBox content) {
+        contentBox.getChildren().setAll(content);
+    }
 }

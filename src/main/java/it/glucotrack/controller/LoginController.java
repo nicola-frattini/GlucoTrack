@@ -3,7 +3,6 @@ package it.glucotrack.controller;
 import it.glucotrack.model.User;
 import it.glucotrack.util.InputCheck;
 import it.glucotrack.util.SessionManager;
-import it.glucotrack.util.PasswordEncryption; // Add this import
 import it.glucotrack.view.ViewNavigator;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;

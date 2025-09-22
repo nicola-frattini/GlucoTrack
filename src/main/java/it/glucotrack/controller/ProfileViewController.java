@@ -3,6 +3,8 @@ package it.glucotrack.controller;
 import it.glucotrack.model.*;
 import it.glucotrack.util.*;
 import it.glucotrack.model.Medication;
+import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -29,11 +31,19 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import javafx.application.Platform;
+import javafx.scene.control.ButtonBar;
+ import javafx.scene.control.ButtonType;
+ import javafx.scene.control.Dialog;
+ import javafx.scene.control.ListCell;
+ import javafx.scene.control.TextArea;
+ import javafx.scene.paint.Color;
+ import javafx.scene.text.Font;
+ import javafx.scene.text.FontWeight;
+ import java.util.Optional;
 
 public class ProfileViewController implements Initializable {
 
@@ -47,27 +57,36 @@ public class ProfileViewController implements Initializable {
     }
 
     // Header elements
-    @FXML private Label patientNameLabel;
-    @FXML private Label patientIdLabel;
+    @FXML
+    private Label patientNameLabel;
+    @FXML
+    private Label patientIdLabel;
 
     // Tab buttons
-    @FXML private Button overviewTab;
-    @FXML private Button medicationTab;
-    @FXML private Button notesTab;
+    @FXML
+    private Button overviewTab;
+    @FXML
+    private Button medicationTab;
+    @FXML
+    private Button notesTab;
 
 
     // Content areas
-    @FXML private VBox overviewContent;
-    @FXML private VBox trendsContent;
-    @FXML private VBox medicationContent;
-    @FXML private VBox notesContent;
+    @FXML
+    private VBox overviewContent;
+    @FXML
+    private VBox trendsContent;
+    @FXML
+    private VBox medicationContent;
+    @FXML
+    private VBox notesContent;
 
     // Medication Table
     @FXML
     private TableView<Medication> prescribedMedicationsTable;
 
     @FXML
-    private TableColumn<Medication, String> drugNameColumn;
+    private TableColumn<Medication, String> medicationNameColumn;
 
     @FXML
     private TableColumn<Medication, String> dosageColumn;
@@ -78,39 +97,74 @@ public class ProfileViewController implements Initializable {
     @FXML
     private TableColumn<Medication, String> instructionsColumn;
 
-    private ObservableList<Medication> prescribedMedications;
+    @FXML
+    private TableView<MedicationEdit> therapyModificationsTable;
 
+    @FXML
+    private TableColumn<MedicationEdit, String> therapyNameEditColumn;
+
+    @FXML
+    private TableColumn<MedicationEdit, String> dosageEditColumn;
+
+    @FXML
+    private TableColumn<MedicationEdit, String> frequencyEditColumn;
+
+    @FXML
+    private TableColumn<MedicationEdit, String> instructionsEditColumn;
+
+    @FXML
+    private TableColumn<MedicationEdit, String> modificationDateColumn;
+
+    @FXML
+
+    private TableColumn<MedicationEdit, String> modifiedByColumn;
+
+
+
+    private ObservableList<Medication> prescribedMedications;
+    private ObservableList<MedicationEdit> therapyModifications;
 
 
     // Overview content elements - Fixed to match FXML
-    @FXML private Label currentGlucoseLabel;
-    @FXML private Label trendLabel;
-    @FXML private Label statusLabel;
-    @FXML private LineChart<String, Number> glucoseChart;
-    @FXML private ComboBox<String> timeRangeCombo;
-    @FXML private Label averageGlucoseLabel;
-    @FXML private Label averageGlucoseChangeLabel;
-    @FXML private LineChart<String, Number> glucoseTrendsChart;
-    @FXML private Label adherancePercentageLabel;
-    @FXML private ProgressBar adheranceProgressBar;
+    @FXML
+    private Label currentGlucoseLabel;
+    @FXML
+    private Label trendLabel;
+    @FXML
+    private Label statusLabel;
+    @FXML
+    private LineChart<String, Number> glucoseChart;
+    @FXML
+    private ComboBox<String> timeRangeCombo;
+    @FXML
+    private Label averageGlucoseLabel;
+    @FXML
+    private Label averageGlucoseChangeLabel;
+    @FXML
+    private LineChart<String, Number> glucoseTrendsChart;
+    @FXML
+    private Label adherancePercentageLabel;
+    @FXML
+    private ProgressBar adheranceProgressBar;
 
-    @FXML private VBox symptomsContainer;
-    @FXML private VBox riskFactorsContainer;
-    @FXML private VBox therapyModificationsContainer;
+    @FXML
+    private VBox symptomsContainer;
+    @FXML
+    private VBox riskFactorsContainer;
 
 
     // Action buttons
-    @FXML private Button modifyTherapyBtn;
-    @FXML private Button addRiskBtn;
-    @FXML private Button deleteUserBtn;
-    @FXML private Button exportDataBtn;
-    @FXML private Button sendMessageBtn;
+    @FXML
+    private Button addRiskBtn;
+    @FXML
+    private Button deleteUserBtn;
+    @FXML
+    private Button sendMessageBtn;
 
     // Data models
     private Patient currentPatient;
     private User currentUser;
     private UserRole currentUserRole;
-    private ObservableList<MedicationEdit> therapyModifications;
     private StackPane parentContentPane;
     private String currentUserType;
 
@@ -125,6 +179,7 @@ public class ProfileViewController implements Initializable {
                 .filter(m -> m.getDateAndTime().isAfter(cutoffDate))
                 .collect(Collectors.toList());
     }
+
 
 
     @Override
@@ -142,14 +197,51 @@ public class ProfileViewController implements Initializable {
     public void refreshInitialize() {
         initializeComponents();
         setupTabs();
-        setupTable();
         setupCharts();
         loadTrendsContent();
         setupButtons();
         loadRiskFactors();
         initializeAdditionalButtons();
+        setupTherapyTable();
+        setupTherapyEditTable();
+    }
+
+    @FXML
+    private void setupTherapyEditTable(){
+        therapyNameEditColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().getMedication().getName_medication()));
+        dosageEditColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().getMedication().getDose()));
+        frequencyEditColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().getMedication().getFreq().toString()));
+        instructionsEditColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().getMedication().getInstructions()));
+        modificationDateColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().getEditTimestamp().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))));
+        modifiedByColumn.setCellValueFactory(cellData -> {
+            try {
+                Doctor doc = DoctorDAO.getDoctorById(cellData.getValue().getDoctorId());
+                String name = (doc != null) ? doc.getFullName() : "Unknown Doctor";
+                return new SimpleStringProperty(name);
+            } catch (SQLException e) {
+                e.printStackTrace(); // logga l'errore
+                return new SimpleStringProperty("Error");
+            }
+        });
 
     }
+
+    @FXML
+    private void setupTherapyTable(){
+        medicationNameColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().getName_medication()));
+        dosageColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().getDose()));
+        frequencyColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().getFreq().toString()));
+        instructionsColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().getInstructions()));
+    };
 
     public void setParentContentPane(StackPane contentPane) {
         this.parentContentPane = contentPane;
@@ -196,9 +288,6 @@ public class ProfileViewController implements Initializable {
         if (deleteUserBtn != null) {
             deleteUserBtn.setOnAction(e -> handleDeleteUser());
         }
-        if (exportDataBtn != null) {
-            exportDataBtn.setOnAction(e -> handleExportData());
-        }
         if (sendMessageBtn != null) {
             sendMessageBtn.setOnAction(e -> handleSendMessage());
         }
@@ -225,16 +314,16 @@ public class ProfileViewController implements Initializable {
         updateViewForUserRole();
 
         if (currentPatient != null && currentUserRole == UserRole.DOCTOR_VIEWING_PATIENT) {
-            try {
-                updatePatientSpecificData();
-                loadTherapyModifications();
-            } catch (SQLException e) {
-                showError("Database Error", "Failed to load patient data", e.getMessage());
-            }
+
+            updatePatientSpecificData();
+            loadTherapyTable();
+            loadTherapyModificationsTable();
         } else {
             updateNonPatientProfile();
         }
     }
+
+
 
     private void updateNonPatientProfile() {
         if (currentUser != null) {
@@ -310,7 +399,7 @@ public class ProfileViewController implements Initializable {
             prescribedMedicationsTable.setManaged(false);
         }
 
-        if(medicationTab != null) {
+        if (medicationTab != null) {
             medicationTab.setVisible(false);
         }
 
@@ -349,11 +438,6 @@ public class ProfileViewController implements Initializable {
     private void setupDoctorViewingPatient() {
         showMedicalCharts(true);
 
-        if (modifyTherapyBtn != null) {
-            modifyTherapyBtn.setVisible(true);
-            modifyTherapyBtn.setDisable(false);
-            modifyTherapyBtn.setText("Modify Therapy");
-        }
 
         if (addRiskBtn != null) {
             addRiskBtn.setVisible(true);
@@ -377,18 +461,11 @@ public class ProfileViewController implements Initializable {
     private void setupDoctorOwnProfile() {
         showMedicalCharts(false);
 
-        if (modifyTherapyBtn != null) {
-            modifyTherapyBtn.setVisible(false);
-        }
         if (addRiskBtn != null) {
             addRiskBtn.setVisible(false);
         }
         if (deleteUserBtn != null) {
             deleteUserBtn.setVisible(false);
-        }
-        if (exportDataBtn != null) {
-            exportDataBtn.setVisible(true);
-            exportDataBtn.setText("Export My Data");
         }
 
         showMedicalTabs(false);
@@ -398,24 +475,12 @@ public class ProfileViewController implements Initializable {
     private void setupPatientOwnProfile() {
         showMedicalCharts(false);
 
-        if (modifyTherapyBtn != null) {
-            modifyTherapyBtn.setVisible(false);
-            modifyTherapyBtn.setDisable(true);
-        }
         if (addRiskBtn != null) {
             addRiskBtn.setVisible(false);
         }
 
         if (deleteUserBtn != null) {
             deleteUserBtn.setVisible(false);
-        }
-        if (exportDataBtn != null) {
-            exportDataBtn.setVisible(true);
-            exportDataBtn.setText("Export My Data");
-        }
-        if (sendMessageBtn != null) {
-            sendMessageBtn.setVisible(true);
-            sendMessageBtn.setText("Contact Doctor");
         }
 
         showMedicalTabs(true);
@@ -425,22 +490,13 @@ public class ProfileViewController implements Initializable {
     private void setupAdminViewingUser() {
         showMedicalCharts(false);
 
-        if (modifyTherapyBtn != null) {
-            modifyTherapyBtn.setVisible(true);
-            modifyTherapyBtn.setDisable(false);
-            modifyTherapyBtn.setText("Modify Therapy");
-        }
-
         if (deleteUserBtn != null) {
             deleteUserBtn.setVisible(true);
             deleteUserBtn.setDisable(false);
             deleteUserBtn.setText("Delete User");
             deleteUserBtn.setStyle("-fx-background-color: #E74C3C; -fx-text-fill: white; -fx-background-radius: 5;");
         }
-        if (exportDataBtn != null) {
-            exportDataBtn.setVisible(true);
-            exportDataBtn.setText("Export User Data");
-        }
+
         if (sendMessageBtn != null) {
             sendMessageBtn.setVisible(true);
             sendMessageBtn.setText("Send Admin Message");
@@ -453,16 +509,8 @@ public class ProfileViewController implements Initializable {
     private void setupAdminOwnProfile() {
         showMedicalCharts(false);
 
-        if (modifyTherapyBtn != null) {
-            modifyTherapyBtn.setVisible(false);
-        }
-
         if (deleteUserBtn != null) {
             deleteUserBtn.setVisible(false);
-        }
-        if (exportDataBtn != null) {
-            exportDataBtn.setVisible(true);
-            exportDataBtn.setText("Export My Data");
         }
 
         showMedicalTabs(false);
@@ -485,17 +533,6 @@ public class ProfileViewController implements Initializable {
 
     private void enableNotesEditing(boolean enable) {
         // This will be used in loadNotesContent
-    }
-
-    // Event handlers
-    private void handleAddRisk() {
-        if (currentPatient == null) return;
-
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Add Risk Assessment");
-        alert.setHeaderText("Risk Assessment for " + currentPatient.getFullName());
-        alert.setContentText("Risk assessment dialog would open here to evaluate and document patient risks.");
-        alert.showAndWait();
     }
 
     private void handleDeleteUser() {
@@ -548,11 +585,12 @@ public class ProfileViewController implements Initializable {
 
     private void handleSendMessage() {
         if (currentPatient == null) return;
-
+        String email ="";
         String messageType = "";
         switch (currentUserRole) {
             case DOCTOR_VIEWING_PATIENT:
                 messageType = "message to patient";
+                email = currentPatient.getEmail();
                 break;
             case PATIENT_OWN_PROFILE:
                 messageType = "message to doctor";
@@ -561,29 +599,8 @@ public class ProfileViewController implements Initializable {
                 messageType = "admin notification";
                 break;
         }
+        MailHelper.openMailClient(email);
 
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Send Message");
-        alert.setHeaderText("Messaging System");
-        alert.setContentText("Message composition dialog would open here to send " + messageType + ".");
-        alert.showAndWait();
-    }
-
-    private void handleModifyTherapy() {
-        if (currentUserRole == UserRole.DOCTOR_VIEWING_PATIENT || currentUserRole == UserRole.ADMIN_VIEWING_USER) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Modify Therapy");
-            alert.setHeaderText("Therapy Modification");
-            alert.setContentText("Therapy modification dialog would open here for " +
-                    (currentPatient != null ? currentPatient.getFullName() : "patient"));
-            alert.showAndWait();
-        } else {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Therapy Information");
-            alert.setHeaderText("Current Therapy");
-            alert.setContentText("Contact your doctor to discuss therapy modifications.");
-            alert.showAndWait();
-        }
     }
 
     private void handleUpdatePatientInfo() {
@@ -618,9 +635,9 @@ public class ProfileViewController implements Initializable {
         if (overviewTab != null) overviewTab.setOnAction(e -> switchToTab("Overview"));
         if (medicationTab != null) medicationTab.setOnAction(e -> switchToTab("Medication"));
         if (notesTab != null) notesTab.setOnAction(e -> switchToTab("Personal Data"));
-        if(currentUserRole == UserRole.DOCTOR_VIEWING_PATIENT) {
+        if (currentUserRole == UserRole.DOCTOR_VIEWING_PATIENT) {
             switchToTab("Overview");
-        }else{
+        } else {
             switchToTab("Personal Data");
         }
 
@@ -671,17 +688,6 @@ public class ProfileViewController implements Initializable {
         }
     }
 
-    private void setupTable() {
-        if (prescribedMedicationsTable != null) {
-            if (drugNameColumn != null) drugNameColumn.setCellValueFactory(new PropertyValueFactory<>("drugName"));
-            if (dosageColumn != null) dosageColumn.setCellValueFactory(new PropertyValueFactory<>("dosage"));
-            if (frequencyColumn != null) frequencyColumn.setCellValueFactory(new PropertyValueFactory<>("frequency"));
-            if (instructionsColumn != null) instructionsColumn.setCellValueFactory(new PropertyValueFactory<>("instructions"));
-
-            prescribedMedicationsTable.setStyle("-fx-background-color: #2C3E50; -fx-text-fill: white;");
-        }
-    }
-
     private void setupCharts() {
         // Setup main glucose chart from FXML
         if (glucoseChart != null) {
@@ -704,9 +710,7 @@ public class ProfileViewController implements Initializable {
     }
 
     private void setupButtons() {
-        if (modifyTherapyBtn != null) {
-            modifyTherapyBtn.setOnAction(e -> handleModifyTherapy());
-        }
+
     }
 
     private void updatePatientInfo() {
@@ -724,38 +728,39 @@ public class ProfileViewController implements Initializable {
     private void updatePatientSpecificData() {
         if (currentPatient != null) {
             updateGlucoseStatistics();
-            loadRealSymptoms();
+            loadSymptoms();
             updateChart();
             updateMedicationProgress();
+            updatePatientInfo();
         }
     }
 
     private void updateGlucoseData() {
-            if (currentPatient != null) {
-                List<GlucoseMeasurement> allMeasurements = currentPatient.getGlucoseReadings();
+        if (currentPatient != null) {
+            List<GlucoseMeasurement> allMeasurements = currentPatient.getGlucoseReadings();
 
-                if (!allMeasurements.isEmpty()) {
-                    // Filtra i dati in base al periodo selezionato
-                    String selectedPeriod = timeRangeCombo.getSelectionModel().getSelectedItem();
-                    int daysBack = getDaysFromPeriod(selectedPeriod);
-                    List<GlucoseMeasurement> filteredMeasurements = filterMeasurementsByPeriod(allMeasurements, daysBack);
+            if (!allMeasurements.isEmpty()) {
+                // Filtra i dati in base al periodo selezionato
+                String selectedPeriod = timeRangeCombo.getSelectionModel().getSelectedItem();
+                int daysBack = getDaysFromPeriod(selectedPeriod);
+                List<GlucoseMeasurement> filteredMeasurements = filterMeasurementsByPeriod(allMeasurements, daysBack);
 
-                    if (!filteredMeasurements.isEmpty()) {
-                        // Calcola statistiche sui dati filtrati
-                        calculateAndDisplayStatistics(filteredMeasurements);
-                    } else {
-                        // Nessun dato nel periodo selezionato, usa l'ultima misurazione disponibile
-                        GlucoseMeasurement latest = allMeasurements.get(0);
-                        currentGlucoseLabel.setText(String.format("%.0f", latest.getGlucoseLevel()));
-                        setStatusWithColor(latest.getGlucoseLevel());
-                        trendLabel.setText("N/A (nessun dato nel periodo)");
-                    }
+                if (!filteredMeasurements.isEmpty()) {
+                    // Calcola statistiche sui dati filtrati
+                    calculateAndDisplayStatistics(filteredMeasurements);
                 } else {
-                    currentGlucoseLabel.setText("N/A");
-                    trendLabel.setText("N/A");
-                    statusLabel.setText("Nessun dato");
+                    // Nessun dato nel periodo selezionato, usa l'ultima misurazione disponibile
+                    GlucoseMeasurement latest = allMeasurements.get(0);
+                    currentGlucoseLabel.setText(String.format("%.0f", latest.getGlucoseLevel()));
+                    setStatusWithColor(latest.getGlucoseLevel());
+                    trendLabel.setText("N/A (nessun dato nel periodo)");
                 }
+            } else {
+                currentGlucoseLabel.setText("N/A");
+                trendLabel.setText("N/A");
+                statusLabel.setText("Nessun dato");
             }
+        }
 
     }
 
@@ -775,7 +780,7 @@ public class ProfileViewController implements Initializable {
         // Calcola trend confrontando prima e ultima misurazione del periodo
         if (measurements.size() > 1) {
             GlucoseMeasurement oldest = measurements.get(measurements.size() - 1);
-            double change = ((double)(latest.getGlucoseLevel() - oldest.getGlucoseLevel()) / oldest.getGlucoseLevel()) * 100;
+            double change = ((double) (latest.getGlucoseLevel() - oldest.getGlucoseLevel()) / oldest.getGlucoseLevel()) * 100;
 
             String trendText;
             String trendColor;
@@ -914,12 +919,12 @@ public class ProfileViewController implements Initializable {
         }
     }
 
-    private void loadRealSymptoms() {
-        System.out.println("Sono in loadRealSymptoms");
+    private void loadSymptoms() {
 
         if (symptomsContainer != null) {
             symptomsContainer.getChildren().clear();
             System.out.println("Sono nel primo if: " + currentPatient.getFullName()+ "  e i suoi sintomi sono: " + currentPatient.getSymptoms());
+
             if (currentPatient == null || currentPatient.getSymptoms() == null || currentPatient.getSymptoms().isEmpty()) {
                 Label noSymptomsLabel = new Label("No symptoms reported");
                 noSymptomsLabel.setTextFill(Color.web("#BDC3C7"));
@@ -928,117 +933,210 @@ public class ProfileViewController implements Initializable {
                 symptomsContainer.getChildren().add(noSymptomsLabel);
                 return;
             }
+
             System.out.println("Symptoms: " + currentPatient.getSymptoms());
             for (Symptom symptom : currentPatient.getSymptoms()) {
                 System.out.println("Loading symptom: " + symptom.getSymptomName() + " with severity " + symptom.getGravity());
-                HBox symptomBox = new HBox(10);
-                symptomBox.setPadding(new Insets(8, 12, 8, 12));
-                symptomBox.setStyle("-fx-background-color: #34495E; -fx-background-radius: 4;");
-
-                Label symptomLabel = new Label(symptom.getSymptomName());
-                symptomLabel.setTextFill(Color.WHITE);
-                symptomLabel.setFont(Font.font("System", FontWeight.NORMAL, 14));
-
-                String severityColor = getSeverityColor(symptom.getGravity());
-
-                Label severityLabel = new Label(symptom.getGravity());severityLabel.setTextFill(Color.web(severityColor));
-                severityLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
-                severityLabel.setStyle("-fx-background-color: " + severityColor + "33; -fx-background-radius: 3; -fx-padding: 2 6 2 6;");
-
-                symptomBox.getChildren().addAll(symptomLabel, severityLabel);
+                HBox symptomBox = createSymptomBox(symptom);
                 symptomsContainer.getChildren().add(symptomBox);
             }
         }
     }
 
+    private HBox createSymptomBox(Symptom symptom) {
+        HBox symptomBox = new HBox(10);
+        symptomBox.setPadding(new Insets(8, 12, 8, 12));
+        symptomBox.setStyle("-fx-background-color: #34495E; -fx-background-radius: 4; -fx-cursor: hand;");
+
+        Label symptomLabel = new Label(symptom.getSymptomName());
+        symptomLabel.setTextFill(Color.WHITE);
+        symptomLabel.setFont(Font.font("System", FontWeight.NORMAL, 14));
+
+        String severityColor = getSeverityColor(symptom.getGravity());
+
+        Label severityLabel = new Label(symptom.getGravity());
+        severityLabel.setTextFill(Color.web(severityColor));
+        severityLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
+        severityLabel.setStyle("-fx-background-color: " + severityColor + "33; -fx-background-radius: 3; -fx-padding: 2 6 2 6;");
+
+        symptomBox.getChildren().addAll(symptomLabel, severityLabel);
+
+        // Add double-click event handler
+        symptomBox.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                System.out.println("Double-clicked on symptom: " + symptom.getSymptomName());
+                showSymptomDetailsPopup(symptom);
+            }
+        });
+
+        // Add hover effect
+        symptomBox.setOnMouseEntered(e -> symptomBox.setStyle("-fx-background-color: #3A5270; -fx-background-radius: 4; -fx-cursor: hand;"));
+        symptomBox.setOnMouseExited(e -> symptomBox.setStyle("-fx-background-color: #34495E; -fx-background-radius: 4; -fx-cursor: hand;"));
+
+        return symptomBox;
+    }
+
+    private void showSymptomDetailsPopup(Symptom symptom) {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/CustomPopup.fxml"));
+            javafx.scene.Parent root = loader.load();
+            it.glucotrack.component.CustomPopupController popupController = loader.getController();
+
+            // Set popup content
+            popupController.setTitle("Symptom Details");
+            popupController.setSubtitle("Complete symptom information");
+
+            // Create content for the popup
+            VBox content = new VBox(15);
+            content.setStyle("-fx-padding: 10;");
+
+            // Symptom name
+            addDetailRow(content, "Symptom:", symptom.getSymptomName());
+
+            // Severity
+            addDetailRow(content, "Severity:", symptom.getGravity());
+
+            // Duration (if available)
+            String duration = (symptom.getDuration() != null && !symptom.getDuration().equals("")) ?
+                    symptom.getDuration().toString() : "Not specified";
+            addDetailRow(content, "Duration:", duration);
+
+            // Date reported
+            String dateReported = symptom.getDateAndTime() != null ?
+                    symptom.getDateAndTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) :
+                    "Not specified";
+            addDetailRow(content, "Reported on:", dateReported);
+
+            // Notes (if available)
+            if (symptom.getNotes() != null && !symptom.getNotes().isEmpty()) {
+                VBox notesSection = new VBox(5);
+                Label notesTitle = new Label("Notes:");
+                notesTitle.setStyle("-fx-text-fill: #bfc6d1; -fx-font-weight: bold; -fx-font-size: 1.1em;");
+
+                Label notesContent = new Label(symptom.getNotes());
+                notesContent.setStyle("-fx-text-fill: #fff; -fx-font-size: 1em; -fx-wrap-text: true;");
+                notesContent.setWrapText(true);
+                notesContent.setMaxWidth(400);
+
+                notesSection.getChildren().addAll(notesTitle, notesContent);
+                content.getChildren().add(notesSection);
+            }
+
+            popupController.setContent(content);
+            javafx.stage.Stage popupStage = new javafx.stage.Stage();
+            popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
+            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.setMinWidth(520);
+            popupStage.setMinHeight(340);
+            popupController.setStage(popupStage);
+            popupStage.showAndWait();
+
+            // Show the popup
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showErrorAlert("Failed to show symptom details: " + e.getMessage());
+        }
+    }
+
     private String getSeverityColor(String severity) {
         switch (severity) {
-            case "Mild": return "#F1C40F";
-            case "Moderate": return "#E67E22";
-            case "Severe": return "#E74C3C";
-            case "Critical": return "#8E44AD";
-            default: return "#3498DB";
+            case "Mild":
+                return "#F1C40F";
+            case "Moderate":
+                return "#E67E22";
+            case "Severe":
+                return "#E74C3C";
+            case "Critical":
+                return "#8E44AD";
+            default:
+                return "#3498DB";
         }
     }
 
 
     private void updateChart() {
 
-            if (currentPatient == null) return;
+        if (currentPatient == null) return;
 
-            // Pulizia completa del grafico
-            glucoseChart.getData().clear();
-            glucoseChart.getXAxis().setAnimated(false);
-            glucoseChart.getYAxis().setAnimated(false);
-            glucoseChart.setAnimated(false);
+        // Pulizia completa del grafico
+        glucoseChart.getData().clear();
+        glucoseChart.getXAxis().setAnimated(false);
+        glucoseChart.getYAxis().setAnimated(false);
+        glucoseChart.setAnimated(false);
 
-            // Ottieni i dati dal database
-            List<GlucoseMeasurement> measurements = currentPatient.getGlucoseReadings();
-            System.out.println("Totale misurazioni caricate: " + measurements.size());
-            if (measurements.isEmpty()) {
-                System.out.println("⚠Nessuna misurazione trovata per il grafico");
-                return;
-            }
+        // Ottieni i dati dal database
+        List<GlucoseMeasurement> measurements = currentPatient.getGlucoseReadings();
+        System.out.println("Totale misurazioni caricate: " + measurements.size());
+        if (measurements.isEmpty()) {
+            System.out.println("⚠Nessuna misurazione trovata per il grafico");
+            return;
+        }
 
-            // Filtra i dati in base al periodo selezionato
-            String selectedPeriod = timeRangeCombo.getSelectionModel().getSelectedItem();
-            int daysBack = getDaysFromPeriod(selectedPeriod);
+        // Filtra i dati in base al periodo selezionato
+        String selectedPeriod = timeRangeCombo.getSelectionModel().getSelectedItem();
+        int daysBack = getDaysFromPeriod(selectedPeriod);
 
-            // Filtra e ordina i dati per il periodo
-            java.time.LocalDateTime cutoffDate = java.time.LocalDateTime.now().minusDays(daysBack);
-            List<GlucoseMeasurement> filteredMeasurements = measurements.stream()
-                    .filter(m -> m.getDateAndTime().isAfter(cutoffDate))
-                    .sorted((a, b) -> a.getDateAndTime().compareTo(b.getDateAndTime()))
-                    .collect(Collectors.toList());
+        // Filtra e ordina i dati per il periodo
+        java.time.LocalDateTime cutoffDate = java.time.LocalDateTime.now().minusDays(daysBack);
+        List<GlucoseMeasurement> filteredMeasurements = measurements.stream()
+                .filter(m -> m.getDateAndTime().isAfter(cutoffDate))
+                .sorted((a, b) -> a.getDateAndTime().compareTo(b.getDateAndTime()))
+                .collect(Collectors.toList());
 
-            // Crea serie dati per il grafico
-            XYChart.Series<String, Number> series = new XYChart.Series<>();
-            series.setName("Glicemia (mg/dL)");
+        // Crea serie dati per il grafico
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("Glicemia (mg/dL)");
 
-            // Limita il numero di punti visualizzati per evitare sovrapposizioni delle date
-            int maxPoints = getMaxPointsForPeriod(selectedPeriod);
+        // Limita il numero di punti visualizzati per evitare sovrapposizioni delle date
+        int maxPoints = getMaxPointsForPeriod(selectedPeriod);
 
-            if (filteredMeasurements.size() > maxPoints) {
-                // Campionamento uniforme per distribuire i punti nel tempo
-                double step = (double) filteredMeasurements.size() / maxPoints;
-                for (int i = 0; i < maxPoints; i++) {
-                    int index = (int) Math.round(i * step);
-                    if (index >= filteredMeasurements.size()) {
-                        index = filteredMeasurements.size() - 1;
-                    }
-                    GlucoseMeasurement measurement = filteredMeasurements.get(index);
-                    String dateStr = formatDateForChart(measurement.getDateAndTime(), selectedPeriod);
-                    series.getData().add(new XYChart.Data<>(dateStr, measurement.getGlucoseLevel()));
+        if (filteredMeasurements.size() > maxPoints) {
+            // Campionamento uniforme per distribuire i punti nel tempo
+            double step = (double) filteredMeasurements.size() / maxPoints;
+            for (int i = 0; i < maxPoints; i++) {
+                int index = (int) Math.round(i * step);
+                if (index >= filteredMeasurements.size()) {
+                    index = filteredMeasurements.size() - 1;
                 }
-            } else {
-                // Se ci sono pochi punti, mostra tutti ma con spaziatura minima
-                for (int i = 0; i < filteredMeasurements.size(); i++) {
-                    GlucoseMeasurement measurement = filteredMeasurements.get(i);
-                    String dateStr = formatDateForChart(measurement.getDateAndTime(), selectedPeriod);
-                    series.getData().add(new XYChart.Data<>(dateStr, measurement.getGlucoseLevel()));
-                }
+                GlucoseMeasurement measurement = filteredMeasurements.get(index);
+                String dateStr = formatDateForChart(measurement.getDateAndTime(), selectedPeriod);
+                series.getData().add(new XYChart.Data<>(dateStr, measurement.getGlucoseLevel()));
             }
+        } else {
+            // Se ci sono pochi punti, mostra tutti ma con spaziatura minima
+            for (int i = 0; i < filteredMeasurements.size(); i++) {
+                GlucoseMeasurement measurement = filteredMeasurements.get(i);
+                String dateStr = formatDateForChart(measurement.getDateAndTime(), selectedPeriod);
+                series.getData().add(new XYChart.Data<>(dateStr, measurement.getGlucoseLevel()));
+            }
+        }
 
-            glucoseChart.getData().add(series);
+        glucoseChart.getData().add(series);
 
-            System.out.println("Grafico aggiornato - Periodo: " + selectedPeriod +
-                    ", Punti visualizzati: " + series.getData().size() +
-                    "/" + filteredMeasurements.size());
+        System.out.println("Grafico aggiornato - Periodo: " + selectedPeriod +
+                ", Punti visualizzati: " + series.getData().size() +
+                "/" + filteredMeasurements.size());
 
-            // Forza il refresh completo del grafico
-            javafx.application.Platform.runLater(() -> {
-                glucoseChart.requestLayout();
-                glucoseChart.autosize();
-            });
+        // Forza il refresh completo del grafico
+        javafx.application.Platform.runLater(() -> {
+            glucoseChart.requestLayout();
+            glucoseChart.autosize();
+        });
 
     }
 
     private int getMaxPointsForPeriod(String period) {
         switch (period) {
-            case "Ultimi 7 giorni": return 15;
-            case "Ultimi 30 giorni": return 20;
-            case "Ultimo anno": return 25;
-            default: return 15;
+            case "Ultimi 7 giorni":
+                return 15;
+            case "Ultimi 30 giorni":
+                return 20;
+            case "Ultimo anno":
+                return 25;
+            default:
+                return 15;
         }
     }
 
@@ -1064,20 +1162,28 @@ public class ProfileViewController implements Initializable {
 
     private int getDaysFromPeriod(String period) {
         switch (period) {
-            case "Ultimi 7 giorni": return 7;
-            case "Ultimi 30 giorni": return 30;
-            case "Ultimo anno": return 365;
-            default: return 7;
+            case "Ultimi 7 giorni":
+                return 7;
+            case "Ultimi 30 giorni":
+                return 30;
+            case "Ultimo anno":
+                return 365;
+            default:
+                return 7;
         }
     }
 
 
     private int getMaxPointsForTimeRange(String timeRange) {
         switch (timeRange) {
-            case "Last 7 days": return 7;
-            case "Last 30 days": return 30;
-            case "Last 3 months": return 90;
-            default: return 10;
+            case "Last 7 days":
+                return 7;
+            case "Last 30 days":
+                return 30;
+            case "Last 3 months":
+                return 90;
+            default:
+                return 10;
         }
     }
 
@@ -1102,85 +1208,71 @@ public class ProfileViewController implements Initializable {
         }
     }
 
-    private void loadTherapyModifications() throws SQLException {
-        if (therapyModifications != null) {
-            therapyModifications.clear();
-            if (currentPatient != null) {
-                try {
-                    List<Medication> medications = currentPatient.getMedications();
-                    for(Medication med : medications) {
-                        List<MedicationEdit> edits = medicationDAO.getMedicationEditsByMedicationId(med.getId());
-                        therapyModifications.addAll(edits);
-                    }
-                } catch (Exception e) {
-                    System.err.println("Error loading therapy modifications: " + e.getMessage());
-                }
-            }
-        }
-        loadTherapyModificationsUI();
-    }
+    private void loadTherapyTable() {
 
-    private void loadTherapyModificationsUI() {
-        if (therapyModificationsContainer != null) {
-            therapyModificationsContainer.getChildren().clear();
+        ObservableList<Medication> data = FXCollections.observableArrayList();
+        try {
+            List<Medication> meds = MedicationDAO.getMedicationsByPatientId(currentPatient.getId());
+            data.addAll(meds);
+            prescribedMedicationsTable.setItems(data);
 
-            if (therapyModifications == null || therapyModifications.isEmpty()) {
-                Label noModsLabel = new Label("No therapy modifications recorded");
-                noModsLabel.setTextFill(Color.web("#BDC3C7"));
-                noModsLabel.setFont(Font.font("System", FontWeight.NORMAL, 14));
-                noModsLabel.setPadding(new Insets(10));
-                therapyModificationsContainer.getChildren().add(noModsLabel);
-            } else {
-                for (MedicationEdit edit : therapyModifications) {
-                    HBox modBox = createModificationBox(edit);
-                    therapyModificationsContainer.getChildren().add(modBox);
-                }
+            if (data.isEmpty()) {
+                System.out.println("No prescribed medications found for patient ID: " + currentPatient.getId());
             }
+        } catch (SQLException e) {
+            showError("Database Error", "Failed to load prescribed medications", e.getMessage());
         }
     }
 
-    private HBox createModificationBox(MedicationEdit edit) {
-        HBox modBox = new HBox(15);
-        modBox.setPadding(new Insets(10));
-        modBox.setStyle("-fx-background-color: #34495E; -fx-background-radius: 5;");
+    private void loadTherapyModificationsTable() throws SQLException {
 
-        VBox modInfo = new VBox(5);
+        ObservableList<MedicationEdit> data = FXCollections.observableArrayList();
 
-        Label dateLabel = new Label("Date: " + (edit.getEditTimestamp() != null ?
-                edit.getEditTimestamp().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "Unknown"));
-        dateLabel.setTextFill(Color.web("#BDC3C7"));
-        dateLabel.setFont(Font.font(12));
+        List<Medication> meds = MedicationDAO.getMedicationsByPatientId(currentPatient.getId());
 
-        Label changeLabel = new Label("Change: " + (edit.getMedication().getInstructions() != null ?
-                edit.getMedication().getInstructions() : "No description"));
-        changeLabel.setTextFill(Color.WHITE);
-        changeLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
-        changeLabel.setWrapText(true);
+        for (Medication med : meds) {
+            System.out.println("Loading edits for medication: " + med.getName_medication());
+            List<MedicationEdit> edits = MedicationDAO.getMedicationEditsByMedicationId(med.getId());
+            data.addAll(edits);
+        }
 
-        modInfo.getChildren().addAll(dateLabel, changeLabel);
-        modBox.getChildren().add(modInfo);
+        therapyModificationsTable.setItems(data);
 
-        return modBox;
+        if (data.isEmpty()) {
+            System.out.println("Therapy modifications are empty");
+        }
     }
+
+
 
     private void loadRiskFactors() {
         System.out.println("This is for test before the if in loadRiskFactors");
         if (riskFactorsContainer != null) {
             riskFactorsContainer.getChildren().clear();
             System.out.println("This is for test inside loadRiskFactors");
-            // Sample risk factors - in a real app, these would come from the database
+
             if (currentPatient != null) {
                 List<RiskFactor> riskFactors = currentPatient.getRiskFactors();
+                if (riskFactors.isEmpty()) {
+                    Label noRiskLabel = new Label("No risk factors assessed");
+                    noRiskLabel.setTextFill(Color.web("#BDC3C7"));
+                    noRiskLabel.setFont(Font.font("System", FontWeight.NORMAL, 14));
+                    noRiskLabel.setPadding(new Insets(10));
+                    riskFactorsContainer.getChildren().add(noRiskLabel);
+                    return;
+                }
+
                 for(RiskFactor factor : riskFactors) {
                     String color;
                     switch (factor.getGravity()) {
-                        case LOW: color = "#E74C3C"; break;
+                        case LOW: color = "#2ECC71"; break;
                         case MEDIUM: color = "#F39C12"; break;
-                        case HIGH: color = "#2ECC71"; break;
+                        case HIGH: color = "#E74C3C"; break;
                         default: color = "#3498DB"; break;
                     }
                     System.out.println("Adding risk factor: " + factor.getType() + " with gravity " + factor.getGravity());
-                    addRiskFactor(factor.getType(), factor.getGravity().toString(), color);
+                    HBox riskFactorBox = createRiskFactorBox(factor, color);
+                    riskFactorsContainer.getChildren().add(riskFactorBox);
                 }
             } else {
                 Label noRiskLabel = new Label("No risk factors assessed");
@@ -1192,29 +1284,266 @@ public class ProfileViewController implements Initializable {
         }
     }
 
-    private void addRiskFactor(String factor, String risk, String color) {
+    private HBox createRiskFactorBox(RiskFactor riskFactor, String color) {
         HBox riskBox = new HBox(10);
         riskBox.setPadding(new Insets(8, 12, 8, 12));
-        riskBox.setStyle("-fx-background-color: #34495E; -fx-background-radius: 4;");
+        riskBox.setStyle("-fx-background-color: #34495E; -fx-background-radius: 4; -fx-cursor: hand;");
 
         VBox factorInfo = new VBox(2);
-        Label factorLabel = new Label(factor);
+        Label factorLabel = new Label(riskFactor.getType());
         factorLabel.setTextFill(Color.WHITE);
         factorLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
 
-        factorInfo.getChildren().addAll(factorLabel);
+        factorInfo.getChildren().add(factorLabel);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
 
-        Label riskLabel = new Label(risk);
+        Label riskLabel = new Label(riskFactor.getGravity().toString());
         riskLabel.setTextFill(Color.web(color));
         riskLabel.setFont(Font.font("System", FontWeight.BOLD, 11));
         riskLabel.setStyle("-fx-background-color: " + color + "33; -fx-background-radius: 3; -fx-padding: 2 6 2 6;");
 
         riskBox.getChildren().addAll(factorInfo, spacer, riskLabel);
-        riskFactorsContainer.getChildren().add(riskBox);
+
+        // Add double-click event handler for details
+        riskBox.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                showRiskFactorDetailsPopup(riskFactor);
+            }
+        });
+
+        // Add right-click context menu
+        ContextMenu contextMenu = createRiskFactorContextMenu(riskFactor);
+        riskBox.setOnContextMenuRequested(event -> {
+            contextMenu.show(riskBox, event.getScreenX(), event.getScreenY());
+            event.consume();
+        });
+
+        // Add hover effect
+        riskBox.setOnMouseEntered(e -> riskBox.setStyle("-fx-background-color: #3A5270; -fx-background-radius: 4; -fx-cursor: hand;"));
+        riskBox.setOnMouseExited(e -> riskBox.setStyle("-fx-background-color: #34495E; -fx-background-radius: 4; -fx-cursor: hand;"));
+
+        return riskBox;
     }
+
+    private void showRiskFactorDetailsPopup(RiskFactor riskFactor) {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/CustomPopup.fxml"));
+            javafx.scene.Parent root = loader.load();
+            it.glucotrack.component.CustomPopupController popupController = loader.getController();
+
+            // Set popup content
+            popupController.setTitle("Risk Factor Details");
+            popupController.setSubtitle("Complete risk factor information");
+
+            // Create content for the popup
+            VBox content = new VBox(15);
+            content.setStyle("-fx-padding: 10;");
+
+            // Risk factor type
+            addDetailRow(content, "Risk Factor:", riskFactor.getType());
+
+            // Severity with color
+            HBox severityRow = new HBox(10);
+            severityRow.setAlignment(Pos.CENTER_LEFT);
+
+            Label severityTitle = new Label("Severity:");
+            severityTitle.setStyle("-fx-text-fill: #bfc6d1; -fx-font-weight: bold; -fx-font-size: 1.1em;");
+
+            String color;
+            switch (riskFactor.getGravity()) {
+                case LOW: color = "#2ECC71"; break;
+                case MEDIUM: color = "#F39C12"; break;
+                case HIGH: color = "#E74C3C"; break;
+                default: color = "#3498DB"; break;
+            }
+
+            Label severityValue = new Label(riskFactor.getGravity().toString());
+            severityValue.setStyle("-fx-text-fill: " + color + "; -fx-font-size: 1.1em; -fx-font-weight: bold; " +
+                    "-fx-background-color: " + color + "33; -fx-background-radius: 3; -fx-padding: 4 8 4 8;");
+
+            severityRow.getChildren().addAll(severityTitle, severityValue);
+            content.getChildren().add(severityRow);
+
+
+            popupController.setContent(content);
+
+            javafx.stage.Stage popupStage = new javafx.stage.Stage();
+            popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
+            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.setMinWidth(400);
+            popupStage.setMinHeight(300);
+            popupController.setStage(popupStage);
+            popupStage.showAndWait();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showErrorAlert("Failed to show risk factor details: " + e.getMessage());
+        }
+    }
+
+    private ContextMenu createRiskFactorContextMenu(RiskFactor riskFactor) {
+        ContextMenu contextMenu = new ContextMenu();
+
+        // Edit menu item
+        MenuItem editItem = new MenuItem("Edit Risk Factor");
+        editItem.setStyle("-fx-text-fill: #3498DB;");
+        editItem.setOnAction(e -> showEditRiskFactorDialog(riskFactor));
+
+        // Delete menu item
+        MenuItem deleteItem = new MenuItem("Delete Risk Factor");
+        deleteItem.setStyle("-fx-text-fill: #E74C3C;");
+        deleteItem.setOnAction(e -> showDeleteRiskFactorConfirmation(riskFactor));
+
+        // Separator
+        SeparatorMenuItem separator = new SeparatorMenuItem();
+
+        // Details menu item
+        MenuItem detailsItem = new MenuItem("View Details");
+        detailsItem.setStyle("-fx-text-fill: #BDC3C7;");
+        detailsItem.setOnAction(e -> showRiskFactorDetailsPopup(riskFactor));
+
+        contextMenu.getItems().addAll(editItem, deleteItem, separator, detailsItem);
+
+        // Style the context menu
+        contextMenu.setStyle("-fx-background-color: #2C3E50; -fx-border-color: #3498DB; -fx-border-width: 1;");
+
+        return contextMenu;
+    }
+
+    private void showEditRiskFactorDialog(RiskFactor riskFactor) {
+        Dialog<RiskFactorFormData> dialog = new Dialog<>();
+        dialog.setTitle("Edit Risk Factor");
+        dialog.setHeaderText("Edit risk factor for " + currentPatient.getFullName());
+
+        ButtonType updateButtonType = new ButtonType("Update Risk Factor", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(updateButtonType, ButtonType.CANCEL);
+
+        // Create form similar to add form but pre-filled
+        VBox formContainer = new VBox(15);
+        formContainer.setPadding(new Insets(20));
+        formContainer.setStyle("-fx-background-color: #2C3E50;");
+
+        // Risk Factor Type section (pre-filled)
+        VBox typeSection = new VBox(5);
+        Label typeLabel = new Label("Risk Factor Type:");
+        typeLabel.setTextFill(Color.WHITE);
+        typeLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
+
+        ComboBox<String> typeComboBox = new ComboBox<>();
+        typeComboBox.setPrefWidth(300);
+        typeComboBox.setStyle("-fx-background-color: #34495E; -fx-text-fill: white; -fx-border-color: #3498DB; -fx-border-radius: 3; -fx-background-radius: 3;");
+        typeComboBox.getItems().addAll(
+                "Hypertension", "High Cholesterol", "Obesity", "Family History of Diabetes",
+                "Sedentary Lifestyle", "Smoking", "Age >45 years", "Previous Gestational Diabetes",
+                "Polycystic Ovary Syndrome", "Sleep Apnea", "Cardiovascular Disease", "Kidney Disease", "Other"
+        );
+        typeComboBox.setEditable(true);
+        typeComboBox.setValue(riskFactor.getType()); // Pre-fill current value
+
+        typeSection.getChildren().addAll(typeLabel, typeComboBox);
+
+        // Gravity section (pre-filled)
+        VBox gravitySection = new VBox(5);
+        Label gravityLabel = new Label("Severity Level:");
+        gravityLabel.setTextFill(Color.WHITE);
+        gravityLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
+
+        ComboBox<Gravity> gravityComboBox = new ComboBox<>();
+        gravityComboBox.setPrefWidth(300);
+        gravityComboBox.setStyle("-fx-background-color: #34495E; -fx-text-fill: white; -fx-border-color: #3498DB; -fx-border-radius: 3; -fx-background-radius: 3;");
+        gravityComboBox.getItems().addAll(Gravity.LOW, Gravity.MEDIUM, Gravity.HIGH);
+        gravityComboBox.setValue(riskFactor.getGravity()); // Pre-fill current value
+
+        gravitySection.getChildren().addAll(gravityLabel, gravityComboBox);
+
+        formContainer.getChildren().addAll(typeSection, gravitySection);
+
+        Node updateButton = dialog.getDialogPane().lookupButton(updateButtonType);
+        updateButton.setDisable(false);
+
+        dialog.getDialogPane().setContent(formContainer);
+
+        // Style the dialog
+        dialog.getDialogPane().setStyle("-fx-background-color: #2C3E50;");
+        dialog.getDialogPane().lookupButton(updateButtonType).setStyle("-fx-background-color: #3498DB; -fx-text-fill: white; -fx-background-radius: 5;");
+        dialog.getDialogPane().lookupButton(ButtonType.CANCEL).setStyle("-fx-background-color: transparent; -fx-border-color: #3498DB; -fx-border-width: 1; -fx-text-fill: #3498DB; -fx-background-radius: 5;");
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == updateButtonType) {
+                String riskType = typeComboBox.getValue();
+                return new RiskFactorFormData(riskType, gravityComboBox.getValue(), "");
+            }
+            return null;
+        });
+
+        Optional<RiskFactorFormData> result = dialog.showAndWait();
+
+        result.ifPresent(formData -> {
+            try {
+                RiskFactorDAO riskFactorDAO = new RiskFactorDAO();
+                boolean success = riskFactorDAO.updateRiskFactor(
+                        riskFactor.getId(),
+                        currentPatient.getId(),
+                        formData.getType(),
+                        "", // description not used in current schema
+                        formData.getGravity()
+                );
+
+                if (success) {
+                    // Refresh the patient's risk factors list
+                    List<RiskFactor> updatedRiskFactors = RiskFactorDAO.getRiskFactorsByPatientId(currentPatient.getId());
+                    currentPatient.setRiskFactors(updatedRiskFactors);
+
+                    loadRiskFactors();
+                    showSuccessAlert("Risk factor updated successfully.");
+                } else {
+                    showErrorAlert("Failed to update risk factor.");
+                }
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+                showErrorAlert("Database error: " + e.getMessage());
+            }
+        });
+    }
+
+    private void showDeleteRiskFactorConfirmation(RiskFactor riskFactor) {
+        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmAlert.setTitle("Delete Risk Factor");
+        confirmAlert.setHeaderText("Confirm Deletion");
+        confirmAlert.setContentText("Are you sure you want to delete the risk factor '" +
+                riskFactor.getType() + "'? This action cannot be undone.");
+
+        // Style the alert
+        confirmAlert.getDialogPane().setStyle("-fx-background-color: #2C3E50;");
+
+        confirmAlert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                try {
+                    RiskFactorDAO riskFactorDAO = new RiskFactorDAO();
+                    boolean success = riskFactorDAO.deleteRiskFactor(riskFactor.getId());
+
+                    if (success) {
+                        // Refresh the patient's risk factors list
+                        List<RiskFactor> updatedRiskFactors = RiskFactorDAO.getRiskFactorsByPatientId(currentPatient.getId());
+                        currentPatient.setRiskFactors(updatedRiskFactors);
+
+                        loadRiskFactors();
+                        showSuccessAlert("Risk factor deleted successfully.");
+                    } else {
+                        showErrorAlert("Failed to delete risk factor.");
+                    }
+
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    showErrorAlert("Database error: " + e.getMessage());
+                }
+            }
+        });
+    }
+
 
     private void loadTrendsContent() {
         if (trendsContent != null && !trendsContent.getChildren().isEmpty()) return;
@@ -1255,9 +1584,9 @@ public class ProfileViewController implements Initializable {
 
         if (readings.size() > 0) {
             analysis.append(String.format("High readings (>180): %d (%.1f%%)\n",
-                    highReadings, (double)highReadings / readings.size() * 100));
+                    highReadings, (double) highReadings / readings.size() * 100));
             analysis.append(String.format("Normal readings (80-140): %d (%.1f%%)\n",
-                    normalReadings, (double)normalReadings / readings.size() * 100));
+                    normalReadings, (double) normalReadings / readings.size() * 100));
         } else {
             analysis.append("High readings (>180): 0 (0.0%)\n");
             analysis.append("Normal readings (80-140): 0 (0.0%)\n");
@@ -1267,7 +1596,7 @@ public class ProfileViewController implements Initializable {
             analysis.append("\nRecommendation: Glucose levels are consistently high. Consider medication adjustment.");
         } else if (average > 140) {
             analysis.append("\nRecommendation: Glucose levels are moderately elevated. Continue monitoring closely.");
-        }else if(average <80){
+        } else if (average < 80) {
             analysis.append("\nRecommendation: Glucose levels are low. Ensure regular meals and monitor for hypoglycemia.");
         } else {
             analysis.append("\nRecommendation: Glucose levels are well controlled. Maintain current regimen.");
@@ -1329,14 +1658,15 @@ public class ProfileViewController implements Initializable {
         if (currentPatient != null || canEdit) {
 
             User utente;
-            if(canEdit) {
+            if (canEdit) {
                 System.out.println(currentUser);
                 utente = currentUser;
                 System.out.println("Ora i dati sono di: " + utente.getFullName());
-            }else {
+            } else {
                 utente = currentPatient;
                 System.out.println("Ora i dati sono di: " + utente.getFullName());
             }
+
 
             // Create form fields for patient data
             VBox formContainer = new VBox(12);
@@ -1413,132 +1743,41 @@ public class ProfileViewController implements Initializable {
     }
 
     private VBox createFormField(String labelText, String value, boolean editable) {
-        VBox fieldContainer = new VBox(5);
-
         Label fieldLabel = new Label(labelText);
         fieldLabel.setTextFill(Color.web("#BDC3C7"));
         fieldLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
+        fieldLabel.setPrefWidth(120); // stessa larghezza per tutte le etichette
+
+        Node inputNode;
 
         if (editable) {
             TextField textField = new TextField(value);
-            textField.setStyle("-fx-background-color: #34495E; -fx-text-fill: white; -fx-border-color: #3498DB; -fx-border-radius: 3; -fx-background-radius: 3;");
+            textField.setStyle(
+                    "-fx-background-color: #34495E; -fx-text-fill: white; "
+                            + "-fx-border-color: #3498DB; -fx-border-radius: 3; -fx-background-radius: 3;"
+            );
             textField.setPrefHeight(30);
-
-            // Store the original value as user data for validation/reset purposes
+            textField.setPrefWidth(250); // larghezza fissa o regolabile
             textField.setUserData(value);
-
-            fieldContainer.getChildren().addAll(fieldLabel, textField);
+            inputNode = textField;
         } else {
             Label valueLabel = new Label(value);
             valueLabel.setTextFill(Color.WHITE);
             valueLabel.setFont(Font.font(14));
             valueLabel.setWrapText(true);
             valueLabel.setStyle("-fx-background-color: #16213e; -fx-padding: 8; -fx-background-radius: 3;");
-
-            fieldContainer.getChildren().addAll(fieldLabel, valueLabel);
+            valueLabel.setMaxWidth(250); // per andare a capo se troppo lungo
+            inputNode = valueLabel;
         }
+
+        VBox fieldContainer = new VBox(15, fieldLabel, inputNode);
+        fieldContainer.setAlignment(Pos.CENTER_LEFT);
 
         return fieldContainer;
     }
 
-    private VBox createDoctorSelectionField(String labelText, Integer currentDoctorId, boolean editable) throws SQLException {
-        VBox fieldContainer = new VBox(5);
 
-        Label fieldLabel = new Label(labelText);
-        fieldLabel.setTextFill(Color.web("#BDC3C7"));
-        fieldLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
 
-        if (editable) {
-            ComboBox<Doctor> doctorComboBox = new ComboBox<>();
-            doctorComboBox.setStyle("-fx-background-color: #34495E; -fx-text-fill: white; -fx-border-color: #3498DB; -fx-border-radius: 3; -fx-background-radius: 3;");
-            doctorComboBox.setPrefHeight(30);
-            doctorComboBox.setPrefWidth(200);
-
-            // Load doctors list
-            loadDoctorsIntoComboBox(doctorComboBox);
-
-            // Set current selection
-            if (currentDoctorId != null) {
-                doctorComboBox.getItems().stream()
-                        .filter(doctor -> doctor.getId() == currentDoctorId)
-                        .findFirst()
-                        .ifPresent(doctorComboBox::setValue);
-            }
-
-            // Store field identifier for form processing
-            doctorComboBox.setUserData("Assigned Doctor");
-
-            fieldContainer.getChildren().addAll(fieldLabel, doctorComboBox);
-        } else {
-            String doctorInfo = currentDoctorId != null ?
-                    DoctorDAO.getDoctorById(currentDoctorId).getFullName() : "No doctor assigned";
-
-            Label valueLabel = new Label(doctorInfo);
-            valueLabel.setTextFill(Color.WHITE);
-            valueLabel.setFont(Font.font(14));
-            valueLabel.setWrapText(true);
-            valueLabel.setStyle("-fx-background-color: #16213e; -fx-padding: 8; -fx-background-radius: 3;");
-
-            fieldContainer.getChildren().addAll(fieldLabel, valueLabel);
-        }
-
-        return fieldContainer;
-    }
-
-    private void loadDoctorsIntoComboBox(ComboBox<Doctor> comboBox) {
-        try {
-
-            // Load doctors from database/service
-            List<Doctor> doctors = DoctorDAO.getAllDoctors(); // Implement this method
-            comboBox.getItems().addAll(doctors);
-
-            // Custom cell factory to display doctor names
-            comboBox.setCellFactory(listView -> new ListCell<Doctor>() {
-                @Override
-                protected void updateItem(Doctor doctor, boolean empty) {
-                    super.updateItem(doctor, empty);
-                    if (empty || doctor == null) {
-                        setText(null);
-                    } else {
-                        if (doctor.getId() == -1) {
-                            setText("No Doctor");
-                            setStyle("-fx-text-fill: #BDC3C7;");
-                        } else {
-                            setText(doctor.getName() + " " + doctor.getSurname() +
-                                    (doctor.getSpecialization() != null ? " (" + doctor.getSpecialization() + ")" : ""));
-                            setStyle("-fx-text-fill: white;");
-                        }
-                    }
-                }
-            });
-
-            // Custom button cell for selected value display
-            comboBox.setButtonCell(new ListCell<Doctor>() {
-                @Override
-                protected void updateItem(Doctor doctor, boolean empty) {
-                    super.updateItem(doctor, empty);
-                    if (empty || doctor == null) {
-                        setText(null);
-                    } else {
-                        if (doctor.getId()==-1) {
-                            setText("No Doctor");
-                        } else {
-                            setText(doctor.getName() + " " + doctor.getSurname());
-                        }
-                    }
-                    setStyle("-fx-text-fill: white;");
-                }
-            });
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Error loading doctors: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Handles saving of patient information from the form
-     */
     private void handleSaveUserInfo(VBox formContainer) {
         try {
             // Extract data from form fields
@@ -1610,9 +1849,9 @@ public class ProfileViewController implements Initializable {
 
             System.out.println(toUpdate);
             System.out.println(toUpdate.getType());
-            System.out.println("Ora mettiamo a confronto: '"+toUpdate.getType() +"' e 'DOCTOR'");
+            System.out.println("Ora mettiamo a confronto: '" + toUpdate.getType() + "' e 'DOCTOR'");
             System.out.println(toUpdate.getType().equals("DOCTOR"));
-            if (toUpdate.getType().equals("DOCTOR")){
+            if (toUpdate.getType().equals("DOCTOR")) {
                 Doctor doctor = DoctorDAO.getDoctorById(toUpdate.getId());
                 doctor.setName(toUpdate.getName());
                 doctor.setSurname(toUpdate.getSurname());
@@ -1624,7 +1863,7 @@ public class ProfileViewController implements Initializable {
                 doctor.setFiscalCode(toUpdate.getFiscalCode());
                 DoctorDAO.updateDoctor(doctor);
             } else if (toUpdate.getType().equals("PATIENT")) {
-                System.out.println("Sono dentro i pazienti " + toUpdate );
+                System.out.println("Sono dentro i pazienti " + toUpdate);
                 Patient patient = PatientDAO.getPatientById(toUpdate.getId());
                 patient.setName(toUpdate.getName());
                 patient.setSurname(toUpdate.getSurname());
@@ -1793,6 +2032,260 @@ public class ProfileViewController implements Initializable {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    private void handleAddRisk() {
+        if (currentPatient == null) return;
+
+        // Create the dialog
+        Dialog<RiskFactorFormData> dialog = new Dialog<>();
+        dialog.setTitle("Add Risk Factor");
+        dialog.setHeaderText("Add new risk factor for " + currentPatient.getFullName());
+
+        // Set the button types
+        ButtonType addButtonType = new ButtonType("Add Risk Factor", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
+
+        // Create the form content
+        VBox formContainer = new VBox(15);
+        formContainer.setPadding(new Insets(20));
+        formContainer.setStyle("-fx-background-color: #2C3E50;");
+
+        // Risk Factor Type section
+        VBox typeSection = new VBox(5);
+        Label typeLabel = new Label("Risk Factor Type:");
+        typeLabel.setTextFill(Color.WHITE);
+        typeLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
+
+        ComboBox<String> typeComboBox = new ComboBox<>();
+        typeComboBox.setPrefWidth(300);
+        typeComboBox.setStyle("-fx-background-color: #34495E; -fx-text-fill: white; -fx-border-color: #3498DB; -fx-border-radius: 3; -fx-background-radius: 3;");
+
+        // Populate with common risk factors
+        typeComboBox.getItems().addAll(
+                "Hypertension",
+                "High Cholesterol",
+                "Obesity",
+                "Family History of Diabetes",
+                "Sedentary Lifestyle",
+                "Smoking",
+                "Age >45 years",
+                "Previous Gestational Diabetes",
+                "Polycystic Ovary Syndrome",
+                "Sleep Apnea",
+                "Cardiovascular Disease",
+                "Kidney Disease",
+                "Other"
+        );
+        typeComboBox.setEditable(true); // Allow custom entries
+
+        typeSection.getChildren().addAll(typeLabel, typeComboBox);
+
+        // Gravity/Severity section
+        VBox gravitySection = new VBox(5);
+        Label gravityLabel = new Label("Severity Level:");
+        gravityLabel.setTextFill(Color.WHITE);
+        gravityLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
+
+        ComboBox<Gravity> gravityComboBox = new ComboBox<>();
+        gravityComboBox.setPrefWidth(300);
+        gravityComboBox.setStyle("-fx-background-color: #34495E; -fx-text-fill: white; -fx-border-color: #3498DB; -fx-border-radius: 3; -fx-background-radius: 3;");
+        gravityComboBox.getItems().addAll(Gravity.LOW, Gravity.MEDIUM, Gravity.HIGH);
+        gravityComboBox.setValue(Gravity.MEDIUM); // Default selection
+
+        // Custom cell factory to display gravity levels with colors
+        gravityComboBox.setCellFactory(listView -> new ListCell<Gravity>() {
+            @Override
+            protected void updateItem(Gravity gravity, boolean empty) {
+                super.updateItem(gravity, empty);
+                if (empty || gravity == null) {
+                    setText(null);
+                    setStyle("-fx-text-fill: white;");
+                } else {
+                    setText(gravity.toString());
+                    switch (gravity) {
+                        case LOW:
+                            setStyle("-fx-text-fill: #2ECC71;"); // Green
+                            break;
+                        case MEDIUM:
+                            setStyle("-fx-text-fill: #F39C12;"); // Orange
+                            break;
+                        case HIGH:
+                            setStyle("-fx-text-fill: #E74C3C;"); // Red
+                            break;
+                    }
+                }
+            }
+        });
+
+        // Button cell for selected value
+        gravityComboBox.setButtonCell(new ListCell<Gravity>() {
+            @Override
+            protected void updateItem(Gravity gravity, boolean empty) {
+                super.updateItem(gravity, empty);
+                if (empty || gravity == null) {
+                    setText(null);
+                } else {
+                    setText(gravity.toString());
+                    setStyle("-fx-text-fill: white;");
+                }
+            }
+        });
+
+        gravitySection.getChildren().addAll(gravityLabel, gravityComboBox);
+
+        // Additional notes section (optional)
+        VBox notesSection = new VBox(5);
+        Label notesLabel = new Label("Additional Notes (Optional):");
+        notesLabel.setTextFill(Color.WHITE);
+        notesLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
+
+        TextArea notesTextArea = new TextArea();
+        notesTextArea.setPrefRowCount(3);
+        notesTextArea.setPrefWidth(300);
+        notesTextArea.setStyle("-fx-background-color: #34495E; -fx-text-fill: white; -fx-border-color: #3498DB; -fx-border-radius: 3; -fx-background-radius: 3;");
+        notesTextArea.setPromptText("Enter any additional information about this risk factor...");
+
+        notesSection.getChildren().addAll(notesLabel, notesTextArea);
+
+        // Add all sections to the form container
+        formContainer.getChildren().addAll(typeSection, gravitySection, notesSection);
+
+        // Enable/Disable Add button based on input validation
+        Node addButton = dialog.getDialogPane().lookupButton(addButtonType);
+        addButton.setDisable(true);
+
+        // Validation listener
+        typeComboBox.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
+            addButton.setDisable(newValue == null || newValue.trim().isEmpty());
+        });
+
+        typeComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            addButton.setDisable(newValue == null || newValue.trim().isEmpty());
+        });
+
+        dialog.getDialogPane().setContent(formContainer);
+
+        // Style the dialog
+        dialog.getDialogPane().setStyle("-fx-background-color: #2C3E50;");
+        dialog.getDialogPane().lookupButton(addButtonType).setStyle("-fx-background-color: #3498DB; -fx-text-fill: white; -fx-background-radius: 5;");
+        dialog.getDialogPane().lookupButton(ButtonType.CANCEL).setStyle("-fx-background-color: transparent; -fx-border-color: #3498DB; -fx-border-width: 1; -fx-text-fill: #3498DB; -fx-background-radius: 5;");
+
+        // Convert result when Add button is clicked
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == addButtonType) {
+                String riskType = typeComboBox.getEditor().getText();
+                if (riskType == null || riskType.trim().isEmpty()) {
+                    riskType = typeComboBox.getValue();
+                }
+
+                return new RiskFactorFormData(
+                        riskType != null ? riskType.trim() : "",
+                        gravityComboBox.getValue(),
+                        notesTextArea.getText().trim()
+                );
+            }
+            return null;
+        });
+
+        // Request focus on the type field
+        Platform.runLater(() -> typeComboBox.requestFocus());
+
+        // Show dialog and process result
+        Optional<RiskFactorFormData> result = dialog.showAndWait();
+
+        result.ifPresent(formData -> {
+            try {
+                // Insert the risk factor into the database
+                RiskFactorDAO riskFactorDAO = new RiskFactorDAO();
+                boolean success = riskFactorDAO.insertRiskFactor(
+                        currentPatient.getId(),
+                        formData.getType(),
+                        formData.getGravity()
+                );
+
+                if (success) {
+                    // Refresh the patient's risk factors list
+                    List<RiskFactor> updatedRiskFactors = RiskFactorDAO.getRiskFactorsByPatientId(currentPatient.getId());
+                    currentPatient.setRiskFactors(updatedRiskFactors);
+
+                    // Refresh the UI
+                    loadRiskFactors();
+
+                    // Show success message
+                    showSuccessAlert("Risk factor '" + formData.getType() + "' has been successfully added.");
+                } else {
+                    showErrorAlert("Failed to add risk factor. Please try again.");
+                }
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+                showErrorAlert("Database error occurred while adding risk factor: " + e.getMessage());
+            }
+        });
+    }
+
+    private void addDetailRow(VBox container, String title, String value) {
+        HBox row = new HBox(10);
+        row.setAlignment(Pos.CENTER_LEFT);
+
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-text-fill: #bfc6d1; -fx-font-weight: bold; -fx-font-size: 1.1em;");
+        titleLabel.setPrefWidth(120);
+
+        Label valueLabel = new Label(value);
+        valueLabel.setStyle("-fx-text-fill: #fff; -fx-font-size: 1.1em;");
+        valueLabel.setWrapText(true);
+
+        row.getChildren().addAll(titleLabel, valueLabel);
+        container.getChildren().add(row);
+    }
+
+    /**
+     * Helper method to show popup with proper styling and positioning
+     */
+    private void showPopup(StackPane popupRoot) {
+        if (parentContentPane != null) {
+            // Create overlay background
+            StackPane overlay = new StackPane();
+            overlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.5);");
+            overlay.setAlignment(Pos.CENTER);
+
+            // Add popup to overlay
+            overlay.getChildren().add(popupRoot);
+
+            // Add overlay to parent content pane
+            parentContentPane.getChildren().add(overlay);
+
+            // Close popup when clicking on overlay (outside popup)
+            overlay.setOnMouseClicked(event -> {
+                if (event.getTarget() == overlay) {
+                    parentContentPane.getChildren().remove(overlay);
+                }
+            });
+        }
+    }
+
+    // Add this inner class to store form data
+    private static class RiskFactorFormData {
+        private final String type;
+        private final Gravity gravity;
+        private final String notes;
+
+        public RiskFactorFormData(String type, Gravity gravity, String notes) {
+            this.type = type;
+            this.gravity = gravity;
+            this.notes = notes;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public Gravity getGravity() {
+            return gravity;
+        }
+
     }
 
 }

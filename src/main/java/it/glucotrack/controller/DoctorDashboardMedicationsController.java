@@ -1,373 +1,543 @@
 package it.glucotrack.controller;
 
+import it.glucotrack.model.*;
+import it.glucotrack.util.*;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
+import javafx.fxml.Initializable;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import it.glucotrack.model.Medication;
-import it.glucotrack.model.Patient;
-import it.glucotrack.model.Frequency;
-import it.glucotrack.util.MedicationDAO;
-import it.glucotrack.util.PatientDAO;
+import javafx.scene.input.MouseButton;
 
-import java.io.IOException;
+
+import java.net.URL;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.ResourceBundle;
 
-public class DoctorDashboardMedicationsController {
-
-    @FXML private ComboBox<String> patientFilterComboBox;
-    @FXML private TextField searchField;
-    @FXML private ComboBox<String> statusFilterComboBox;
-    @FXML private Button addMedicationButton;
-    @FXML private Button refreshButton;
-
-    // Statistics labels
-    @FXML private Label totalMedicationsLabel;
-    @FXML private Label activeMedicationsLabel;
-    @FXML private Label expiredMedicationsLabel;
-    @FXML private Label totalPatientsLabel;
-
-    // Table and columns
-    @FXML private TableView<MedicationDisplayData> medicationsTable;
-    @FXML private TableColumn<MedicationDisplayData, String> patientNameColumn;
-    @FXML private TableColumn<MedicationDisplayData, String> medicationNameColumn;
-    @FXML private TableColumn<MedicationDisplayData, String> dosageColumn;
-    @FXML private TableColumn<MedicationDisplayData, String> frequencyColumn;
-    @FXML private TableColumn<MedicationDisplayData, String> startDateColumn;
-    @FXML private TableColumn<MedicationDisplayData, String> endDateColumn;
-    @FXML private TableColumn<MedicationDisplayData, String> statusColumn;
-    @FXML private TableColumn<MedicationDisplayData, String> instructionsColumn;
-    @FXML private TableColumn<MedicationDisplayData, Void> actionsColumn;
-
-    private MedicationDAO medicationDAO;
-    private PatientDAO patientDAO;
-    private ObservableList<MedicationDisplayData> allMedications;
-    private ObservableList<MedicationDisplayData> filteredMedications;
+public class DoctorDashboardMedicationsController implements Initializable {
 
     @FXML
-    public void initialize() {
-        medicationDAO = new MedicationDAO();
-        patientDAO = new PatientDAO();
-        allMedications = FXCollections.observableArrayList();
-        filteredMedications = FXCollections.observableArrayList();
+    private Button logMedicationBtn;
 
-        setupTable();
-        setupFilters();
-        loadData();
+    @FXML
+    private TableView<Medication> prescribedMedicationsTable;
+
+    @FXML
+    private TableColumn<Medication, String> patientFullNameColumn;
+
+    @FXML
+    private TableColumn<Medication, String> medicationNameColumn;
+
+    @FXML
+    private TableColumn<Medication, String> dosageColumn;
+
+    @FXML
+    private TableColumn<Medication, String> frequencyColumn;
+
+    @FXML
+    private TableColumn<Medication, String> instructionsColumn;
+
+    private ObservableList<Medication> prescribedMedications;
+
+    private Doctor currentDoctor;
+
+
+    public void initialize(URL location, ResourceBundle resources) {
+        System.out.println("Iniziamo con il dashboard");
+        try {
+            this.currentDoctor = DoctorDAO.getDoctorById(SessionManager.getCurrentUser().getId());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        setupPrescribedMedicationsTable();
+        try {
+            loadData();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        setupEventHandlers();
+
     }
 
-    private void setupTable() {
-        // Configure table columns
-        patientNameColumn.setCellValueFactory(new PropertyValueFactory<>("patientName"));
-        medicationNameColumn.setCellValueFactory(new PropertyValueFactory<>("medicationName"));
-        dosageColumn.setCellValueFactory(new PropertyValueFactory<>("dosage"));
-        frequencyColumn.setCellValueFactory(new PropertyValueFactory<>("frequency"));
-        startDateColumn.setCellValueFactory(new PropertyValueFactory<>("startDate"));
-        endDateColumn.setCellValueFactory(new PropertyValueFactory<>("endDate"));
-        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
-        instructionsColumn.setCellValueFactory(new PropertyValueFactory<>("instructions"));
+    @FXML
+    private void onInsertMedication() {
+        try{
+            // Load the insert form
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/DoctorDashboardMedicationsInsert.fxml"));
+            Parent insertView = loader.load();
 
-        // Setup actions column with edit/delete buttons
-        actionsColumn.setCellFactory(param -> new TableCell<MedicationDisplayData, Void>() {
-            private final Button editButton = new Button("Edit");
-            private final Button deleteButton = new Button("Delete");
-            private final HBox buttonsBox = new HBox(5);
+            // Get the controller and set up for insertion
+            DoctorDashboardMedicationsInsertController insertController = loader.getController();
 
-            {
-                editButton.setStyle("-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-font-size: 10px; -fx-padding: 3 8;");
-                deleteButton.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-size: 10px; -fx-padding: 3 8;");
-                
-                editButton.setOnAction(event -> {
-                    MedicationDisplayData data = getTableView().getItems().get(getIndex());
-                    handleEditMedication(data);
-                });
-                
-                deleteButton.setOnAction(event -> {
-                    MedicationDisplayData data = getTableView().getItems().get(getIndex());
-                    handleDeleteMedication(data);
-                });
-                
-                buttonsBox.getChildren().addAll(editButton, deleteButton);
+            insertController.setOnCancel(this::returnToMedications);
+
+            // Load in main dashboard
+            loadContentInMainDashboard(insertView);
+
+        } catch (Exception e) {
+            System.err.println("Errore nell'apertura del form di inserimento terapia: " + e.getMessage());
+            showErrorAlert("Errore", "Impossibile aprire il form di inserimento.");
+        }
+
+    }
+
+
+
+    private void setupPrescribedMedicationsTable() {
+        System.out.println("setupPrescribedMedicationsTable");
+        patientFullNameColumn.setCellValueFactory( cell ->
+                new SimpleStringProperty(cell.getValue().getName_medication())
+         );
+        medicationNameColumn.setCellValueFactory(cell ->
+                new SimpleStringProperty(cell.getValue().getName_medication())
+        );
+        dosageColumn.setCellValueFactory(cell ->
+                new SimpleStringProperty(cell.getValue().getDose())
+        );
+        frequencyColumn.setCellValueFactory(cell ->
+                new SimpleStringProperty(cell.getValue().getFreq().toString())
+        );
+        instructionsColumn.setCellValueFactory(cell ->
+                new SimpleStringProperty(cell.getValue().getInstructions())
+        );
+
+
+        prescribedMedicationsTable.setStyle("-fx-background-color: #2C3E50; -fx-text-fill: white;");
+    }
+
+
+    private void setupEventHandlers() {
+
+        // Doppio click su riga della tabella farmaci
+        prescribedMedicationsTable.setRowFactory(tv -> {
+            TableRow<Medication> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (!row.isEmpty() && event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+                    Medication med = row.getItem();
+                    showMedicationDetailsPopup(med);
+                }
+            });
+            return row;
+        });
+
+        // Context menu "View" su farmaco
+        setupContextMenu();
+    }
+
+    private void setupContextMenu() {
+
+        MenuItem editItem = new MenuItem("Edit");
+        MenuItem deleteItem = new MenuItem("Delete");
+
+        //Set up actions
+        editItem.setOnAction(e -> {
+            Medication selectedMed = prescribedMedicationsTable.getSelectionModel().getSelectedItem();
+            if (selectedMed != null) {
+                handleEditMedication(selectedMed);
             }
+        });
 
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                } else {
-                    setGraphic(buttonsBox);
+        deleteItem.setOnAction(e -> {
+            Medication selectedMed = prescribedMedicationsTable.getSelectionModel().getSelectedItem();
+            if(selectedMed != null) {
+                try {
+                    handleDeleteMedication(selectedMed);
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
                 }
             }
         });
 
-        medicationsTable.setItems(filteredMedications);
+        ContextMenu contextMenu = new ContextMenu();
+        contextMenu.getItems().addAll(editItem, deleteItem);
+        prescribedMedicationsTable.setRowFactory(tv -> {
+            TableRow<Medication> row = new TableRow<Medication>() {
+
+                @Override
+                protected void updateItem(Medication item, boolean empty) {
+
+                    super.updateItem(item,empty);
+                    if (empty || item == null) {
+                        setStyle("");
+                    }
+                }
+
+                public void updateSelected(boolean selected) {
+                    super.updateSelected(selected);
+                    if (selected && getItem() != null) {
+                        setStyle("-fx-background-color: #1ABC9C; -fx-text-fill: white;");
+                    } else if (getItem() != null) {
+                        setStyle("");
+                    }
+                }
+            };
+            row.setOnMouseClicked(event -> {
+                if(!row.isEmpty() && event.getButton() == javafx.scene.input.MouseButton.PRIMARY && event.getClickCount() == 2) {
+                    Medication med = row.getItem();
+                    showMedicationDetailsPopup(med);
+                }
+            });
+            row.setOnMouseEntered(event -> {
+                if (row.getItem() != null && !row.isSelected()) {
+                    row.setStyle("-fx-background-color: #34495E; -fx-text-fill: white;");
+                }
+            });
+            row.setOnMouseExited( e -> {
+                if (row.getItem() != null && !row.isSelected()) {
+                    row.setStyle("");
+                }
+            });
+            row.contextMenuProperty().bind(
+                    javafx.beans.binding.Bindings.when(row.emptyProperty())
+                            .then((ContextMenu) null)
+                            .otherwise(contextMenu)
+            );
+            return row;
+
+        });
     }
 
-    private void setupFilters() {
-        // Setup status filter
-        statusFilterComboBox.getItems().addAll("All", "Active", "Expired", "Ending Soon");
-        statusFilterComboBox.setValue("All");
-
-        // Setup patient filter
-        patientFilterComboBox.setValue("All Patients");
-        loadPatientFilter();
-    }
-
-    private void loadPatientFilter() {
+    private void handleEditMedication(Medication selectedMedication) {
         try {
-            List<Patient> patients = patientDAO.getAllPatients();
-            ObservableList<String> patientNames = FXCollections.observableArrayList();
-            patientNames.add("All Patients");
-            patientNames.addAll(patients.stream()
-                    .map(p -> p.getName() + " " + p.getSurname())
-                    .collect(Collectors.toList()));
-            patientFilterComboBox.setItems(patientNames);
-        } catch (SQLException e) {
-            System.err.println("Error loading patients for filter: " + e.getMessage());
+            // Load the edit form
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/DoctorDashboardMedicationsEdit.fxml"));
+            Parent editView = loader.load();
+
+            // Get the controller and set up for editing
+            DoctorDashboardMedicationsEditController editController = loader.getController();
+            editController.setMedicationToEdit(selectedMedication);
+
+            // Set callbacks
+            editController.setOnDataUpdated(() -> {
+                refreshData();
+                returnToMedications();
+            });
+
+            editController.setOnCancel(this::returnToMedications);
+
+            // Load in main dashboard
+            loadContentInMainDashboard(editView);
+
+        } catch (Exception e) {
+            System.err.println("Errore nell'apertura del form di modifica sintomo: " + e.getMessage());
+            showErrorAlert("Errore", "Impossibile aprire il form di modifica.");
         }
     }
 
-    private void loadData() {
+
+
+    private void loadContentInMainDashboard(Parent content) {
         try {
-            List<Medication> medications = medicationDAO.getAllMedications();
-            allMedications.clear();
-            
-            for (Medication med : medications) {
-                try {
-                    Patient patient = patientDAO.getPatientById(med.getPatient_id());
-                    String patientName = patient != null ? patient.getName() + " " + patient.getSurname() : "Unknown Patient";
-                    
-                    MedicationDisplayData displayData = new MedicationDisplayData(
-                            med.getId(),
-                            med.getPatient_id(),
-                            patientName,
-                            med.getName_medication(),
-                            med.getDose(),
-                            med.getFreq().getDisplayName(),
-                            med.getStart_date().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                            med.getEnd_date() != null ? med.getEnd_date().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A",
-                            getMedicationStatus(med),
-                            med.getInstructions() != null ? med.getInstructions() : ""
-                    );
-                    
-                    allMedications.add(displayData);
-                } catch (SQLException e) {
-                    System.err.println("Error loading patient data for medication " + med.getId() + ": " + e.getMessage());
+            // CORREZIONE: Usa DoctorDashboardController invece di PatientDashboardController
+            DoctorDashboardController mainController = DoctorDashboardController.getInstance();
+            if (mainController != null) {
+                mainController.loadCenterContentDirect(content);
+                System.out.println("✅ Contenuto caricato nel pannello centrale via controller principale");
+            } else {
+                System.err.println("❌ Controller principale non disponibile - tentativo alternativo");
+                // Metodo alternativo se il singleton fallisce
+                loadContentAlternativeMethod(content);
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Errore nel caricamento del contenuto nel dashboard: " + e.getMessage());
+            e.printStackTrace();
+            // Prova metodo alternativo
+            loadContentAlternativeMethod(content);
+        }
+    }
+
+    private void loadContentAlternativeMethod(Parent content) {
+        try {
+            // Trova il StackPane contentPane tramite la gerarchia dei nodi
+            javafx.scene.layout.StackPane contentPane = findContentPaneInScene();
+
+            if (contentPane != null) {
+                javafx.application.Platform.runLater(() -> {
+                    contentPane.getChildren().clear();
+                    contentPane.getChildren().add(content);
+                });
+                System.out.println("✅ Contenuto caricato con metodo alternativo");
+            } else {
+                System.err.println("❌ Impossibile trovare il contentPane");
+                showErrorAlert("Errore", "Impossibile caricare la vista di modifica. Riprova.");
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Errore nel metodo alternativo: " + e.getMessage());
+            e.printStackTrace();
+            showErrorAlert("Errore", "Errore nel caricamento della vista: " + e.getMessage());
+        }
+    }
+
+    private javafx.scene.layout.StackPane findContentPaneInScene() {
+        try {
+            javafx.scene.Node currentNode = prescribedMedicationsTable;
+
+            // Risali la gerarchia fino alla scena root
+            while (currentNode.getParent() != null) {
+                currentNode = currentNode.getParent();
+
+                // Cerca ricorsivamente il StackPane con id "contentPane"
+                if (currentNode instanceof javafx.scene.Parent) {
+                    javafx.scene.layout.StackPane contentPane = findStackPaneRecursively(currentNode);
+                    if (contentPane != null) {
+                        return contentPane;
+                    }
                 }
             }
-            
-            applyFilters();
-            updateStatistics();
-            
-        } catch (SQLException e) {
-            System.err.println("Error loading medications: " + e.getMessage());
-            showError("Error loading medications", e.getMessage());
+
+            // Se non trova contentPane, cerca qualsiasi StackPane che possa essere il contenitore principale
+            return findAnyStackPane(prescribedMedicationsTable.getScene().getRoot());
+
+        } catch (Exception e) {
+            System.err.println("Errore nella ricerca del contentPane: " + e.getMessage());
+            return null;
         }
     }
 
-    private String getMedicationStatus(Medication med) {
-        LocalDate today = LocalDate.now();
-        LocalDate endDate = med.getEnd_date();
-        
-        if (endDate != null && today.isAfter(endDate)) {
-            return "Expired";
-        } else if (endDate != null && today.plusDays(7).isAfter(endDate)) {
-            return "Ending Soon";
-        } else {
-            return "Active";
-        }
-    }
 
-    private void updateStatistics() {
-        int total = allMedications.size();
-        long active = allMedications.stream().filter(m -> "Active".equals(m.getStatus())).count();
-        long expired = allMedications.stream().filter(m -> "Expired".equals(m.getStatus())).count();
-        long uniquePatients = allMedications.stream().mapToInt(MedicationDisplayData::getPatientId).distinct().count();
+    private javafx.scene.layout.StackPane findStackPaneRecursively(javafx.scene.Node node) {
+        if (node instanceof javafx.scene.layout.StackPane) {
+            javafx.scene.layout.StackPane stackPane = (javafx.scene.layout.StackPane) node;
 
-        totalMedicationsLabel.setText(String.valueOf(total));
-        activeMedicationsLabel.setText(String.valueOf(active));
-        expiredMedicationsLabel.setText(String.valueOf(expired));
-        totalPatientsLabel.setText(String.valueOf(uniquePatients));
-    }
-
-    @FXML
-    private void handleAddMedication() {
-        navigateToInsertView();
-    }
-
-    @FXML
-    private void handleRefresh() {
-        loadData();
-    }
-
-    @FXML
-    private void handlePatientFilter() {
-        applyFilters();
-    }
-
-    @FXML
-    private void handleStatusFilter() {
-        applyFilters();
-    }
-
-    @FXML
-    private void handleSearch() {
-        applyFilters();
-    }
-
-    private void applyFilters() {
-        filteredMedications.clear();
-        
-        String selectedPatient = patientFilterComboBox.getValue();
-        String selectedStatus = statusFilterComboBox.getValue();
-        String searchText = searchField.getText().toLowerCase().trim();
-
-        filteredMedications.addAll(allMedications.stream()
-                .filter(med -> selectedPatient.equals("All Patients") || med.getPatientName().equals(selectedPatient))
-                .filter(med -> selectedStatus.equals("All") || med.getStatus().equals(selectedStatus))
-                .filter(med -> searchText.isEmpty() || 
-                        med.getMedicationName().toLowerCase().contains(searchText) ||
-                        med.getPatientName().toLowerCase().contains(searchText))
-                .collect(Collectors.toList()));
-    }
-
-    private void handleEditMedication(MedicationDisplayData data) {
-        // TODO: Navigate to edit medication view
-        System.out.println("Edit medication: " + data.getMedicationName() + " for patient: " + data.getPatientName());
-    }
-
-    private void handleDeleteMedication(MedicationDisplayData data) {
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Delete Medication");
-        confirmAlert.setHeaderText("Are you sure you want to delete this medication?");
-        confirmAlert.setContentText("Patient: " + data.getPatientName() + "\nMedication: " + data.getMedicationName());
-
-        if (confirmAlert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
-            try {
-                medicationDAO.deleteMedication(data.getId());
-                loadData(); // Refresh the table
-                showSuccess("Medication deleted successfully!");
-            } catch (SQLException e) {
-                System.err.println("Error deleting medication: " + e.getMessage());
-                showError("Error deleting medication", e.getMessage());
+            // Cerca prima per ID "contentPane"
+            if ("contentPane".equals(stackPane.getId())) {
+                return stackPane;
             }
-        }
-    }
 
-    private void navigateToInsertView() {
-        try {
-            StackPane contentPane = findContentPane();
-            if (contentPane != null) {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/DoctorDashboardMedicationsInsert.fxml"));
-                Node insertView = loader.load();
-                contentPane.getChildren().clear();
-                contentPane.getChildren().add(insertView);
-            }
-        } catch (IOException e) {
-            System.err.println("Error navigating to insert view: " + e.getMessage());
-            showError("Navigation Error", "Could not load the medication insert form.");
+            // Se non ha l'ID giusto, continua la ricerca nei figli
         }
-    }
 
-    private StackPane findContentPane() {
-        Node current = medicationsTable.getScene().getRoot();
-        return findStackPaneRecursively(current);
-    }
-
-    private StackPane findStackPaneRecursively(Node node) {
-        if (node instanceof StackPane && 
-            ((StackPane) node).getId() != null && 
-            ((StackPane) node).getId().equals("contentPane")) {
-            return (StackPane) node;
-        }
-        
         if (node instanceof javafx.scene.Parent) {
-            for (Node child : ((javafx.scene.Parent) node).getChildrenUnmodifiable()) {
-                StackPane result = findStackPaneRecursively(child);
+            for (javafx.scene.Node child : ((javafx.scene.Parent) node).getChildrenUnmodifiable()) {
+                javafx.scene.layout.StackPane result = findStackPaneRecursively(child);
                 if (result != null) {
                     return result;
                 }
             }
         }
-        
+
         return null;
     }
 
-    private void showError(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-    private void showSuccess(String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Success");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-    // Inner class for table display data
-    public static class MedicationDisplayData {
-        private final int id;
-        private final int patientId;
-        private final SimpleStringProperty patientName;
-        private final SimpleStringProperty medicationName;
-        private final SimpleStringProperty dosage;
-        private final SimpleStringProperty frequency;
-        private final SimpleStringProperty startDate;
-        private final SimpleStringProperty endDate;
-        private final SimpleStringProperty status;
-        private final SimpleStringProperty instructions;
-
-        public MedicationDisplayData(int id, int patientId, String patientName, String medicationName, 
-                                   String dosage, String frequency, String startDate, String endDate, 
-                                   String status, String instructions) {
-            this.id = id;
-            this.patientId = patientId;
-            this.patientName = new SimpleStringProperty(patientName);
-            this.medicationName = new SimpleStringProperty(medicationName);
-            this.dosage = new SimpleStringProperty(dosage);
-            this.frequency = new SimpleStringProperty(frequency);
-            this.startDate = new SimpleStringProperty(startDate);
-            this.endDate = new SimpleStringProperty(endDate);
-            this.status = new SimpleStringProperty(status);
-            this.instructions = new SimpleStringProperty(instructions);
+    private javafx.scene.layout.StackPane findAnyStackPane(javafx.scene.Node node) {
+        if (node instanceof javafx.scene.layout.StackPane) {
+            return (javafx.scene.layout.StackPane) node;
         }
 
-        // Getters
-        public int getId() { return id; }
-        public int getPatientId() { return patientId; }
-        public String getPatientName() { return patientName.get(); }
-        public String getMedicationName() { return medicationName.get(); }
-        public String getDosage() { return dosage.get(); }
-        public String getFrequency() { return frequency.get(); }
-        public String getStartDate() { return startDate.get(); }
-        public String getEndDate() { return endDate.get(); }
-        public String getStatus() { return status.get(); }
-        public String getInstructions() { return instructions.get(); }
+        if (node instanceof javafx.scene.Parent) {
+            for (javafx.scene.Node child : ((javafx.scene.Parent) node).getChildrenUnmodifiable()) {
+                javafx.scene.layout.StackPane result = findAnyStackPane(child);
+                if (result != null) {
+                    return result;
+                }
+            }
+        }
 
-        // Property getters for TableView
-        public SimpleStringProperty patientNameProperty() { return patientName; }
-        public SimpleStringProperty medicationNameProperty() { return medicationName; }
-        public SimpleStringProperty dosageProperty() { return dosage; }
-        public SimpleStringProperty frequencyProperty() { return frequency; }
-        public SimpleStringProperty startDateProperty() { return startDate; }
-        public SimpleStringProperty endDateProperty() { return endDate; }
-        public SimpleStringProperty statusProperty() { return status; }
-        public SimpleStringProperty instructionsProperty() { return instructions; }
+        return null;
     }
+
+    private void returnToMedications() {
+        try {
+            DoctorDashboardController mainController = DoctorDashboardController.getInstance();
+            if (mainController != null) {
+                mainController.loadCenterContent("DoctorDashboardMedications.fxml");
+                System.out.println("✅ Ritorno alla vista medications completato");
+            } else {
+                System.err.println("❌ Controller principale non disponibile per il ritorno");
+                // Metodo alternativo - ricarica la vista corrente
+                refreshCurrentView();
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Errore nel ritorno alla view delle terapie: " + e.getMessage());
+            e.printStackTrace();
+            refreshCurrentView();
+        }
+    }
+
+    private void refreshCurrentView() {
+        try {
+            javafx.application.Platform.runLater(() -> {
+                try {
+                    refreshData(); // Ricarica i dati
+                    System.out.println("✅ Dati ricaricati con successo");
+                } catch (Exception e) {
+                    System.err.println("❌ Errore nel refresh dei dati: " + e.getMessage());
+                }
+            });
+        } catch (Exception e) {
+            System.err.println("❌ Errore nel refresh della vista: " + e.getMessage());
+        }
+    }
+
+    private void refreshData() {
+        try{
+            loadData();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    private void handleDeleteMedication(Medication selectedMedication) throws SQLException {
+        // Show custom confirmation dialog
+        boolean confirmed = showCustomConfirmationDialog(
+                "Conferma Cancellazione",
+                "Eliminare questa terapia?",
+                String.format(
+                        "Vuoi davvero eliminare la terapia?:\n\n" +
+                                "Paziente: %s\n" +
+                                "Medicina: %s\n" +
+                                "Frequenza: %s\n" +
+                        PatientDAO.getPatientById(selectedMedication.getPatient_id()).getFullName()
+                )
+        );
+        if (confirmed) {
+            // Delete from database
+            try {
+                MedicationDAO medicationDAO = new MedicationDAO();
+                boolean deleted = MedicationDAO.deleteMedication(selectedMedication.getId());
+                boolean deletedLog = LogMedicationDAO.deleteLogsByMedicationId(selectedMedication.getId());
+
+                if (deleted && deletedLog) {
+                    // Remove from table data
+                    prescribedMedications.remove(selectedMedication);
+
+                    showSuccessAlert("Successo", "Terapia eliminata con successo.");
+                    System.out.println("✅ Terapia eliminata con successo");
+                } else {
+                    showErrorAlert("Errore", "Impossibile eliminare la terapia dal database.");
+                }
+
+            } catch (SQLException e) {
+                System.err.println("Errore nell'eliminazione della terapia: " + e.getMessage());
+                showErrorAlert("Errore Database", "Errore nell'eliminazione del sintomo: " + e.getMessage());
+            }
+        }
+    }
+
+
+
+    private void showMedicationDetailsPopup(Medication med) {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/CustomPopup.fxml"));
+            javafx.scene.Parent root = loader.load();
+            it.glucotrack.component.CustomPopupController controller = loader.getController();
+            controller.setTitle("Dettagli Farmaco");
+            controller.setSubtitle(med.getName_medication());
+            javafx.scene.layout.VBox content = controller.getPopupContent();
+            content.getChildren().clear();
+            content.getChildren().addAll(
+                    new javafx.scene.control.Label("Dosaggio: " + med.getName_medication()),
+                    new javafx.scene.control.Label("Frequenza: " + med.getName_medication()),
+                    new javafx.scene.control.Label("Istruzioni: " + med.getInstructions())
+            );
+            javafx.stage.Stage popupStage = new javafx.stage.Stage();
+            popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
+            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.setMinWidth(520);
+            popupStage.setMinHeight(340);
+            controller.setStage(popupStage);
+            popupStage.showAndWait();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    void loadData() throws SQLException {
+        // Carica farmaci prescritti dal dottore
+        System.out.println("Parto con il load");
+        List<Patient> patients = PatientDAO.getPatientsByDoctorId(currentDoctor.getId());
+        List<Medication> meds = new ArrayList<>();
+        for(Patient patient : patients){
+            meds.addAll(patient.getMedications());
+        }
+        System.out.println(meds);
+        prescribedMedications = FXCollections.observableArrayList(
+                meds
+        );
+        prescribedMedicationsTable.setItems(prescribedMedications);
+
+    }
+
+    private void showErrorAlert(String title, String message) {
+        showCustomPopup(title, message, "error");
+    }
+
+    private void showSuccessAlert(String title, String message) {
+        showCustomPopup(title, message, "success");
+    }
+
+    // --- Custom Popup Helpers ---
+    private void showCustomPopup(String title, String message, String type) {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/CustomPopup.fxml"));
+            javafx.scene.Parent root = loader.load();
+            it.glucotrack.component.CustomPopupController controller = loader.getController();
+            controller.setTitle(title);
+            controller.setSubtitle(type.equals("error") ? "Errore" : (type.equals("success") ? "Successo" : "Info"));
+            javafx.scene.layout.VBox content = controller.getPopupContent();
+            content.getChildren().clear();
+            javafx.scene.control.Label label = new javafx.scene.control.Label(message);
+            label.setWrapText(true);
+            content.getChildren().add(label);
+            javafx.stage.Stage popupStage = new javafx.stage.Stage();
+            popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
+            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.setMinWidth(420);
+            popupStage.setMinHeight(200);
+            popupStage.setResizable(false);
+            // Disabilita lo spostamento: rimuovi i listener drag dal title bar custom
+            controller.setStage(popupStage, false); // popup: drag disabilitato
+            popupStage.showAndWait();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean showCustomConfirmationDialog(String title, String subtitle, String message) {
+        final boolean[] result = {false};
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/CustomPopup.fxml"));
+            javafx.scene.Parent root = loader.load();
+            it.glucotrack.component.CustomPopupController controller = loader.getController();
+            controller.setTitle(title);
+            controller.setSubtitle(subtitle);
+            javafx.scene.layout.VBox content = controller.getPopupContent();
+            content.getChildren().clear();
+            javafx.scene.control.Label label = new javafx.scene.control.Label(message);
+            label.setWrapText(true);
+            javafx.scene.control.Button yesBtn = new javafx.scene.control.Button("Sì");
+            javafx.scene.control.Button noBtn = new javafx.scene.control.Button("No");
+            yesBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-background-radius: 8;");
+            noBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-background-radius: 8;");
+            javafx.scene.layout.HBox btnBox = new javafx.scene.layout.HBox(16, yesBtn, noBtn);
+            btnBox.setStyle("-fx-alignment: center; -fx-padding: 18 0 0 0;");
+            content.getChildren().addAll(label, btnBox);
+            javafx.stage.Stage popupStage = new javafx.stage.Stage();
+            popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
+            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.setMinWidth(420);
+            popupStage.setMinHeight(220);
+            popupStage.setResizable(false);
+            // Disabilita lo spostamento: rimuovi i listener drag dal title bar custom
+            // (Assicurati che CustomTitleBarController non implementi drag per questi popup)
+            controller.setStage(popupStage, false); // popup: drag disabilitato
+            yesBtn.setOnAction(ev -> { result[0] = true; popupStage.close(); });
+            noBtn.setOnAction(ev -> { result[0] = false; popupStage.close(); });
+            popupStage.showAndWait();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result[0];
+    }
+
+
 }

@@ -89,6 +89,7 @@
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             medication_id INTEGER NOT NULL,
             edited_by INTEGER NOT NULL, -- FK to user(id)
+            medication_name VARCHAR(100) NOT NULL,
             dose VARCHAR(50) NOT NULL,
             frequency VARCHAR(50) NOT NULL, -- es: 'ONCE_A_DAY', 'TWICE_A_DAY'
             start_date DATE NOT NULL,

@@ -192,9 +192,9 @@ public class UserDAO{
     }
 
 
-    public boolean updatePassword(int userId, String newPassword) throws SQLException {
+    public boolean updatePassword(int userId, String email, String newPassword) throws SQLException {
         // Hash the new password before storing it
-        String hashedPassword = PasswordEncryption.hashPassword(newPassword, userId);
+        String hashedPassword = PasswordUtils.hashPassword(newPassword, email);
         String sql = "UPDATE users SET password = ? WHERE id = ?";
         int rows = DatabaseInteraction.executeUpdate(sql, hashedPassword, userId);
         return rows > 0;
@@ -240,7 +240,7 @@ public class UserDAO{
             User newUser = getUserByEmail(user.getEmail());
             if (newUser != null) {
                 // Now update with the properly hashed password
-                return updatePassword(newUser.getId(), plainPassword);
+                return updatePassword(newUser.getId(), newUser.getEmail(), plainPassword);
             }
         }
 

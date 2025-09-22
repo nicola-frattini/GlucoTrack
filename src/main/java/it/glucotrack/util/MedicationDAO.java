@@ -71,6 +71,7 @@ public class MedicationDAO {
             startDate,           // Use java.sql.Date
             endDate,            // Use java.sql.Date (can be null)
             med.getInstructions());
+
        createMedicationsEdit(med.getPatient_id(), doctorId, med);
        return rows > 0;
 
@@ -107,6 +108,8 @@ public class MedicationDAO {
             try (java.sql.Statement stmt = conn.createStatement();
                  java.sql.ResultSet rs = stmt.executeQuery(getIdSql)) {
                 if (rs.next()) {
+                    med=getMedicationById(rs.getInt(1));
+                    createMedicationsEdit(med.getPatient_id(), doctorId, med);
                     return rs.getInt(1);
                 } else {
                     throw new SQLException("Creating medication failed, no ID obtained.");
@@ -137,7 +140,7 @@ public boolean updateMedication(Medication med, int doctorId) throws SQLExceptio
     return rows > 0;
 }
 
-    public boolean deleteMedication(int id) throws SQLException {
+    public static boolean deleteMedication(int id) throws SQLException {
         String sql = "DELETE FROM medications WHERE id = ?";
         int rows = DatabaseInteraction.executeUpdate(sql, id);
 
@@ -152,19 +155,20 @@ public boolean updateMedication(Medication med, int doctorId) throws SQLExceptio
     public void createMedicationsEdit(int patientId, int doctorId, Medication med) throws SQLException {
 
         // Inserisce nel DB i MedicationEdit
-        String sql = "INSERT INTO medication_edits (medication_id, edited_by, dose, frequency, start_date, end_date, instructions,edit_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO medication_edits (medication_id, edited_by, medication_name, dose, frequency, start_date, end_date, instructions,edit_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         // Convert LocalDate to java.sql.Date for proper database storage
         java.sql.Date startDate = java.sql.Date.valueOf(med.getStart_date());
         java.sql.Date endDate = med.getEnd_date() != null ? java.sql.Date.valueOf(med.getEnd_date()) : null;
         DatabaseInteraction.executeUpdate(sql,
                 med.getId(),
                 doctorId,
+                med.getName_medication(),
                 med.getDose(),
                 med.getFreq().name(), // Use enum name for consistency
                 startDate,           // Use java.sql.Date
                 endDate,            // Use java.sql.Date (can be null)
                 med.getInstructions(),
-                LocalDateTime.now());
+                java.sql.Timestamp.valueOf(LocalDateTime.now()));
 
     };
 
@@ -185,18 +189,15 @@ public boolean updateMedication(Medication med, int doctorId) throws SQLExceptio
 
         return new MedicationEdit(
             rs.getInt("id"),
-            rs.getInt("patient_id"),
-                rs.getTimestamp("edit_time") != null ? rs.getTimestamp("edit_time").toLocalDateTime() : null,
-            rs.getInt("doctor_id"),
             rs.getInt("medication_id"),
-            rs.getString("name"),
+            rs.getInt("edited_by"),
+            rs.getString("medication_name"),
             rs.getString("dose"),
-            Frequency.fromString(rs.getString("frequency")),
-                rs.getString("instructions"),
+            Frequency.valueOf(rs.getString("frequency")), // Assuming frequency is stored as enum name
             rs.getDate("start_date") != null ? rs.getDate("start_date").toLocalDate() : null,
-            rs.getDate("end_date") != null ? rs.getDate("end_date").toLocalDate() : null
-
-
+            rs.getDate("end_date") != null ? rs.getDate("end_date").toLocalDate() : null,
+            rs.getString("instructions"),
+            rs.getTimestamp("edit_time") != null ? rs.getTimestamp("edit_time").toLocalDateTime() : null
         );
 
     }
@@ -262,4 +263,16 @@ public boolean updateMedication(Medication med, int doctorId) throws SQLExceptio
     );
 }
 
+    public List<MedicationEdit> getAllMedicationEdits() {
+        String sql = "SELECT * FROM medication_edits ORDER BY edit_time DESC";
+        List<MedicationEdit> edits = new ArrayList<>();
+        try (ResultSet rs = DatabaseInteraction.executeQuery(sql)) {
+            while (rs.next()) {
+                edits.add(mapResultSetToMedicationEdit(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching medication edits: " + e.getMessage());
+        }
+        return edits;
+    }
 }

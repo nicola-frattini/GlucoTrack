@@ -31,15 +31,6 @@ public class DoctorDashboardHomeController {
     private ComboBox<String> patientFilterCombo;
 
     @FXML
-    private Button managePatientsBtn;
-
-    @FXML
-    private Button manageMedicationsBtn;
-
-    @FXML
-    private Button viewReportsBtn;
-
-    @FXML
     private Button newPrescriptionBtn;
 
     @FXML
@@ -182,36 +173,6 @@ public class DoctorDashboardHomeController {
         box.getChildren().add(content);
 
         return box;
-    }
-
-
-    @FXML
-    private void onManagePatientsClick() {
-        // TODO: Navigate to patients management page
-        System.out.println("Navigate to Patients Management");
-    }
-
-    @FXML
-    private void onManageMedicationsClick() {
-        try {
-            // Find the parent StackPane and load the medications view
-            javafx.scene.layout.StackPane contentPane = findContentPane();
-            if (contentPane != null) {
-                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/DoctorDashboardMedications.fxml"));
-                javafx.scene.Node medicationsView = loader.load();
-                contentPane.getChildren().clear();
-                contentPane.getChildren().add(medicationsView);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Error navigating to medications page: " + e.getMessage());
-        }
-    }
-
-    @FXML
-    private void onViewReportsClick() {
-        // TODO: Navigate to reports page
-        System.out.println("Navigate to Reports");
     }
 
     @FXML

@@ -54,16 +54,13 @@ public class DoctorDashboardPatientsController implements Initializable {
     @FXML private TableColumn<PatientTableData, String> patientNameColumn;
     @FXML private TableColumn<PatientTableData, String> lastGlucoseColumn;
     @FXML private TableColumn<PatientTableData, String> riskStatusColumn;
-    @FXML private TableColumn<PatientTableData, String> lastVisitColumn;
+    @FXML private TableColumn<PatientTableData, String> lastReadingColumn;
     @FXML private TableColumn<PatientTableData, Integer> ageColumn;
-    @FXML private TableColumn<PatientTableData, Void> actionsColumn;
 
     // Context menu
     @FXML private ContextMenu tableContextMenu;
     @FXML private MenuItem viewPatientMenuItem;
     @FXML private MenuItem editPatientMenuItem;
-    @FXML private MenuItem scheduleAppointmentMenuItem;
-    @FXML private MenuItem sendMessageMenuItem;
     @FXML private MenuItem deletePatientMenuItem;
 
 
@@ -110,11 +107,10 @@ public class DoctorDashboardPatientsController implements Initializable {
         patientNameColumn.setCellValueFactory(new PropertyValueFactory<>("fullName"));
         lastGlucoseColumn.setCellValueFactory(new PropertyValueFactory<>("lastGlucoseReading"));
         riskStatusColumn.setCellValueFactory(new PropertyValueFactory<>("riskStatus"));
-        lastVisitColumn.setCellValueFactory(new PropertyValueFactory<>("lastVisitFormatted"));
+        lastReadingColumn.setCellValueFactory(new PropertyValueFactory<>("lastReadingFormatted"));
         ageColumn.setCellValueFactory(new PropertyValueFactory<>("age"));
 
         setupRiskStatusColumn();
-        setupActionsColumn();
 
         patientsTable.setRowFactory(tv -> {
             TableRow<PatientTableData> row = new TableRow<PatientTableData>() {
@@ -191,33 +187,6 @@ public class DoctorDashboardPatientsController implements Initializable {
         });
     }
 
-    private void setupActionsColumn() {
-        actionsColumn.setCellFactory(column -> new TableCell<PatientTableData, Void>() {
-            private final Button viewButton = new Button("View");
-
-            {
-                viewButton.getStyleClass().addAll("btn", "btn-primary", "btn-small");
-                viewButton.setPrefWidth(60);
-                viewButton.setOnAction(event -> {
-                    PatientTableData patientData = getTableView().getItems().get(getIndex());
-                    viewPatientProfile(patientData);
-                });
-            }
-
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                } else {
-                    HBox actionBox = new HBox(viewButton);
-                    actionBox.setAlignment(Pos.CENTER);
-                    setGraphic(actionBox);
-                }
-            }
-        });
-    }
-
     private void setupSearch() {
         searchField.textProperty().addListener((observable, oldValue, newValue) -> {
             filterPatients(newValue);
@@ -244,18 +213,6 @@ public class DoctorDashboardPatientsController implements Initializable {
         editPatientMenuItem.setOnAction(e -> {
             if (selectedPatient != null) {
                 editPatient(selectedPatient);
-            }
-        });
-
-        scheduleAppointmentMenuItem.setOnAction(e -> {
-            if (selectedPatient != null) {
-                scheduleAppointment(selectedPatient);
-            }
-        });
-
-        sendMessageMenuItem.setOnAction(e -> {
-            if (selectedPatient != null) {
-                sendMessage(selectedPatient);
             }
         });
 
@@ -361,15 +318,7 @@ public class DoctorDashboardPatientsController implements Initializable {
         statusLabel.setText("Edit functionality for " + patientData.getFullName() + " coming soon...");
     }
 
-    private void scheduleAppointment(PatientTableData patientData) {
-        System.out.println("Schedule appointment for: " + patientData.getFullName());
-        statusLabel.setText("Scheduling appointment for " + patientData.getFullName() + "...");
-    }
 
-    private void sendMessage(PatientTableData patientData) {
-        System.out.println("Send message to: " + patientData.getFullName());
-        statusLabel.setText("Composing message to " + patientData.getFullName() + "...");
-    }
 
     private void deletePatient(PatientTableData patientData) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you want to delete " + patientData.getFullName() + "?", ButtonType.YES, ButtonType.NO);
@@ -423,7 +372,7 @@ public class DoctorDashboardPatientsController implements Initializable {
         private final SimpleStringProperty fullName;
         private final SimpleStringProperty lastGlucoseReading;
         private final SimpleStringProperty riskStatus;
-        private final SimpleStringProperty lastVisitFormatted;
+        private final SimpleStringProperty lastReadingFormatted;
         private final SimpleIntegerProperty age;
 
         public PatientTableData(Patient patient) {
@@ -432,13 +381,13 @@ public class DoctorDashboardPatientsController implements Initializable {
 
             String glucoseDisplay = "No readings";
             String riskLevel = "Unknown";
-            LocalDateTime lastVisitDateTime = null;
+            LocalDateTime lastReadingDateTime = null;
             if (patient.getGlucoseReadings() != null && !patient.getGlucoseReadings().isEmpty()) {
                 GlucoseMeasurement lastReading = patient.getGlucoseReadings().get(patient.getGlucoseReadings().size() - 1);
                 if (lastReading != null) {
                     glucoseDisplay = lastReading.getGlucoseLevel() + " mg/dL";
                     riskLevel = calculateRiskStatus((int) lastReading.getGlucoseLevel());
-                    lastVisitDateTime = lastReading.getDateAndTime();
+                    lastReadingDateTime = lastReading.getDateAndTime();
                 }
             }
 
@@ -448,27 +397,27 @@ public class DoctorDashboardPatientsController implements Initializable {
             int calculatedAge = Period.between(patient.getBornDate(), LocalDate.now()).getYears();
             this.age = new SimpleIntegerProperty(calculatedAge);
 
-            String lastVisit = "Never";
-            if (lastVisitDateTime != null) {
-                lastVisit = formatLastVisit(lastVisitDateTime);
+            String lastReading = "Never";
+            if (lastReadingDateTime != null) {
+                lastReading = formatlastReading(lastReadingDateTime);
             }
-            this.lastVisitFormatted = new SimpleStringProperty(lastVisit);
+            this.lastReadingFormatted = new SimpleStringProperty(lastReading);
         }
 
         private String calculateRiskStatus(int glucoseLevel) {
-            if (glucoseLevel < 80 || glucoseLevel > 200) {
+            if (glucoseLevel < 70 || glucoseLevel > 180) {
                 return "High";
-            } else if (glucoseLevel < 90 || glucoseLevel > 160) {
+            } else if (glucoseLevel > 140 && glucoseLevel < 180) {
                 return "Moderate";
             } else {
                 return "Normal";
             }
         }
 
-        private String formatLastVisit(LocalDateTime lastVisit) {
-            if (lastVisit == null) return "Never";
+        private String formatlastReading(LocalDateTime lastReading) {
+            if (lastReading == null) return "Never";
 
-            long daysAgo = java.time.temporal.ChronoUnit.DAYS.between(lastVisit.toLocalDate(), LocalDate.now());
+            long daysAgo = java.time.temporal.ChronoUnit.DAYS.between(lastReading.toLocalDate(), LocalDate.now());
             if (daysAgo == 0) return "Today";
             if (daysAgo == 1) return "Yesterday";
             if (daysAgo < 7) return daysAgo + " days ago";
@@ -480,14 +429,14 @@ public class DoctorDashboardPatientsController implements Initializable {
         public String getFullName() { return fullName.get(); }
         public String getLastGlucoseReading() { return lastGlucoseReading.get(); }
         public String getRiskStatus() { return riskStatus.get(); }
-        public String getLastVisitFormatted() { return lastVisitFormatted.get(); }
+        public String getlastReadingFormatted() { return lastReadingFormatted.get(); }
         public int getAge() { return age.get(); }
         public Patient getPatient() { return patient; }
 
         public SimpleStringProperty fullNameProperty() { return fullName; }
         public SimpleStringProperty lastGlucoseReadingProperty() { return lastGlucoseReading; }
         public SimpleStringProperty riskStatusProperty() { return riskStatus; }
-        public SimpleStringProperty lastVisitFormattedProperty() { return lastVisitFormatted; }
+        public SimpleStringProperty lastReadingFormattedProperty() { return lastReadingFormatted; }
         public SimpleIntegerProperty ageProperty() { return age; }
     }
 }

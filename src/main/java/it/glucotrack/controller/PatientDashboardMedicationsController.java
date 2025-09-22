@@ -62,12 +62,10 @@ public class PatientDashboardMedicationsController implements Initializable {
     private ObservableList<Medication> prescribedMedications;
     private ObservableList<LogMedication> LogMedications;
 
-    // Simulazione servizi database - da sostituire con dependency injection
     private Patient currentPatient;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Inizializza servizi fittizi
         try {
             this.currentPatient = PatientDAO.getPatientById(SessionManager.getCurrentUser().getId());
         } catch (SQLException e) {

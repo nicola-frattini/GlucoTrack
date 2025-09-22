@@ -17,7 +17,6 @@ import it.glucotrack.model.Medication;
 import it.glucotrack.model.Patient;
 import it.glucotrack.model.User;
 import it.glucotrack.model.LogMedication;
-import it.glucotrack.util.PasswordEncryption;
 
 
 public class DatabaseMockData {

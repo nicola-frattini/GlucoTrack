@@ -36,6 +36,11 @@ public class DoctorDashboardMedicationsInsertController {
     private PatientDAO patientDAO;
     private LogMedicationDAO logMedicationDAO;
 
+    private Runnable onCancel;
+    private Runnable onDataUpdated;
+
+
+
     @FXML
     public void initialize() {
         medicationDAO = new MedicationDAO();
@@ -347,7 +352,7 @@ public class DoctorDashboardMedicationsInsertController {
         try {
             StackPane contentPane = findContentPane();
             if (contentPane != null) {
-                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/DoctorDashboardMedications.fxml"));
+                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/DoctorDashboardMedications.fxml.fxml"));
                 Node medicationsView = loader.load();
                 contentPane.getChildren().clear();
                 contentPane.getChildren().add(medicationsView);
@@ -419,4 +424,13 @@ public class DoctorDashboardMedicationsInsertController {
     private void handleBackToList() {
         navigateBackToMedicationsList();
     }
+
+    public void setOnDataUpdated(Runnable onDataUpdated) {
+        this.onDataUpdated = onDataUpdated;
+    }
+
+    public void setOnCancel(Runnable onCancel) {
+        this.onCancel = onCancel;
+    }
+
 }

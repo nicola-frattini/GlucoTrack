@@ -35,7 +35,15 @@ public class DoctorDashboardController {
 
     private Doctor doctor;
 
-    @FXML
+    // Istanza statica per accesso globale al dashboard principale
+    private static DoctorDashboardController instance;
+
+    // Metodo statico per ottenere l'istanza corrente
+    public static DoctorDashboardController getInstance() {
+        return instance;
+    }
+
+
     public void initialize() throws SQLException {
         // Carica le informazioni del medico
         loadDoctorInfo();
@@ -91,15 +99,16 @@ public class DoctorDashboardController {
 
     @FXML
     private void onMedicationsClick() {
-        loadCenterContent("DoctorDashboarMedications.fxml");
+        loadCenterContent("DoctorDashboardMedications.fxml");
         setActiveButton(medicationsBtn);
     }
 
-    @FXML void onProfileClick() throws IOException, SQLException {
-        System.out.println("🔄 Caricamento profilo paziente...");
+    @FXML
+    private void onProfileClick() throws IOException, SQLException {
+
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/ProfileView.fxml"));
         Parent profileRoot = loader.load();
-        System.out.println("✅ FXML ProfileView caricato con successo");
+
         ProfileViewController profileController = loader.getController();
         profileController.setUserRole(ProfileViewController.UserRole.DOCTOR_OWN_PROFILE, null);
 
@@ -107,19 +116,18 @@ public class DoctorDashboardController {
         loadCenterContentDirect(profileRoot);
 
 
-        System.out.println("🔄 Impostazione contenuto profilo nel contentPane...");
-        // Non imposto nessun pulsante come attivo per il profilo
         clearActiveButtons();
     }
 
-    private void loadCenterContent(String fxmlFile) {
+    void loadCenterContent(String fxmlFile) {
         try {
-            Node node = FXMLLoader.load(getClass().getResource("/assets/fxml/" + fxmlFile));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/" + fxmlFile));
+            Node node = loader.load();  // qui viene creato il controller e initialize() viene chiamato
             contentPane.getChildren().setAll(node);
         } catch (IOException e) {
             e.printStackTrace();
-            // Puoi mostrare un messaggio di errore all'utente
         }
+
     }
 
     public void loadCenterContentDirect(Node content) {

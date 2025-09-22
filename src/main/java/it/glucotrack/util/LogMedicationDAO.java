@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +12,18 @@ import java.util.List;
 import it.glucotrack.model.LogMedication;
 
 public class LogMedicationDAO {
+
+    public static boolean deleteLogsByMedicationId(int id) {
+        String sql = "DELETE FROM log_medications WHERE medication_id = ?";
+        try {
+            int rows = DatabaseInteraction.executeUpdate(sql, id);
+            System.out.println("Deleted " + rows + " log medications for medication_id " + id);
+            return rows > 0;
+        } catch (SQLException e) {
+            System.err.println("Error deleting log medications: " + e.getMessage());
+            return false;
+        }
+    }
 
     public LogMedication getLogMedicationById(int id) throws SQLException {
         String sql = "SELECT * FROM log_medications WHERE id = ?";
@@ -179,4 +192,18 @@ public class LogMedicationDAO {
         }
         return logs;
     }
+
+    public void deleteFutureLogMedications(int id, LocalDate today) {
+
+        String sql = "DELETE FROM log_medications WHERE medication_id = ? AND date(date_time) > ?";
+        try {
+            int rows = DatabaseInteraction.executeUpdate(sql, id, today);
+            System.out.println("Deleted " + rows + " future log medications for medication_id " + id);
+        } catch (SQLException e) {
+            System.err.println("Error deleting future log medications: " + e.getMessage());
+        }
+
+    }
+
+
 }
