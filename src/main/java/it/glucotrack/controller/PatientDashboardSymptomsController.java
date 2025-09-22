@@ -57,26 +57,17 @@ public class PatientDashboardSymptomsController implements Initializable {
             throw new RuntimeException(e);
         }
 
-        initializeServices();
+        this.symptomDAO = new SymptomDAO();
 
-
-        // Setup tabella
         setupSymptomsTable();
 
-        // Setup eventi
         setupEventHandlers();
 
-        // Carica dati
         try {
             loadData();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private void initializeServices() {
-        // Initialize DAO service
-        this.symptomDAO = new SymptomDAO();
     }
 
     private void setupSymptomsTable() {
@@ -138,15 +129,15 @@ public class PatientDashboardSymptomsController implements Initializable {
             javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/CustomPopup.fxml"));
             javafx.scene.Parent root = loader.load();
             it.glucotrack.component.CustomPopupController controller = loader.getController();
-            controller.setTitle("Dettagli Sintomo");
+            controller.setTitle("Symptom details");
             controller.setSubtitle(sym.getSymptomName());
             javafx.scene.layout.VBox content = controller.getPopupContent();
             content.getChildren().clear();
             content.getChildren().addAll(
-                new javafx.scene.control.Label("Gravità: " + sym.getGravity()),
-                new javafx.scene.control.Label("Durata: " + sym.getDuration()),
-                new javafx.scene.control.Label("Data/Ora: " + sym.getDateAndTime().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))),
-                new javafx.scene.control.Label("Note: " + ((sym.getNotes() == null || sym.getNotes().isEmpty()) ? "Nessuna" : sym.getNotes()))
+                new javafx.scene.control.Label("Severity: " + sym.getGravity()),
+                new javafx.scene.control.Label("Duration: " + sym.getDuration()),
+                new javafx.scene.control.Label("Date/Time: " + sym.getDateAndTime().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))),
+                new javafx.scene.control.Label("Notes: " + ((sym.getNotes() == null || sym.getNotes().isEmpty()) ? "Nessuna" : sym.getNotes()))
             );
             javafx.stage.Stage popupStage = new javafx.stage.Stage();
             popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
@@ -162,8 +153,8 @@ public class PatientDashboardSymptomsController implements Initializable {
     
     private void setupContextMenu() {
         // Create context menu items
-        MenuItem editItem = new MenuItem("Modifica");
-        MenuItem deleteItem = new MenuItem("Cancella");
+        MenuItem editItem = new MenuItem("Edit");
+        MenuItem deleteItem = new MenuItem("Delete");
         
         // Set up actions
         editItem.setOnAction(e -> {
@@ -204,19 +195,21 @@ public class PatientDashboardSymptomsController implements Initializable {
                     }
                 }
             };
-            // Doppio click per mostrare i dettagli
+            // Double click to show details
             row.setOnMouseClicked(event -> {
                 if (!row.isEmpty() && event.getButton() == javafx.scene.input.MouseButton.PRIMARY && event.getClickCount() == 2) {
                     Symptom sym = row.getItem();
                     showSymptomDetailsPopup(sym);
                 }
             });
+
             // Add hover effect
             row.setOnMouseEntered(e -> {
                 if (row.getItem() != null && !row.isSelected()) {
                     row.setStyle("-fx-background-color: rgba(255, 255, 255, 0.1);");
                 }
             });
+            // Remove hover effect
             row.setOnMouseExited(e -> {
                 if (row.getItem() != null && !row.isSelected()) {
                     row.setStyle("");
@@ -258,26 +251,26 @@ public class PatientDashboardSymptomsController implements Initializable {
             loadContentInMainDashboard(editView);
             
         } catch (Exception e) {
-            System.err.println("Errore nell'apertura del form di modifica sintomo: " + e.getMessage());
-            showErrorAlert("Errore", "Impossibile aprire il form di modifica.");
+            System.err.println("Error during symptom edit: " + e.getMessage());
+            showErrorAlert("Error", "Couldn't open edit form.");
         }
     }
     
     private void handleDeleteSymptom(Symptom selectedSymptom) {
         // Show custom confirmation dialog
         boolean confirmed = showCustomConfirmationDialog(
-            "Conferma Cancellazione",
-            "Eliminare questo sintomo?",
+            "Confirm Deletion",
+            "Do you want to delete this symptom?",
             String.format(
-                "Vuoi davvero eliminare il sintomo:\n\n" +
-                "Nome: %s\n" +
-                "Gravità: %s\n" +
-                "Data: %s\n" +
+                "Do you really wan to delete the symptom:\n\n" +
+                "Name: %s\n" +
+                "Severity: %s\n" +
+                "Date: %s\n" +
                 "Note: %s",
                 selectedSymptom.getSymptomName(),
                 selectedSymptom.getGravity(),
                 selectedSymptom.getDateAndTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
-                selectedSymptom.getNotes().isEmpty() ? "Nessuna nota" : selectedSymptom.getNotes()
+                selectedSymptom.getNotes().isEmpty() ? "No notes" : selectedSymptom.getNotes()
             )
         );
         if (confirmed) {
@@ -290,15 +283,14 @@ public class PatientDashboardSymptomsController implements Initializable {
                     // Remove from table data
                     symptoms.remove(selectedSymptom);
                     
-                    showSuccessAlert("Successo", "Sintomo eliminato con successo.");
-                    System.out.println("✅ Sintomo eliminato con successo");
+                    showSuccessAlert("Success", "Symptom successfully deleted.");
                 } else {
-                    showErrorAlert("Errore", "Impossibile eliminare il sintomo dal database.");
+                    showErrorAlert("Error", "Can't delete the symptom from the database.");
                 }
                 
             } catch (SQLException e) {
-                System.err.println("Errore nell'eliminazione del sintomo: " + e.getMessage());
-                showErrorAlert("Errore Database", "Errore nell'eliminazione del sintomo: " + e.getMessage());
+                System.err.println("Errord symptom deletion: " + e.getMessage());
+                showErrorAlert("Errord Database", " error during symptom deletion: " + e.getMessage());
             }
         }
     }
@@ -318,7 +310,7 @@ public class PatientDashboardSymptomsController implements Initializable {
             javafx.scene.Parent root = loader.load();
             it.glucotrack.component.CustomPopupController controller = loader.getController();
             controller.setTitle(title);
-            controller.setSubtitle(type.equals("error") ? "Errore" : (type.equals("success") ? "Successo" : "Info"));
+            controller.setSubtitle(type.equals("error") ? "Error" : (type.equals("success") ? "Success" : "Info"));
             javafx.scene.layout.VBox content = controller.getPopupContent();
             content.getChildren().clear();
             javafx.scene.control.Label label = new javafx.scene.control.Label(message);
@@ -330,8 +322,8 @@ public class PatientDashboardSymptomsController implements Initializable {
             popupStage.setMinWidth(420);
             popupStage.setMinHeight(200);
             popupStage.setResizable(false);
-            // Disabilita lo spostamento: rimuovi i listener drag dal title bar custom
-            controller.setStage(popupStage, false); // popup: drag disabilitato
+
+            controller.setStage(popupStage, false); // popup: drag disabled
             popupStage.showAndWait();
         } catch (Exception e) {
             e.printStackTrace();
@@ -363,9 +355,8 @@ public class PatientDashboardSymptomsController implements Initializable {
             popupStage.setMinWidth(420);
             popupStage.setMinHeight(220);
             popupStage.setResizable(false);
-            // Disabilita lo spostamento: rimuovi i listener drag dal title bar custom
-            // (Assicurati che CustomTitleBarController non implementi drag per questi popup)
-            controller.setStage(popupStage, false); // popup: drag disabilitato
+
+            controller.setStage(popupStage, false); // popup: drag disabled
             yesBtn.setOnAction(ev -> { result[0] = true; popupStage.close(); });
             noBtn.setOnAction(ev -> { result[0] = false; popupStage.close(); });
             popupStage.showAndWait();
@@ -383,7 +374,6 @@ public class PatientDashboardSymptomsController implements Initializable {
     }
 
     private void handleAddNewSymptom() {
-        System.out.println("➕ Pulsante Add New Symptom cliccato!");
         openSymptomInsertForm();
     }
 
@@ -399,72 +389,63 @@ public class PatientDashboardSymptomsController implements Initializable {
     }
 
     
-    // Metodo per aprire il form di inserimento sintomi nel pannello centrale
+
     private void openSymptomInsertForm() {
         try {
-            System.out.println("🔄 Apertura form inserimento sintomi da sezione sintomi...");
-            
-            // Carica il form nel pannello centrale del dashboard principale
+
+
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/PatientDashboardSymptomInsert.fxml"));
             Parent symptomInsertView = loader.load();
-            System.out.println("✅ FXML sintomi caricato con successo");
-            
-            // Ottieni il controller del form
+
+
+            // Get form controller
             PatientDashboardSymptomsInsertController insertController = loader.getController();
-            System.out.println("✅ Controller sintomi ottenuto: " + (insertController != null ? "OK" : "NULL"));
-            
-            // Imposta il callback per refresh dei dati quando si salva
+
             insertController.setOnDataSaved(() -> {
                 try {
                     refreshData();
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
-                // Dopo il salvataggio, torna alla sezione sintomi
                 returnToSymptoms();
             });
             
-            // Imposta il callback per l'annullamento
             insertController.setOnCancel(this::returnToSymptoms);
-            System.out.println("✅ Callback sintomi impostati");
-            
-            // Sostituisce il contenuto centrale con il form
+
             loadContentInMainDashboard(symptomInsertView);
             
         } catch (Exception e) {
-            System.err.println("❌ Errore nell'apertura del form di inserimento sintomi: " + e.getMessage());
+            System.err.println("Error during insert form loading: " + e.getMessage());
             e.printStackTrace();
         }
     }
     
-    // Metodo per caricare contenuto nel pannello centrale del dashboard principale
+
     private void loadContentInMainDashboard(Parent content) {
         try {
             PatientDashboardController mainController = PatientDashboardController.getInstance();
             if (mainController != null) {
                 mainController.loadCenterContentDirect(content);
-                System.out.println("✅ Contenuto caricato nel pannello centrale via controller principale");
             } else {
-                System.err.println("❌ Controller principale non disponibile");
+                System.err.println("Principal controller not available to load content.");
             }
         } catch (Exception e) {
-            System.err.println("❌ Errore nel caricamento del contenuto nel dashboard: " + e.getMessage());
+            System.err.println("Error during content loading: " + e.getMessage());
             e.printStackTrace();
         }
     }
     
-    // Metodo per tornare alla sezione sintomi
+
     private void returnToSymptoms() {
         try {
             PatientDashboardController mainController = PatientDashboardController.getInstance();
             if (mainController != null) {
                 mainController.loadCenterContent("PatientDashboardSymptoms.fxml");
-                System.out.println("✅ Ritorno alla sezione sintomi completato");
             } else {
-                System.err.println("❌ Controller principale non disponibile per il ritorno alla sezione sintomi");
+                System.err.println("Principal controller not available to return to symptoms.");
             }
         } catch (Exception e) {
-            System.err.println("❌ Errore nel ritorno alla sezione sintomi: " + e.getMessage());
+            System.err.println("Error during the return: " + e.getMessage());
             e.printStackTrace();
         }
     }

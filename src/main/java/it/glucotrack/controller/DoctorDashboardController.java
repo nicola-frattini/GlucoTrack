@@ -13,7 +13,7 @@ import java.sql.SQLException;
 
 import it.glucotrack.util.SessionManager;
 import it.glucotrack.model.User;
-import it.glucotrack.model.Doctor; // Importa la classe Doctor se esiste
+import it.glucotrack.model.Doctor;
 
 public class DoctorDashboardController {
 
@@ -35,24 +35,18 @@ public class DoctorDashboardController {
 
     private Doctor doctor;
 
-    // Istanza statica per accesso globale al dashboard principale
-    private static DoctorDashboardController instance;
-
-    // Metodo statico per ottenere l'istanza corrente
-    public static DoctorDashboardController getInstance() {
-        return instance;
-    }
 
 
     public void initialize() throws SQLException {
-        // Carica le informazioni del medico
+
         loadDoctorInfo();
 
         this.doctor = DoctorDAO.getDoctorById(SessionManager.getInstance().getCurrentUserId());
 
-        // Carica la dashboard di default
+
         loadCenterContent("DoctorDashboardHome.fxml");
-        setActiveButton(dashboardBtn); // Attiva il pulsante della dashboard per default
+        setActiveButton(dashboardBtn);
+
     }
 
     private void loadDoctorInfo() {
@@ -62,25 +56,21 @@ public class DoctorDashboardController {
                 String displayName = currentUser.getName() + " " + currentUser.getSurname();
                 doctorNameLabel.setText(displayName);
 
-                // Assicurati che il ruolo sia disponibile nell'oggetto User o Doctor
-                // Se hai una classe Doctor, puoi fare un cast
+
+
                 if (currentUser instanceof Doctor) {
                     Doctor currentDoctor = (Doctor) currentUser;
-                    doctorRoleLabel.setText(currentDoctor.getSpecialization()); // Assumendo che esista un metodo getRole()
+                    doctorRoleLabel.setText(currentDoctor.getSpecialization());
                 } else {
-                    // Imposta un ruolo di default se non è un medico o se il ruolo non è specificato
-                    doctorRoleLabel.setText("Medico generico");
+                    doctorRoleLabel.setText("Doctor");
                 }
-                System.out.println("📊 Dashboard caricato per medico: " + displayName);
             } else {
-                doctorNameLabel.setText("Dottore non trovato");
+                doctorNameLabel.setText("Doctor not found");
                 doctorRoleLabel.setText("");
-                System.err.println("❌ Nessun utente in sessione nel DoctorDashboard!");
             }
         } catch (Exception e) {
             doctorNameLabel.setText("Errore caricamento");
             doctorRoleLabel.setText("");
-            System.err.println("❌ Errore nel caricamento info medico: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -122,7 +112,7 @@ public class DoctorDashboardController {
     void loadCenterContent(String fxmlFile) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/" + fxmlFile));
-            Node node = loader.load();  // qui viene creato il controller e initialize() viene chiamato
+            Node node = loader.load();
             contentPane.getChildren().setAll(node);
         } catch (IOException e) {
             e.printStackTrace();
@@ -139,22 +129,20 @@ public class DoctorDashboardController {
     private void onLogoutClick() {
         try {
             SessionManager.getInstance().logout();
-            System.out.println("👋 Logout eseguito con successo");
         } catch (Exception e) {
-            System.err.println("❌ Errore durante il logout: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     private void setActiveButton(Button activeBtn) {
-        // Cambia lo stile dei pulsanti per evidenziare quello attivo
+
         dashboardBtn.setStyle(getButtonStyle(dashboardBtn == activeBtn));
         patientsBtn.setStyle(getButtonStyle(patientsBtn == activeBtn));
         medicationsBtn.setStyle(getButtonStyle(medicationsBtn == activeBtn));
     }
 
     private void clearActiveButtons() {
-        // Imposta tutti i pulsanti come non attivi
+
         dashboardBtn.setStyle(getButtonStyle(false));
         patientsBtn.setStyle(getButtonStyle(false));
         medicationsBtn.setStyle(getButtonStyle(false));

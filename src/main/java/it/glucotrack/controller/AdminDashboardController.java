@@ -82,9 +82,7 @@ public class AdminDashboardController {
     private void onLogoutClick() {
         try {
             SessionManager.getInstance().logout();
-            System.out.println("👋 Logout eseguito con successo");
         } catch (Exception e) {
-            System.err.println("❌ Errore durante il logout: " + e.getMessage());
             e.printStackTrace();
         }
     }

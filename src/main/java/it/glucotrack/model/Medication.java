@@ -4,9 +4,13 @@ package it.glucotrack.model;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
 import it.glucotrack.util.LogMedicationDAO;
 
-//ASSOLUTAMENTE DA RIVEDERE
+
+
+
+
 public class Medication {
 
     private int id;

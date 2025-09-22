@@ -12,45 +12,35 @@ public class DatabaseInitializer {
 
     public static void initializeDatabase() {
         try {
-            System.out.println("🔧 Inizializzazione database...");
-            
-            // 1. Crea connessione (questo creerà il file .sqlite se non esiste)
+
+            // Create a  connection
             Connection conn = DatabaseInteraction.connect();
-            System.out.println("✅ File database creato/connesso");
-            
-            // 2. Controlla se le tabelle esistono già
+
             if (!tablesExist(conn)) {
-                // 3. Esegui lo schema SQL
+                //Execute the SQLSchema
                 executeSchemaSQL(conn);
-                System.out.println("✅ Tabelle create");
-                
-                // 4. Popola con dati mock
+
+                // Populate with Mock Data
                 DatabaseMockData.populateDatabase();
-                System.out.println("✅ Dati mock inseriti");
-            } else {
-                System.out.println("✅ Database già inizializzato");
             }
-            
-            // 5. Stampa contenuto database per debug
+
             DatabaseMockData.printDatabaseContents();
-            
-            System.out.println("🎉 Database pronto!");
-            
+
         } catch (SQLException e) {
-            System.err.println("❌ Errore durante l'inizializzazione: " + e.getMessage());
+            System.err.println("Error during the initialization: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     private static void executeSchemaSQL(Connection conn) throws SQLException {
         try {
-            // Leggi il file Schema.sql dalle risorse
+
             InputStream inputStream = DatabaseInitializer.class
                 .getClassLoader()
                 .getResourceAsStream("database/Schema.sql");
             
             if (inputStream == null) {
-                throw new RuntimeException("File Schema.sql non trovato in resources/database/");
+                throw new RuntimeException("File Schema.sql not found in resources/database/");
             }
             
             StringBuilder sqlContent = new StringBuilder();
@@ -60,38 +50,37 @@ public class DatabaseInitializer {
                     sqlContent.append(line).append("\n");
                 }
             }
-            
-            // Esegui le istruzioni SQL in due fasi: prima le tabelle, poi gli indici
+
+            // Execute the schema
             try (Statement stmt = conn.createStatement()) {
                 String[] statements = sqlContent.toString().split(";");
                 
-                // Fase 1: Esegui solo i CREATE TABLE
-                System.out.println("  📋 Creazione tabelle...");
+                // Execute the CREATE TABLE
                 for (String sql : statements) {
                     String cleanSql = cleanSqlStatement(sql);
                     if (!cleanSql.isEmpty() && cleanSql.toUpperCase().startsWith("CREATE TABLE")) {
                         try {
                             stmt.execute(cleanSql);
-                            System.out.println("  ✅ Tabella creata: " + extractTableName(cleanSql));
+                            System.out.println("Created: " + extractTableName(cleanSql));
                         } catch (SQLException e) {
-                            System.err.println("❌ Errore creazione tabella: " + cleanSql.substring(0, Math.min(100, cleanSql.length())));
+                            System.err.println("Error during the creation of " + cleanSql.substring(0, Math.min(100, cleanSql.length())));
                             throw e;
                         }
                     }
                 }
-                
-                // Fase 2: Esegui gli indici e altri statement
-                System.out.println("  🔍 Creazione indici...");
+
+
+                // Execute index and other statements
                 for (String sql : statements) {
                     String cleanSql = cleanSqlStatement(sql);
                     if (!cleanSql.isEmpty() && !cleanSql.toUpperCase().startsWith("CREATE TABLE")) {
                         try {
                             stmt.execute(cleanSql);
                             if (cleanSql.toUpperCase().startsWith("CREATE INDEX")) {
-                                System.out.println("  ✅ Indice creato: " + extractIndexName(cleanSql));
+                                System.out.println("Idex created: " + extractIndexName(cleanSql));
                             }
                         } catch (SQLException e) {
-                            System.err.println("❌ Errore durante l'esecuzione di: " + cleanSql.substring(0, Math.min(100, cleanSql.length())));
+                            System.err.println("Error during the execution of " + cleanSql.substring(0, Math.min(100, cleanSql.length())));
                             throw e;
                         }
                     }
@@ -99,18 +88,16 @@ public class DatabaseInitializer {
             }
             
         } catch (IOException e) {
-            throw new SQLException("Errore durante la lettura del file Schema.sql", e);
+            throw new SQLException("Error during Schema.sql reading", e);
         }
     }
 
-    // Metodo per reset completo del database
     public static void resetDatabase() {
         try {
-            System.out.println("🔄 Reset database...");
-            
+
             Connection conn = DatabaseInteraction.connect();
             
-            // Drop tutte le tabelle
+            // Drop all the tables
             String[] tables = {
                 "admin_managed_users", "risk_factors", "patient_symptoms", 
                 "log_medications", "medications", "glucose_measurements", "users"
@@ -121,46 +108,47 @@ public class DatabaseInitializer {
                     try {
                         stmt.execute("DROP TABLE IF EXISTS " + table);
                     } catch (SQLException e) {
-                        // Ignora errori se la tabella non esiste
+                        // Ignore errors if table doesn't exist
                     }
                 }
             }
             
-            // Ricrea tutto
+            // Recreate everything
             executeSchemaSQL(conn);
             DatabaseMockData.populateDatabase();
             
-            System.out.println("✅ Database resettato e ripopolato!");
+            System.out.println("Database recreated!");
             
         } catch (SQLException e) {
-            System.err.println("❌ Errore durante il reset: " + e.getMessage());
+            System.err.println("Errore during the reset: " + e.getMessage());
         }
     }
 
-    // Controlla se le tabelle principali esistono
     private static boolean tablesExist(Connection conn) {
         try (Statement stmt = conn.createStatement()) {
-            // Prova a fare una query su una tabella chiave
+            // Little check
             stmt.executeQuery("SELECT COUNT(*) FROM users LIMIT 1");
             return true;
         } catch (SQLException e) {
-            // Se la query fallisce, le tabelle non esistono
+                // Tables doesn't exist
             return false;
         }
     }
 
-    // Metodi helper per la pulizia degli statement SQL
+    //========================
+    //==== HELPER METHODS ====
+    //========================
+
     private static String cleanSqlStatement(String sql) {
         if (sql == null) return "";
         
-        // Rimuovi commenti e pulisci
         String[] lines = sql.split("\n");
         StringBuilder cleanSql = new StringBuilder();
         
         for (String line : lines) {
             String cleanLine = line.trim();
             if (!cleanLine.isEmpty() && !cleanLine.startsWith("--")) {
-                // Rimuovi commenti inline
+
                 int commentIndex = cleanLine.indexOf("--");
                 if (commentIndex > 0) {
                     cleanLine = cleanLine.substring(0, commentIndex).trim();
@@ -175,7 +163,7 @@ public class DatabaseInitializer {
     }
     
     private static String extractTableName(String createTableSql) {
-        // Estrae il nome della tabella da "CREATE TABLE table_name ..."
+
         String[] parts = createTableSql.split("\\s+");
         for (int i = 0; i < parts.length - 1; i++) {
             if (parts[i].equalsIgnoreCase("TABLE")) {
@@ -186,7 +174,7 @@ public class DatabaseInitializer {
     }
     
     private static String extractIndexName(String createIndexSql) {
-        // Estrae il nome dell'indice da "CREATE INDEX index_name ..."
+
         String[] parts = createIndexSql.split("\\s+");
         for (int i = 0; i < parts.length - 1; i++) {
             if (parts[i].equalsIgnoreCase("INDEX")) {
@@ -196,7 +184,7 @@ public class DatabaseInitializer {
         return "unknown";
     }
 
-    // Main per test
+    // Main for test
     public static void main(String[] args) {
         if (args.length > 0 && args[0].equals("reset")) {
             resetDatabase();

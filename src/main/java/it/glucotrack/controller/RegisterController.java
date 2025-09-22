@@ -5,7 +5,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
-import it.glucotrack.model.User;
 import it.glucotrack.model.Patient;
 import it.glucotrack.model.Doctor;
 import it.glucotrack.model.Gender;
@@ -124,7 +123,7 @@ public class RegisterController {
             protected void updateItem(Doctor doctor, boolean empty) {
                 super.updateItem(doctor, empty);
                 if (empty || doctor == null) {
-                    setText("👨‍⚕️ Select Referring Doctor");
+                    setText("Select Referring Doctor");
                 } else {
                     setText(doctor.getFullName() + " - " + doctor.getSpecialization());
                 }

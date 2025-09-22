@@ -3,7 +3,6 @@ import it.glucotrack.model.Patient;
 import it.glucotrack.util.PatientDAO;
 import it.glucotrack.model.LogMedication;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.scene.input.MouseButton;
 
 import javafx.collections.FXCollections;
@@ -11,17 +10,12 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.util.Callback;
 import java.net.URL;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Optional;
-import it.glucotrack.model.User;
 import it.glucotrack.util.MedicationDAO;
 import it.glucotrack.util.LogMedicationDAO;
 import it.glucotrack.util.SessionManager;
@@ -72,14 +66,11 @@ public class PatientDashboardMedicationsController implements Initializable {
             throw new RuntimeException(e);
         }
 
-        // Setup tabelle
         setupPrescribedMedicationsTable();
         setupIntakeLogTable();
 
-        // Setup eventi
         setupEventHandlers();
 
-        // Carica dati
         try {
             loadData();
         } catch (SQLException e) {
@@ -116,7 +107,7 @@ public class PatientDashboardMedicationsController implements Initializable {
                         MedicationDAO.getMedicationById(cell.getValue().getMedication_id()).getName_medication()
                 );
             } catch (SQLException e) {
-                return new SimpleStringProperty("Errore");
+                return new SimpleStringProperty("Error");
             }
         });
 
@@ -164,18 +155,16 @@ public class PatientDashboardMedicationsController implements Initializable {
 
         intakeLogTable.setStyle("-fx-background-color: #2C3E50; -fx-text-fill: white; " +
                                "-fx-selection-bar: #3498db; -fx-selection-bar-non-focused: #5dade2;");
-        
-        // Configura la selezione della tabella
+
         intakeLogTable.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         
-        // Aggiungi context menu con tasto destro
         setupContextMenu();
     }
     
     private void setupContextMenu() {
         ContextMenu contextMenu = new ContextMenu();
         
-        MenuItem markTakenItem = new MenuItem("✓ Segna come Presa");
+        MenuItem markTakenItem = new MenuItem("Mark as TAKEN");
         markTakenItem.setOnAction(e -> {
             LogMedication selectedLog = intakeLogTable.getSelectionModel().getSelectedItem();
             if (selectedLog != null) {
@@ -183,7 +172,7 @@ public class PatientDashboardMedicationsController implements Initializable {
             }
         });
         
-        MenuItem markMissedItem = new MenuItem("✗ Segna come Non Presa");
+        MenuItem markMissedItem = new MenuItem("Mark as NOT TAKEN");
         markMissedItem.setOnAction(e -> {
             LogMedication selectedLog = intakeLogTable.getSelectionModel().getSelectedItem();
             if (selectedLog != null) {
@@ -193,10 +182,10 @@ public class PatientDashboardMedicationsController implements Initializable {
         
         contextMenu.getItems().addAll(markTakenItem, markMissedItem);
         
-        // Aggiungi il context menu alla tabella
+
         intakeLogTable.setContextMenu(contextMenu);
         
-        // Configura il context menu e l'evidenziazione delle righe
+
         intakeLogTable.setRowFactory(tv -> {
             TableRow<LogMedication> row = new TableRow<LogMedication>() {
                 @Override
@@ -206,7 +195,7 @@ public class PatientDashboardMedicationsController implements Initializable {
                     if (empty || item == null) {
                         setStyle("");
                     } else {
-                        // Mantieni lo stile normale di default (trasparente)
+
                         if (!isSelected()) {
                             setStyle("");
                         }
@@ -219,19 +208,19 @@ public class PatientDashboardMedicationsController implements Initializable {
                     
                     if (getItem() != null) {
                         if (selected) {
-                            // Stile evidenziato per la riga selezionata
+
                             setStyle("-fx-background-color: #3498db; -fx-text-fill: white; " +
                                    "-fx-border-color: #2980b9; -fx-border-width: 2px; " +
                                    "-fx-effect: dropshadow(gaussian, #2980b9, 5, 0, 0, 0);");
                         } else {
-                            // Ritorna allo stile normale (trasparente, usa lo stile della tabella)
+
                             setStyle("");
                         }
                     }
                 }
             };
             
-            // Aggiungi hover effect leggero per migliorare l'usabilità
+
             row.setOnMouseEntered(e -> {
                 if (row.getItem() != null && !row.isSelected()) {
                     row.setStyle("-fx-background-color: rgba(255, 255, 255, 0.1);");
@@ -244,23 +233,23 @@ public class PatientDashboardMedicationsController implements Initializable {
                 }
             });
             
-            // Context menu con selezione automatica della riga
+
             row.setOnContextMenuRequested(e -> {
                 if (row.getItem() != null) {
-                    // Seleziona automaticamente la riga quando si clicca tasto destro
+
                     intakeLogTable.getSelectionModel().select(row.getIndex());
                     
-                    // Aggiorna il testo degli item in base allo stato attuale
+
                     LogMedication log = row.getItem();
                     if (log.isTaken()) {
-                        markTakenItem.setText("✓ Già Presa");
+                        markTakenItem.setText("Already TAKEN");
                         markTakenItem.setDisable(true);
-                        markMissedItem.setText("✗ Segna come Non Presa");
+                        markMissedItem.setText("Mark as NOT TAKEN");
                         markMissedItem.setDisable(false);
                     } else {
-                        markTakenItem.setText("✓ Segna come Presa");
+                        markTakenItem.setText("Mark as TAKEN");
                         markTakenItem.setDisable(false);
-                        markMissedItem.setText("✗ Già Non Presa");
+                        markMissedItem.setText("NOT TAKEN");
                         markMissedItem.setDisable(true);
                     }
                     contextMenu.show(row, e.getScreenX(), e.getScreenY());
@@ -288,7 +277,7 @@ public class PatientDashboardMedicationsController implements Initializable {
     private void setupEventHandlers() {
         logMedicationBtn.setOnAction(e -> handleLogMedicationIntake());
 
-        // Doppio click su riga della tabella farmaci
+
         prescribedMedicationsTable.setRowFactory(tv -> {
             TableRow<Medication> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
@@ -300,7 +289,7 @@ public class PatientDashboardMedicationsController implements Initializable {
             return row;
         });
 
-        // Context menu "View" su farmaco
+
         MenuItem viewItem = new MenuItem("View Details");
         viewItem.setOnAction(e -> {
             Medication selected = prescribedMedicationsTable.getSelectionModel().getSelectedItem();
@@ -315,13 +304,14 @@ public class PatientDashboardMedicationsController implements Initializable {
             javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/CustomPopup.fxml"));
             javafx.scene.Parent root = loader.load();
             it.glucotrack.component.CustomPopupController controller = loader.getController();
-            controller.setTitle("Dettagli Farmaco");
+            controller.setTitle("Medication Details");
             controller.setSubtitle(med.getName_medication());
             javafx.scene.layout.VBox content = controller.getPopupContent();
             content.getChildren().clear();
             content.getChildren().addAll(
-                new javafx.scene.control.Label("Dosaggio: " + med.getName_medication()),
-                new javafx.scene.control.Label("Frequenza: " + med.getName_medication()),
+                new javafx.scene.control.Label("Nome: " + med.getName_medication()),
+                new javafx.scene.control.Label("Dosaggio: " + med.getDose()),
+                new javafx.scene.control.Label("Frequenza: " + med.getFreq()),
                 new javafx.scene.control.Label("Istruzioni: " + med.getInstructions())
             );
             javafx.stage.Stage popupStage = new javafx.stage.Stage();
@@ -337,7 +327,7 @@ public class PatientDashboardMedicationsController implements Initializable {
     }
 
     private void loadData() throws SQLException {
-        // Carica farmaci prescritti
+
         prescribedMedications = FXCollections.observableArrayList(
                 currentPatient.getMedications()
         );
@@ -354,18 +344,18 @@ public class PatientDashboardMedicationsController implements Initializable {
     }
 
     private void handleLogMedicationIntake() {
-        // Crea dialog per logging
-        // Serve a
+
+
         Optional<LogMedication> result = showLogMedicationDialog();
         result.ifPresent(log -> {
-            // Salva il log che è stato
+
             try {
                 LogMedicationDAO.insertLogMedicationStatic(log);
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
 
-            // Aggiorna UI
+
             LogMedications.add(0, log);
             intakeLogTable.refresh();
         });
@@ -376,14 +366,14 @@ public class PatientDashboardMedicationsController implements Initializable {
         dialog.setTitle("Log Medication Intake");
         dialog.setHeaderText("Record medication intake");
 
-        // Placeholder per dialog - implementazione completa da fare
+
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Log Medication");
         alert.setHeaderText(null);
         alert.setContentText("Medication logging dialog will be implemented here.\nThis will allow selection of medication and status.");
         alert.showAndWait();
 
-        return Optional.empty(); // Temporary
+        return Optional.empty();
     }
 
 

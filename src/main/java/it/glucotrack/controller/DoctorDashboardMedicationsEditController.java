@@ -1,6 +1,5 @@
 package it.glucotrack.controller;
 
-import it.glucotrack.util.SessionManager;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -52,10 +51,7 @@ public class DoctorDashboardMedicationsEditController {
         setupValidation();
     }
 
-    /**
-     * Set the medication to be edited
-     * This method should be called after the controller is loaded
-     */
+
     public void setMedicationToEdit(Medication medication) {
         this.currentMedication = medication;
         loadMedicationData();
@@ -177,7 +173,6 @@ public class DoctorDashboardMedicationsEditController {
             }
 
             isDataLoaded = true;
-            System.out.println("✅ Medication data loaded successfully for editing");
 
         } catch (Exception e) {
             System.err.println("Error loading medication data: " + e.getMessage());
@@ -305,11 +300,9 @@ public class DoctorDashboardMedicationsEditController {
             // Create new medication logs based on updated schedule
             createLogMedications(currentMedication.getId(), currentMedication, today);
 
-            System.out.println("✅ Medication logs updated successfully");
 
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("❌ Error updating medication logs: " + e.getMessage());
             showError("Warning", "Medication updated but there was an issue updating the medication schedule. Please check the logs manually.");
         }
     }
@@ -411,8 +404,6 @@ public class DoctorDashboardMedicationsEditController {
                 }
             }
 
-            System.out.println("✅ Updated medication logs from " + startDate + " to " + endDate + " with frequency: " + frequency);
-
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Failed to create medication schedule: " + e.getMessage());
@@ -428,11 +419,11 @@ public class DoctorDashboardMedicationsEditController {
 
             boolean success = logMedicationDAO.insertLogMedication(logMedication);
             if (!success) {
-                System.err.println("❌ Failed to insert log medication for date: " + date + " time: " + time);
+                System.err.println("Failed to create log medication entry for " + date + " " + time);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("❌ Error creating log medication entry: " + e.getMessage());
+            System.err.println("Failed to log for medication " + medicationId + " on " + date + " at " + time + ": " + e.getMessage());
         }
     }
 
@@ -444,13 +435,10 @@ public class DoctorDashboardMedicationsEditController {
                 Node medicationsView = loader.load();
                 contentPane.getChildren().clear();
                 contentPane.getChildren().add(medicationsView);
-                System.out.println("✅ Successfully navigated back to medications list");
             } else {
-                System.err.println("❌ Could not find contentPane for navigation");
                 showError("Navigation Error", "Could not navigate back to medications list. Please use the sidebar navigation.");
             }
         } catch (Exception e) {
-            System.err.println("❌ Error navigating back to medications list: " + e.getMessage());
             e.printStackTrace();
             showError("Navigation Error", "Could not navigate back to medications list: " + e.getMessage());
         }

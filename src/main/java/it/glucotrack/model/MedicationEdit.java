@@ -1,9 +1,5 @@
 package it.glucotrack.model;
 
-//Questa classe serve per salvare le modifiche effettuate su una terapia di un paziente
-//in modo tale da sapere cosa è stato cambiato e chi l'ha fatto
-
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -69,10 +65,5 @@ public class MedicationEdit {
                 ", editTimestamp='" + editTimestamp + '\'' +
                 '}';
     }
-
-
-
-
-
 
 }

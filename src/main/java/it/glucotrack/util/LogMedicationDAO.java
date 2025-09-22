@@ -11,19 +11,15 @@ import java.util.List;
 
 import it.glucotrack.model.LogMedication;
 
+/*
+* LOG MEDICATION DAO
+*/
+
 public class LogMedicationDAO {
 
-    public static boolean deleteLogsByMedicationId(int id) {
-        String sql = "DELETE FROM log_medications WHERE medication_id = ?";
-        try {
-            int rows = DatabaseInteraction.executeUpdate(sql, id);
-            System.out.println("Deleted " + rows + " log medications for medication_id " + id);
-            return rows > 0;
-        } catch (SQLException e) {
-            System.err.println("Error deleting log medications: " + e.getMessage());
-            return false;
-        }
-    }
+    //========================
+    //==== GET OPERATIONS ====
+    //========================
 
     public LogMedication getLogMedicationById(int id) throws SQLException {
         String sql = "SELECT * FROM log_medications WHERE id = ?";
@@ -46,22 +42,22 @@ public class LogMedicationDAO {
         return logs;
     }
 
-    public static void insertLogMedicationStatic(LogMedication log) throws SQLException {
-        String sql = "INSERT INTO log_medications (medication_id, date_time, taken) VALUES (?, ?, ?)";
-
-        // Convert LocalDateTime to java.sql.Timestamp for proper database storage
-        java.sql.Timestamp dateTime = java.sql.Timestamp.valueOf(log.getDateAndTime());
-
-        DatabaseInteraction.executeUpdate(sql,
-                log.getMedication_id(),
-                dateTime,
-                log.isTaken());
-    }
 
     public List<LogMedication> getPendingLogMedications(int medicationId) throws SQLException {
         String sql = "SELECT * FROM log_medications WHERE medication_id = ? AND taken = 0 ORDER BY date_time";
         List<LogMedication> logs = new ArrayList<>();
         try (ResultSet rs = DatabaseInteraction.executeQuery(sql, medicationId)) {
+            while (rs.next()) {
+                logs.add(mapResultSetToLogMedication(rs));
+            }
+        }
+        return logs;
+    }
+
+    public List<LogMedication> getLogMedicationsByMedicationIdUpToNow(int medicationId) throws SQLException {
+        String sql = "SELECT * FROM log_medications WHERE medication_id = ? AND date_time <= ? ORDER BY date_time DESC";
+        List<LogMedication> logs = new ArrayList<>();
+        try (ResultSet rs = DatabaseInteraction.executeQuery(sql, medicationId, LocalDateTime.now())) {
             while (rs.next()) {
                 logs.add(mapResultSetToLogMedication(rs));
             }
@@ -87,6 +83,12 @@ public class LogMedicationDAO {
         return logs;
     }
 
+
+
+    //===========================
+    //==== INSERT OPERATIONS ====
+    //===========================
+
     public boolean insertLogMedication(LogMedication log) throws SQLException {
         String sql = "INSERT INTO log_medications (medication_id, date_time, taken) VALUES (?, ?, ?)";
         
@@ -99,6 +101,23 @@ public class LogMedicationDAO {
                 log.isTaken());
         return rows > 0;
     }
+
+    public static void insertLogMedicationStatic(LogMedication log) throws SQLException {
+        String sql = "INSERT INTO log_medications (medication_id, date_time, taken) VALUES (?, ?, ?)";
+
+        // Convert LocalDateTime to java.sql.Timestamp for proper database storage
+        java.sql.Timestamp dateTime = java.sql.Timestamp.valueOf(log.getDateAndTime());
+
+        DatabaseInteraction.executeUpdate(sql,
+                log.getMedication_id(),
+                dateTime,
+                log.isTaken());
+    }
+
+
+    //===========================
+    //==== UPDATE OPERATIONS ====
+    //===========================
 
     public static boolean updateLogMedication(LogMedication log) throws SQLException {
         String sql = "UPDATE log_medications SET medication_id=?, date_time=?, taken=? WHERE id=?";
@@ -114,17 +133,50 @@ public class LogMedicationDAO {
         return rows > 0;
     }
 
-    public boolean markAsTaken(int logId) throws SQLException {
-        String sql = "UPDATE log_medications SET taken = 1 WHERE id = ?";
-        int rows = DatabaseInteraction.executeUpdate(sql, logId);
+    public boolean updateLogMedicationStatus(int logId, boolean taken) throws SQLException {
+        String sql = "UPDATE log_medications SET taken = ? WHERE id = ?";
+        int rows = DatabaseInteraction.executeUpdate(sql, taken, logId);
         return rows > 0;
     }
+
+
+    //===========================
+    //==== DELETE OPERATIONS ====
+    //===========================
 
     public boolean deleteLogMedication(int id) throws SQLException {
         String sql = "DELETE FROM log_medications WHERE id = ?";
         int rows = DatabaseInteraction.executeUpdate(sql, id);
         return rows > 0;
     }
+
+    public static boolean deleteLogsByMedicationId(int id) {
+        String sql = "DELETE FROM log_medications WHERE medication_id = ?";
+        try {
+            int rows = DatabaseInteraction.executeUpdate(sql, id);
+            System.out.println("Deleted " + rows + " log medications for medication_id " + id);
+            return rows > 0;
+        } catch (SQLException e) {
+            System.err.println("Error deleting log medications: " + e.getMessage());
+            return false;
+        }
+    }
+    public void deleteFutureLogMedications(int id, LocalDate today) {
+
+        String sql = "DELETE FROM log_medications WHERE medication_id = ? AND date(date_time) > ?";
+        try {
+            int rows = DatabaseInteraction.executeUpdate(sql, id, today);
+            System.out.println("Deleted " + rows + " future log medications for medication_id " + id);
+        } catch (SQLException e) {
+            System.err.println("Error deleting future log medications: " + e.getMessage());
+        }
+
+    }
+
+
+    //===========================
+    //==== INSERT OPERATIONS ====
+    //===========================
 
     public boolean insertBatchLogMedications(List<LogMedication> logs) throws SQLException {
         String sql = "INSERT INTO log_medications (medication_id, date_time, taken) VALUES (?, ?, ?)";
@@ -145,6 +197,12 @@ public class LogMedicationDAO {
             return results.length == logs.size();
         }
     }
+
+
+
+    //===============================
+    //==== ADDITIONAL OPERATIONS ====
+    //===============================
 
     private static LogMedication mapResultSetToLogMedication(ResultSet rs) throws SQLException {
         LogMedication log = new LogMedication();
@@ -173,37 +231,11 @@ public class LogMedicationDAO {
         log.setTaken(rs.getBoolean("taken"));
         return log;
     }
-    
-    // Nuovo metodo per aggiornare lo stato di presa/non presa di un log
-    public boolean updateLogMedicationStatus(int logId, boolean taken) throws SQLException {
-        String sql = "UPDATE log_medications SET taken = ? WHERE id = ?";
-        int rows = DatabaseInteraction.executeUpdate(sql, taken, logId);
+
+    public boolean markAsTaken(int logId) throws SQLException {
+        String sql = "UPDATE log_medications SET taken = 1 WHERE id = ?";
+        int rows = DatabaseInteraction.executeUpdate(sql, logId);
         return rows > 0;
     }
-    
-    // Metodo per ottenere solo i log fino ad oggi (escludendo il futuro)
-    public List<LogMedication> getLogMedicationsByMedicationIdUpToNow(int medicationId) throws SQLException {
-        String sql = "SELECT * FROM log_medications WHERE medication_id = ? AND date_time <= ? ORDER BY date_time DESC";
-        List<LogMedication> logs = new ArrayList<>();
-        try (ResultSet rs = DatabaseInteraction.executeQuery(sql, medicationId, LocalDateTime.now())) {
-            while (rs.next()) {
-                logs.add(mapResultSetToLogMedication(rs));
-            }
-        }
-        return logs;
-    }
-
-    public void deleteFutureLogMedications(int id, LocalDate today) {
-
-        String sql = "DELETE FROM log_medications WHERE medication_id = ? AND date(date_time) > ?";
-        try {
-            int rows = DatabaseInteraction.executeUpdate(sql, id, today);
-            System.out.println("Deleted " + rows + " future log medications for medication_id " + id);
-        } catch (SQLException e) {
-            System.err.println("Error deleting future log medications: " + e.getMessage());
-        }
-
-    }
-
 
 }

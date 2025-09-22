@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 
 public class LogMedication {
 
-    // All the time that a patient has to take a medication from medication class
     private int id;
     private int medication_id;
     private LocalDateTime dateAndTime;

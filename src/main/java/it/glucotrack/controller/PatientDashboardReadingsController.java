@@ -6,10 +6,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.util.Callback;
@@ -73,7 +70,6 @@ public class PatientDashboardReadingsController implements Initializable {
         readingsData = FXCollections.observableArrayList();
         filteredData = FXCollections.observableArrayList();
 
-        // Carica i dati reali dal database
         loadGlucoseReadingsFromDatabase();
 
         readingsTable.setItems(filteredData);
@@ -83,44 +79,39 @@ public class PatientDashboardReadingsController implements Initializable {
         try {
             User currentUser = SessionManager.getInstance().getCurrentUser();
             if (currentUser == null) {
-                System.err.println("❌ Nessun utente in sessione per caricare le readings!");
                 return;
             }
             
             int patientId = currentUser.getId();
-            System.out.println("📊 Caricamento readings per paziente ID: " + patientId);
-            
+
             GlucoseMeasurementDAO glucoseDAO = new GlucoseMeasurementDAO();
             List<GlucoseMeasurement> measurements = glucoseDAO.getGlucoseMeasurementsByPatientId(patientId);
             
-            System.out.println("📊 Trovate " + measurements.size() + " misurazioni nel database");
-            
-            // Converti GlucoseMeasurement in GlucoseReading per la tabella
+
             for (GlucoseMeasurement measurement : measurements) {
                 GlucoseReading reading = convertToGlucoseReading(measurement);
                 readingsData.add(reading);
                 filteredData.add(reading);
             }
             
-            System.out.println("✅ Readings caricate con successo nella tabella");
-            
+
         } catch (SQLException e) {
-            System.err.println("❌ Errore nel caricamento delle readings: " + e.getMessage());
+            System.err.println("Error from database: " + e.getMessage());
             e.printStackTrace();
         } catch (Exception e) {
-            System.err.println("❌ Errore generico nel caricamento delle readings: " + e.getMessage());
+            System.err.println("Generic Error: " + e.getMessage());
             e.printStackTrace();
         }
     }
     
     private GlucoseReading convertToGlucoseReading(GlucoseMeasurement measurement) {
-        // Converti il valore dalla misurazione (da float a int per la tabella)
+
         int value = Math.round(measurement.getGlucoseLevel());
         
-        // Usa lo status già calcolato dal modello
+
         String status = measurement.getStatusString();
         
-        // Usa il tipo direttamente dal modello
+
         String type = measurement.getType();
         
         return new GlucoseReading(measurement.getDateAndTime(), type, value, status);
@@ -157,6 +148,7 @@ public class PatientDashboardReadingsController implements Initializable {
                             setStyle("");
                         } else {
                             setText(item);
+
                             // Apply colors based on status
                             switch (item.toLowerCase()) {
                                 case "normal":
@@ -198,19 +190,19 @@ public class PatientDashboardReadingsController implements Initializable {
 
     private void setupDatePicker() {
         try {
-            // Imposta le date di default (ultima settimana) senza modificare prompt text
+
             LocalDate endDate = LocalDate.now();
             LocalDate startDate = endDate.minusDays(7);
             
-            // Imposta valori di default in modo sicuro
+
             startDatePicker.setValue(startDate);
             endDatePicker.setValue(endDate);
             
-            // Pulisce il prompt text per evitare conflitti
+
             startDatePicker.setPromptText("");
             endDatePicker.setPromptText("");
             
-            // Listener per entrambi i date picker
+
             startDatePicker.setOnAction(e -> {
                 System.out.println("Start date changed: " + startDatePicker.getValue());
                 applyFilters();
@@ -221,7 +213,7 @@ public class PatientDashboardReadingsController implements Initializable {
             });
             
         } catch (Exception e) {
-            System.err.println("Errore nella configurazione dei DatePicker: " + e.getMessage());
+            System.err.println("Error during DatePicker configuration: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -235,8 +227,8 @@ public class PatientDashboardReadingsController implements Initializable {
             javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/CustomPopup.fxml"));
             javafx.scene.Parent root = loader.load();
             it.glucotrack.component.CustomPopupController controller = loader.getController();
-            controller.setTitle("Dettagli Misurazione");
-            controller.setSubtitle("Dettagli completi della misurazione");
+            controller.setTitle("Measurament details");
+            controller.setSubtitle("All the measurament details");
             javafx.scene.layout.VBox content = controller.getPopupContent();
             content.getChildren().clear();
 
@@ -256,15 +248,15 @@ public class PatientDashboardReadingsController implements Initializable {
                     }
                 }
             } catch (Exception e) {
-                note = "Errore nel recupero delle note";
+                note = "Error";
             }
 
             content.getChildren().addAll(
-                new javafx.scene.control.Label("Data/Ora: " + reading.getFormattedTime()),
-                new javafx.scene.control.Label("Tipo: " + reading.getType()),
-                new javafx.scene.control.Label("Valore: " + reading.getFormattedValue()),
-                new javafx.scene.control.Label("Stato: " + reading.getStatus()),
-                new javafx.scene.control.Label("Note: " + ((note == null || note.isEmpty()) ? "Nessuna" : note))
+                new javafx.scene.control.Label("Date/Hour: " + reading.getFormattedTime()),
+                new javafx.scene.control.Label("Type: " + reading.getType()),
+                new javafx.scene.control.Label("Value: " + reading.getFormattedValue()),
+                new javafx.scene.control.Label("Status: " + reading.getStatus()),
+                new javafx.scene.control.Label("Notes: " + ((note == null || note.isEmpty()) ? "Nobody" : note))
             );
             javafx.stage.Stage popupStage = new javafx.stage.Stage();
             popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
@@ -280,8 +272,8 @@ public class PatientDashboardReadingsController implements Initializable {
     
     private void setupContextMenu() {
         // Create context menu items
-        MenuItem editItem = new MenuItem("Modifica");
-        MenuItem deleteItem = new MenuItem("Cancella");
+        MenuItem editItem = new MenuItem("Edit");
+        MenuItem deleteItem = new MenuItem("Delete");
         
         // Set up actions
         editItem.setOnAction(e -> {
@@ -322,7 +314,7 @@ public class PatientDashboardReadingsController implements Initializable {
                     }
                 }
             };
-            // Doppio click per mostrare i dettagli
+
             row.setOnMouseClicked(event -> {
                 if (!row.isEmpty() && event.getButton() == javafx.scene.input.MouseButton.PRIMARY && event.getClickCount() == 2) {
                     GlucoseReading reading = row.getItem();
@@ -372,8 +364,8 @@ public class PatientDashboardReadingsController implements Initializable {
             loadContentInMainDashboard(editView);
             
         } catch (IOException e) {
-            System.err.println("Errore nell'apertura del form di modifica: " + e.getMessage());
-            showErrorAlert("Errore", "Impossibile aprire il form di modifica.");
+            System.err.println("Error opening edit form: " + e.getMessage());
+            showErrorAlert("Error", "Couldn't open edit form: " + e.getMessage());
         }
     }
     
@@ -381,10 +373,10 @@ public class PatientDashboardReadingsController implements Initializable {
     private void handleDeleteReading(GlucoseReading selectedReading) {
         // Show custom confirmation dialog
         boolean confirmed = showCustomConfirmationDialog(
-            "Conferma Cancellazione",
-            "Eliminare questa misurazione?",
+            "Confirm Deletion",
+            "Delete this reading?",
             String.format(
-                "Vuoi davvero eliminare la misurazione del %s alle %s?\nValore: %s\nTipo: %s",
+                "Do you really want delete the medication from %s at %s?\nValue: %s\nType: %s",
                 selectedReading.getDateTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
                 selectedReading.getFormattedTime(),
                 selectedReading.getFormattedValue(),
@@ -410,18 +402,16 @@ public class PatientDashboardReadingsController implements Initializable {
                         readingsData.remove(selectedReading);
                         filteredData.remove(selectedReading);
                         
-                        showSuccessAlert("Successo", "Misurazione eliminata con successo.");
-                        System.out.println("✅ Misurazione eliminata con successo");
+                        showSuccessAlert("Success", "Measurement deleted successfully.");
                     } else {
-                        showErrorAlert("Errore", "Impossibile eliminare la misurazione dal database.");
+                        showErrorAlert("Error", "Couldn't delete the measurement.");
                     }
                 } else {
-                    showErrorAlert("Errore", "Nessun utente in sessione.");
+                    showErrorAlert("Error", "No user in session.");
                 }
                 
             } catch (SQLException e) {
-                System.err.println("Errore nell'eliminazione della misurazione: " + e.getMessage());
-                showErrorAlert("Errore Database", "Errore nell'eliminazione della misurazione: " + e.getMessage());
+                showErrorAlert("Database error", "Error during measurement deletion: " + e.getMessage());
             }
         }
     }
@@ -441,7 +431,7 @@ public class PatientDashboardReadingsController implements Initializable {
             javafx.scene.Parent root = loader.load();
             it.glucotrack.component.CustomPopupController controller = loader.getController();
             controller.setTitle(title);
-            controller.setSubtitle(type.equals("error") ? "Errore" : (type.equals("success") ? "Successo" : "Info"));
+            controller.setSubtitle(type.equals("error") ? "Error" : (type.equals("success") ? "Success" : "Info"));
             javafx.scene.layout.VBox content = controller.getPopupContent();
             content.getChildren().clear();
             javafx.scene.control.Label label = new javafx.scene.control.Label(message);
@@ -505,7 +495,7 @@ public class PatientDashboardReadingsController implements Initializable {
         for (GlucoseReading reading : readingsData) {
             LocalDate readingDate = reading.getDateTime().toLocalDate();
             
-            // Verifica se la data è nel range selezionato
+            // Veirfy the date range
             boolean matchesDate = true;
             if (startDate != null && endDate != null) {
                 matchesDate = (readingDate.isEqual(startDate) || readingDate.isAfter(startDate)) &&
@@ -536,7 +526,7 @@ public class PatientDashboardReadingsController implements Initializable {
 
     // Method to refresh data (useful for external updates)
     public void refreshData() {
-        // Ricarica i dati dal database
+
         readingsData.clear();
         filteredData.clear();
         loadGlucoseReadingsFromDatabase();
@@ -590,47 +580,44 @@ public class PatientDashboardReadingsController implements Initializable {
         }
     }
     
-    // Metodo per aprire il form di inserimento glicemia nel pannello centrale
+
     private void openGlucoseInsertForm() {
         try {
-            // Carica il form nel pannello centrale del dashboard principale
+
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/PatientDashboardGlucoseInsert.fxml"));
             Parent glucoseInsertView = loader.load();
             
-            // Ottieni il controller del form
             PatientDashboardGlucoseInsertController insertController = loader.getController();
             
-            // Imposta il callback per refresh dei dati quando si salva
+
             insertController.setOnDataSaved(() -> {
                 refreshData();
-                // Dopo il salvataggio, torna alla sezione readings
+
                 returnToReadings();
             });
             
-            // Imposta il callback per l'annullamento
+            // Set callback for cancel action
             insertController.setOnCancel(this::returnToReadings);
             
-            // Sostituisce il contenuto centrale con il form
             loadContentInMainDashboard(glucoseInsertView);
             
         } catch (IOException e) {
-            System.err.println("Errore nell'apertura del form di inserimento glicemia: " + e.getMessage());
+            System.err.println("Error during form loading: " + e.getMessage());
             e.printStackTrace();
         }
     }
     
-    // Metodo per caricare contenuto nel pannello centrale del dashboard principale
+
     private void loadContentInMainDashboard(Parent content) {
         try {
             PatientDashboardController mainController = PatientDashboardController.getInstance();
             if (mainController != null) {
                 mainController.loadCenterContentDirect(content);
-                System.out.println("✅ Contenuto caricato nel pannello centrale via controller principale");
             } else {
-                System.err.println("❌ Controller principale non disponibile");
+                System.err.println("Principal controller not available to load content.");
             }
         } catch (Exception e) {
-            System.err.println("❌ Errore nel caricamento del contenuto nel dashboard: " + e.getMessage());
+            System.err.println("Error during dashboard loading: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -641,12 +628,11 @@ public class PatientDashboardReadingsController implements Initializable {
             PatientDashboardController mainController = PatientDashboardController.getInstance();
             if (mainController != null) {
                 mainController.loadCenterContent("PatientDashboardReadings.fxml");
-                System.out.println("✅ Ritorno alla sezione readings completato");
             } else {
-                System.err.println("❌ Controller principale non disponibile per il ritorno alla sezione readings");
+                System.err.println("Principal controller not available to return to readings.");
             }
         } catch (Exception e) {
-            System.err.println("❌ Errore nel ritorno alla sezione readings: " + e.getMessage());
+            System.err.println("Error returning to reading page: " + e.getMessage());
             e.printStackTrace();
         }
     }

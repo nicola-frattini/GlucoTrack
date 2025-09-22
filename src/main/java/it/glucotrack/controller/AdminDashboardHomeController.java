@@ -152,15 +152,15 @@ public class AdminDashboardHomeController implements Initializable {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/ProfileView.fxml"));
             Parent profileRoot = loader.load();
             ProfileViewController profileController = loader.getController();
-            // Determina il ruolo appropriato
+
              ProfileViewController.UserRole role = null;
              User userToView;
              if (currentAdmin != null && userData.getId() == currentAdmin.getId()) {
-                 // L'admin sta visualizzando il proprio profilo
+
                  role = ProfileViewController.UserRole.ADMIN_OWN_PROFILE;
                  userToView = currentAdmin;
              } else {
-                 // L'admin sta visualizzando il profilo di un altro utente
+
                  if ("Patient".equalsIgnoreCase(userData.getType()) || "Doctor".equalsIgnoreCase(userData.getType())) {
                      role = ProfileViewController.UserRole.ADMIN_VIEWING_USER;
                  }

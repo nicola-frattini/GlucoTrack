@@ -41,16 +41,12 @@ public class PatientDashboardController {
 
     @FXML
     public void initialize() {
-        System.out.println("📊 PatientDashboardController inizializzato!");
-        
-        // Imposta l'istanza globale
+
         instance = this;
 
-        // Imposta il nome del paziente dalla sessione corrente
         this.patient = loadPatientInfo();
-        System.out.println("Patient loaded in dashboard: " + patient);
-        // Carica la dashboard di default
-        System.out.println("🔄 Caricamento PatientDashboardHome.fxml...");
+
+
         loadCenterContent("PatientDashboardHome.fxml");
         setActiveButton(dashboardBtn); // Active the dashboard button by default
 
@@ -62,15 +58,12 @@ public class PatientDashboardController {
             if (currentUser != null) {
                 String displayName = currentUser.getName() + " " + currentUser.getSurname();
                 patientNameLabel.setText(displayName);
-                System.out.println("📊 Dashboard caricato per paziente: " + displayName);
             } else {
-                patientNameLabel.setText("Paziente non trovato");
-                System.err.println("❌ Nessun utente in sessione nel PatientDashboard!");
+                patientNameLabel.setText("Patient not found");
             }
             return new Patient(PatientDAO.getPatientById(currentUser.getId()));
         } catch (Exception e) {
-            patientNameLabel.setText("Errore caricamento");
-            System.err.println("❌ Errore nel caricamento info paziente: " + e.getMessage());
+            patientNameLabel.setText("Loading error");
             e.printStackTrace();
             return null;
         }
@@ -105,54 +98,41 @@ public class PatientDashboardController {
     @FXML
     private void onProfileClick() throws IOException, SQLException {
 
-        System.out.println("🔄 Caricamento profilo paziente...");
+
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/ProfileView.fxml"));
         Parent profileRoot = loader.load();
-        System.out.println("✅ FXML ProfileView caricato con successo");
+
         ProfileViewController profileController = loader.getController();
 
-        System.out.println("Patient before passing: " + patient);
-        System.out.println("Patient ID: " + patient.getId());
-        System.out.println("Patient name: " + patient.getFullName());
         profileController.setUserRole(ProfileViewController.UserRole.PATIENT_OWN_PROFILE, null);
 
         profileController.setParentContentPane(contentPane);
         loadCenterContentDirect(profileRoot);
 
-
-        System.out.println("🔄 Impostazione contenuto profilo nel contentPane...");
-        // Non imposto nessun pulsante come attivo per il profilo
         clearActiveButtons();
-    }
-
-    @FXML
-    private void onSettingsClick() {
-        // Logica per aprire le impostazioni, oppure lascia vuoto se non ti serve
     }
 
     public void loadCenterContent(String fxmlFile) {
         try {
-            System.out.println("🔄 Caricamento FXML: " + fxmlFile);
+
             Node node = FXMLLoader.load(getClass().getResource("/assets/fxml/" + fxmlFile));
-            System.out.println("✅ FXML caricato con successo: " + fxmlFile);
+
             contentPane.getChildren().setAll(node);
-            System.out.println("✅ Contenuto aggiunto al contentPane");
+
         } catch (IOException e) {
-            System.err.println("❌ Errore nel caricamento FXML: " + fxmlFile);
             e.printStackTrace();
-            // Puoi mostrare un messaggio di errore all'utente
         }
     }
     
-    // Metodo pubblico per caricare contenuto diretto nel centro
+
     public void loadCenterContentDirect(Node content) {
         contentPane.getChildren().setAll(content);
     }
     
-    // Istanza statica per accesso globale al dashboard principale
+
     private static PatientDashboardController instance;
     
-    // Metodo statico per ottenere l'istanza corrente
+
     public static PatientDashboardController getInstance() {
         return instance;
     }
@@ -160,14 +140,9 @@ public class PatientDashboardController {
     @FXML
     private void onLogoutClick() {
         try {
-            // Esegui il logout dalla sessione
             SessionManager.getInstance().logout();
-            System.out.println("👋 Logout eseguito con successo");
-            
-            // Torna alla schermata di login
             ViewNavigator.getInstance().navigateTo(ViewNavigator.LOGIN_VIEW, "GlucoTrack - Login");
         } catch (Exception e) {
-            System.err.println("❌ Errore durante il logout: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -175,7 +150,6 @@ public class PatientDashboardController {
 
 
     private void setActiveButton(Button activeBtn) {
-        // Cambia lo stile dei pulsanti per evidenziare quello attivo
         dashboardBtn.setStyle(getButtonStyle(dashboardBtn == activeBtn));
         readingsBtn.setStyle(getButtonStyle(readingsBtn == activeBtn));
         medicationBtn.setStyle(getButtonStyle(medicationBtn == activeBtn));
@@ -183,7 +157,7 @@ public class PatientDashboardController {
     }
 
     private void clearActiveButtons() {
-        // Imposta tutti i pulsanti come non attivi
+
         dashboardBtn.setStyle(getButtonStyle(false));
         readingsBtn.setStyle(getButtonStyle(false));
         medicationBtn.setStyle(getButtonStyle(false));

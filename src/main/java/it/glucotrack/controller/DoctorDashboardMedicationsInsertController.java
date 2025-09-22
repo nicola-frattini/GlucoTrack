@@ -106,19 +106,15 @@ public class DoctorDashboardMedicationsInsertController {
 
     private void loadPatients() {
         try {
-            System.out.println("Loading patients from database...");
             List<Patient> patients = patientDAO.getAllPatients();
-            System.out.println("Found " + patients.size() + " patients");
-            
+
             if (patients.isEmpty()) {
-                System.out.println("No patients found in database");
                 showError("No Patients Found", "No patients are registered in the system. Please add patients first.");
                 return;
             }
             
             patientComboBox.setItems(FXCollections.observableArrayList(patients));
-            System.out.println("Patients loaded successfully into ComboBox");
-            
+
         } catch (SQLException e) {
             System.err.println("Error loading patients: " + e.getMessage());
             e.printStackTrace();
@@ -322,9 +318,7 @@ public class DoctorDashboardMedicationsInsertController {
                         break;
                 }
             }
-            
-            System.out.println("✅ Created medication logs from " + startDate + " to " + endDate + " with frequency: " + frequency);
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             showError("Error", "Failed to create medication schedule: " + e.getMessage());
@@ -340,11 +334,11 @@ public class DoctorDashboardMedicationsInsertController {
             
             boolean success = logMedicationDAO.insertLogMedication(logMedication);
             if (!success) {
-                System.err.println("❌ Failed to insert log medication for date: " + date + " time: " + time);
+                System.err.println("Failed to create log entry for " + logMedication.getDateAndTime());
             }
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("❌ Error creating log medication entry: " + e.getMessage());
+            System.err.println("Error creating log medication entry: " + e.getMessage());
         }
     }
 
@@ -356,13 +350,10 @@ public class DoctorDashboardMedicationsInsertController {
                 Node medicationsView = loader.load();
                 contentPane.getChildren().clear();
                 contentPane.getChildren().add(medicationsView);
-                System.out.println("✅ Successfully navigated back to medications list");
             } else {
-                System.err.println("❌ Could not find contentPane for navigation");
                 showError("Navigation Error", "Could not navigate back to medications list. Please use the sidebar navigation.");
             }
         } catch (Exception e) {
-            System.err.println("❌ Error navigating back to medications list: " + e.getMessage());
             e.printStackTrace();
             showError("Navigation Error", "Could not navigate back to medications list: " + e.getMessage());
         }

@@ -8,7 +8,16 @@ import java.util.List;
 import it.glucotrack.model.Doctor;
 import it.glucotrack.model.Gender;
 
+/*
+* DOCTOR DAO
+*/
+
 public class DoctorDAO {
+
+
+    //========================
+    //==== GET OPERATIONS ====
+    //========================
 
     public static Doctor getDoctorById(int id) throws SQLException {
         String sql = "SELECT * FROM users WHERE id = ? AND type = 'DOCTOR'";
@@ -52,33 +61,6 @@ public class DoctorDAO {
         return doctors;
     }
 
-    public boolean insertDoctor(Doctor doctor) throws SQLException {
-        String sql = "INSERT INTO users (name, surname, email, password, born_date, gender, phone, birth_place, fiscal_code, type, specialization) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'DOCTOR', ?)";
-        int rows = DatabaseInteraction.executeUpdate(sql,
-                doctor.getName(), doctor.getSurname(), doctor.getEmail(), doctor.getPassword(),
-                doctor.getBornDate(), doctor.getGender().toString(), doctor.getPhone(),
-                doctor.getBirthPlace(), doctor.getFiscalCode(), doctor.getSpecialization());
-        return rows > 0;
-    }
-
-
-    public static boolean updateDoctor(Doctor doctor) throws SQLException {
-        String sql = "UPDATE users SET name=?, surname=?, email=?, password=?, born_date=?, gender=?, phone=?, birth_place=?, fiscal_code=?, specialization=? WHERE id=? AND type='DOCTOR'";
-        int rows = DatabaseInteraction.executeUpdate(sql,
-                doctor.getName(), doctor.getSurname(), doctor.getEmail(), doctor.getPassword(),
-                doctor.getBornDate(), doctor.getGender().toString(), doctor.getPhone(),
-                doctor.getBirthPlace(), doctor.getFiscalCode(), doctor.getSpecialization(), doctor.getId());
-        return rows > 0;
-    }
-
-
-
-    public boolean deleteDoctor(int id) throws SQLException {
-        String sql = "DELETE FROM users WHERE id = ? AND type = 'DOCTOR'";
-        int rows = DatabaseInteraction.executeUpdate(sql, id);
-        return rows > 0;
-    }
-
     public List<Doctor> searchDoctors(String searchTerm) throws SQLException {
         String sql = "SELECT * FROM users WHERE type = 'DOCTOR' AND (name LIKE ? OR surname LIKE ? OR email LIKE ? OR specialization LIKE ?) ORDER BY surname, name";
         String searchPattern = "%" + searchTerm + "%";
@@ -112,13 +94,59 @@ public class DoctorDAO {
         return specializations;
     }
 
+
+
+    //===========================
+    //==== INSERT OPERATIONS ====
+    //===========================
+
+    public boolean insertDoctor(Doctor doctor) throws SQLException {
+
+        String sql = "INSERT INTO users (name, surname, email, password, born_date, gender, phone, birth_place, fiscal_code, type, specialization) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'DOCTOR', ?)";
+        int rows = DatabaseInteraction.executeUpdate(sql,
+                doctor.getName(), doctor.getSurname(), doctor.getEmail(), PasswordUtils.encryptPassword(doctor.getPassword(), doctor.getEmail()),
+                doctor.getBornDate(), doctor.getGender().toString(), doctor.getPhone(),
+                doctor.getBirthPlace(), doctor.getFiscalCode(), doctor.getSpecialization());
+        return rows > 0;
+    }
+
+
+    //===========================
+    //==== UPDATE OPERATIONS ====
+    //===========================
+
+    public static boolean updateDoctor(Doctor doctor) throws SQLException {
+        String sql = "UPDATE users SET name=?, surname=?, email=?, password=?, born_date=?, gender=?, phone=?, birth_place=?, fiscal_code=?, specialization=? WHERE id=? AND type='DOCTOR'";
+        int rows = DatabaseInteraction.executeUpdate(sql,
+                doctor.getName(), doctor.getSurname(), doctor.getEmail(), PasswordUtils.encryptPassword(doctor.getPassword(), doctor.getEmail()),
+                doctor.getBornDate(), doctor.getGender().toString(), doctor.getPhone(),
+                doctor.getBirthPlace(), doctor.getFiscalCode(), doctor.getSpecialization(), doctor.getId());
+        return rows > 0;
+    }
+
+
+    //===========================
+    //==== DELETE OPERATIONS ====
+    //===========================
+
+    public boolean deleteDoctor(int id) throws SQLException {
+        String sql = "DELETE FROM users WHERE id = ? AND type = 'DOCTOR'";
+        int rows = DatabaseInteraction.executeUpdate(sql, id);
+        return rows > 0;
+    }
+
+
+    //===============================
+    //==== ADDITIONAL OPERATIONS ====
+    //===============================
+
     private static Doctor mapResultSetToDoctor(ResultSet rs) throws SQLException {
         return new Doctor(
             rs.getInt("id"),
             rs.getString("name"),
             rs.getString("surname"),
             rs.getString("email"),
-            rs.getString("password"),
+            PasswordUtils.decryptPassword(rs.getString("password"), rs.getString("email")),
                 java.time.LocalDate.parse(rs.getString("born_date")),
             Gender.valueOf(rs.getString("gender").toUpperCase()),
             rs.getString("phone"),

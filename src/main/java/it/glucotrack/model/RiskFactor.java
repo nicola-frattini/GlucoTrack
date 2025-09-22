@@ -38,6 +38,9 @@ public class RiskFactor {
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
 
+    public int getPatientId() { return patient_id; }
+    public void setPatient_id(int patient_id){ this.patient_id=patient_id;}
+
     public Gravity getGravity() { return gravity; }
     public void setGravity(Gravity gravity) { this.gravity = gravity; }
 

@@ -11,7 +11,17 @@ import java.util.ArrayList;
 import java.util.List;
 import it.glucotrack.model.Symptom;
 
+/*
+* SYMPTOM DAO
+* Data Access Object for Symptom entity
+* Handles all database operations related to symptoms
+*/
+
 public class SymptomDAO {
+
+    //================================
+    //==== GENERIC GET OPERATIONS ====
+    //================================
 
     public static List<Symptom> getSymptomsByPatientId(int patientId) throws SQLException {
         String sql = "SELECT * FROM patient_symptoms WHERE patient_id = ? ORDER BY symptom_date DESC";
@@ -39,8 +49,16 @@ public class SymptomDAO {
         return symptoms;
     }
 
-
-
+    public List<String> getUniqueSymptoms() throws SQLException {
+        String sql = "SELECT DISTINCT symptom FROM patient_symptoms ORDER BY symptom";
+        List<String> symptoms = new ArrayList<>();
+        try (ResultSet rs = DatabaseInteraction.executeQuery(sql)) {
+            while (rs.next()) {
+                symptoms.add(rs.getString("symptom"));
+            }
+        }
+        return symptoms;
+    }
 
 
     public List<String> getSymptomsByPatientIdAndDateRange(int patientId, LocalDate startDate, LocalDate endDate) throws SQLException {
@@ -53,6 +71,80 @@ public class SymptomDAO {
         }
         return symptoms;
     }
+
+    // Used to set a list of Symptoms for a table
+    public List<Symptom> getSymptomsForTable(int patientId) throws SQLException {
+        String sql = "SELECT id, symptom, severity, duration, notes, symptom_date FROM patient_symptoms WHERE patient_id = ? ORDER BY symptom_date DESC";
+        List<Symptom> symptoms = new ArrayList<>();
+        try (ResultSet rs = DatabaseInteraction.executeQuery(sql, patientId)) {
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String name = rs.getString("symptom");
+                String severity = rs.getString("severity");
+                String duration = rs.getString("duration");
+                String notes = rs.getString("notes");
+
+                // Timestamp handling
+                LocalDateTime dateTime;
+                try {
+                    Timestamp timestamp = rs.getTimestamp("symptom_date");
+                    if (timestamp != null) {
+                        dateTime = timestamp.toLocalDateTime();
+                    } else {
+                        dateTime = LocalDateTime.now();
+                    }
+                } catch (SQLException e) {
+
+                    // If timestamp fails, try with getString and parsing
+                    String dateStr = rs.getString("symptom_date");
+                    if (dateStr != null && !dateStr.isEmpty()) {
+                        try {
+                            // Check for hours time
+                            if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                                dateTime = LocalDate.parse(dateStr).atTime(12, 0); // Mezzogiorno di default
+                            } else {
+                                // Normal parse
+                                dateTime = LocalDateTime.parse(dateStr.replace(" ", "T"));
+                            }
+                        } catch (Exception parseEx) {
+                            System.err.println("Error parsing data '" + dateStr + "': " + parseEx.getMessage());
+                            dateTime = LocalDateTime.now();
+                        }
+                    } else {
+                        dateTime = LocalDateTime.now();
+                    }
+                }
+
+                // Build a Symptom object
+                Symptom symptom = new Symptom();
+                symptom.setId(id);
+                symptom.setPatient_id(patientId);
+                symptom.setSymptomName(name);
+                symptom.setGravity(severity != null ? severity : "Mild");  // Default if null
+                symptom.setNotes(notes != null ? notes : "");  // Default if null
+                symptom.setDateAndTime(dateTime);
+
+                try {
+                    if (duration != null && !duration.isEmpty()) {
+
+                        symptom.setDuration(LocalTime.parse(duration));
+                    } else {
+                        symptom.setDuration(LocalTime.of(0, 0));  // Default if null
+                    }
+                } catch (Exception e) {
+                    symptom.setDuration(LocalTime.of(0, 0));
+                }
+
+                symptoms.add(symptom);
+            }
+        }
+        return symptoms;
+    }
+
+
+    //===========================
+    //==== INSERT OPERATIONS ====
+    //===========================
 
     public static boolean insertSymptom(Symptom symptom) throws SQLException {
         String sql = "INSERT INTO patient_symptoms (patient_id, symptom, severity, duration, notes, symptom_date) VALUES (?, ?, ?, ?, ?, ?)";
@@ -81,7 +173,9 @@ public class SymptomDAO {
     }
 
 
-
+    //===========================
+    //==== DELETE OPERATIONS ====
+    //===========================
 
     public boolean deleteSymptom(int patientId, String symptom) throws SQLException {
         String sql = "DELETE FROM patient_symptoms WHERE patient_id = ? AND symptom = ?";
@@ -95,85 +189,16 @@ public class SymptomDAO {
         return rows > 0;
     }
 
-    public List<String> getUniqueSymptoms() throws SQLException {
-        String sql = "SELECT DISTINCT symptom FROM patient_symptoms ORDER BY symptom";
-        List<String> symptoms = new ArrayList<>();
-        try (ResultSet rs = DatabaseInteraction.executeQuery(sql)) {
-            while (rs.next()) {
-                symptoms.add(rs.getString("symptom"));
-            }
-        }
-        return symptoms;
+    public boolean deleteSymptomById(int id) throws SQLException {
+        String sql = "DELETE FROM patient_symptoms WHERE id = ?";
+        int rows = DatabaseInteraction.executeUpdate(sql, id);
+        return rows > 0;
     }
 
-    // Nuovo metodo per il controller che usa il modello Symptom
-    public List<Symptom> getSymptomsForTable(int patientId) throws SQLException {
-        String sql = "SELECT id, symptom, severity, duration, notes, symptom_date FROM patient_symptoms WHERE patient_id = ? ORDER BY symptom_date DESC";
-        List<Symptom> symptoms = new ArrayList<>();
-        try (ResultSet rs = DatabaseInteraction.executeQuery(sql, patientId)) {
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                String name = rs.getString("symptom");  // Corretto: "symptom" non "symptom_name"
-                String severity = rs.getString("severity");
-                String duration = rs.getString("duration");
-                String notes = rs.getString("notes");
-                // Gestione più robusta del timestamp
-                LocalDateTime dateTime;
-                try {
-                    Timestamp timestamp = rs.getTimestamp("symptom_date");
-                    if (timestamp != null) {
-                        dateTime = timestamp.toLocalDateTime();
-                    } else {
-                        dateTime = LocalDateTime.now();
-                    }
-                } catch (SQLException e) {
-                    // Se fallisce con timestamp, prova con getString e parsing
-                    String dateStr = rs.getString("symptom_date");
-                    if (dateStr != null && !dateStr.isEmpty()) {
-                        try {
-                            // Se è solo una data (YYYY-MM-DD), aggiungi l'orario di default
-                            if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
-                                dateTime = LocalDate.parse(dateStr).atTime(12, 0); // Mezzogiorno di default
-                            } else {
-                                // Se include già l'ora, prova il parsing normale
-                                dateTime = LocalDateTime.parse(dateStr.replace(" ", "T"));
-                            }
-                        } catch (Exception parseEx) {
-                            System.err.println("⚠️ Errore parsing data '" + dateStr + "': " + parseEx.getMessage());
-                            dateTime = LocalDateTime.now();
-                        }
-                    } else {
-                        dateTime = LocalDateTime.now();
-                    }
-                }
-                
-                // Creiamo un oggetto Symptom usando il costruttore con parametri appropriati
-                Symptom symptom = new Symptom();
-                symptom.setId(id);
-                symptom.setPatient_id(patientId);
-                symptom.setSymptomName(name);
-                symptom.setGravity(severity != null ? severity : "Mild");  // Default se null
-                symptom.setNotes(notes != null ? notes : "");  // Default se null
-                symptom.setDateAndTime(dateTime);
-                // Per la durata, convertiamo la stringa in LocalTime se possibile
-                try {
-                    if (duration != null && !duration.isEmpty()) {
-                        // Assumiamo formato "HH:mm" per la durata
-                        symptom.setDuration(LocalTime.parse(duration));
-                    } else {
-                        symptom.setDuration(LocalTime.of(0, 0));  // Default se null
-                    }
-                } catch (Exception e) {
-                    symptom.setDuration(LocalTime.of(0, 0));
-                }
-                
-                symptoms.add(symptom);
-            }
-        }
-        return symptoms;
-    }
+    //===========================
+    //==== UPDATE OPERATIONS ====
+    //===========================
 
-    // Metodo per aggiornare un sintomo esistente
     public boolean updateSymptom(Symptom symptom) throws SQLException {
         String sql = "UPDATE patient_symptoms SET symptom=?, severity=?, duration=?, notes=?, symptom_date=? WHERE id=?";
         int rows = DatabaseInteraction.executeUpdate(sql,
@@ -185,15 +210,12 @@ public class SymptomDAO {
             symptom.getId());
         return rows > 0;
     }
-    
-    // Metodo per eliminare un sintomo per ID
-    public boolean deleteSymptomById(int id) throws SQLException {
-        String sql = "DELETE FROM patient_symptoms WHERE id = ?";
-        int rows = DatabaseInteraction.executeUpdate(sql, id);
-        return rows > 0;
-    }
-    
-    // Metodo per trovare un sintomo specifico per ID
+
+
+    //==============================
+    //=== ADDITIONAL OPERATIONS ====
+    //==============================
+
     public Symptom findSymptomById(int id) throws SQLException {
         String sql = "SELECT id, patient_id, symptom, severity, duration, notes, symptom_date FROM patient_symptoms WHERE id = ?";
         try (ResultSet rs = DatabaseInteraction.executeQuery(sql, id)) {
@@ -204,7 +226,7 @@ public class SymptomDAO {
         return null;
     }
     
-    // Helper method per mappare ResultSet a Symptom
+
     private Symptom mapResultSetToSymptom(ResultSet rs) throws SQLException {
         int id = rs.getInt("id");
         int patientId = rs.getInt("patient_id");
@@ -213,7 +235,7 @@ public class SymptomDAO {
         String duration = rs.getString("duration");
         String notes = rs.getString("notes");
         
-        // Gestione robusta del timestamp
+
         LocalDateTime dateTime;
         try {
             Timestamp timestamp = rs.getTimestamp("symptom_date");
@@ -239,7 +261,6 @@ public class SymptomDAO {
             }
         }
         
-        // Creiamo un oggetto Symptom
         Symptom symptom = new Symptom();
         symptom.setId(id);
         symptom.setPatient_id(patientId);
@@ -248,7 +269,6 @@ public class SymptomDAO {
         symptom.setNotes(notes != null ? notes : "");
         symptom.setDateAndTime(dateTime);
         
-        // Gestione della durata
         try {
             if (duration != null && !duration.isEmpty()) {
                 symptom.setDuration(LocalTime.parse(duration));

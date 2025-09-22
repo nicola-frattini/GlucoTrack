@@ -5,12 +5,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import it.glucotrack.util.MedicationDAO;
-import it.glucotrack.util.RiskFactorDAO;
-import it.glucotrack.util.SymptomDAO;
-import it.glucotrack.util.GlucoseMeasurementDAO;
-import it.glucotrack.util.LogMedicationDAO;
-
 public class Patient extends User {
 
     private int doctorId;
@@ -163,7 +157,7 @@ public class Patient extends User {
     }
 
     private List<GlucoseMeasurement> glucoseReadingsSetup() {
-        // Interroga l'sql per il suo id, se non ci sono misurazioni ritorna lista vuota
+
         try {
             return it.glucotrack.util.GlucoseMeasurementDAO.getGlucoseMeasurementsByPatientId(this.getId());
         } catch (Exception e) {
@@ -174,7 +168,7 @@ public class Patient extends User {
     }
 
     private List <Symptom> symptomsSetup() {
-        // Interroga l'sql per il suo id, se non ci sono sintomi ritorna lista vuota
+
         try {
             return it.glucotrack.util.SymptomDAO.getSymptomsByPatientId(this.getId());
         } catch (Exception e) {
@@ -185,7 +179,7 @@ public class Patient extends User {
 
 
     private List <RiskFactor> riskFactorsSetup() {
-        // Interroga l'sql per il suo id, se non ci sono fattori di rischio ritorna lista vuota
+
         try {
             return it.glucotrack.util.RiskFactorDAO.getRiskFactorsByPatientId(this.getId());
         } catch (Exception e) {
@@ -195,7 +189,7 @@ public class Patient extends User {
     }
 
     private List <Medication> medicationsSetup() {
-        // Interroga l'sql per il suo id, se non ci sono farmaci ritorna lista vuota
+
         try {
             return it.glucotrack.util.MedicationDAO.getMedicationsByPatientId(this.getId());
         } catch (Exception e) {

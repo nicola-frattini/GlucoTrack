@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 import it.glucotrack.model.Doctor;
-import it.glucotrack.model.Gender;
 import it.glucotrack.model.GlucoseMeasurement;
 import it.glucotrack.model.Patient;
 import it.glucotrack.util.GlucoseMeasurementDAO;
@@ -39,15 +38,12 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 
 public class DoctorDashboardPatientsController implements Initializable {
 
     // Search and filter elements
     @FXML private TextField searchField;
-    @FXML private Button filterBtn;
-    @FXML private Button addPatientBtn;
 
     // Table elements
     @FXML private TableView<PatientTableData> patientsTable;
@@ -75,14 +71,14 @@ public class DoctorDashboardPatientsController implements Initializable {
     private PatientDAO patientDAO;
     private GlucoseMeasurementDAO glucoseMeasurementDAO;
     private Doctor doctorUser;
-    private int doctorId; // ID of the logged-in doctor
+    private int doctorId;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         this.patientDAO = new PatientDAO();
         this.glucoseMeasurementDAO = new GlucoseMeasurementDAO();
-        // The doctorId should be set by the calling controller, e.g., after login
-        // For demonstration, let's use a placeholder value
+
+
         this.doctorId = it.glucotrack.util.SessionManager.getInstance().getCurrentUser().getId();
         try {
             this.doctorUser = DoctorDAO.getDoctorById(it.glucotrack.util.SessionManager.getInstance().getCurrentUser().getId());
@@ -91,7 +87,6 @@ public class DoctorDashboardPatientsController implements Initializable {
         }
         setupTable();
         setupSearch();
-        setupButtons();
         setupContextMenu();
         loadPatientsData();
         updateStatusBar();
@@ -195,14 +190,6 @@ public class DoctorDashboardPatientsController implements Initializable {
         searchField.getStyleClass().add("search-field");
     }
 
-    private void setupButtons() {
-        addPatientBtn.setOnAction(e -> handleAddPatient());
-        filterBtn.setOnAction(e -> handleFilter());
-
-        addPatientBtn.getStyleClass().addAll("btn", "btn-primary");
-        filterBtn.getStyleClass().addAll("btn", "btn-secondary");
-    }
-
     private void setupContextMenu() {
         viewPatientMenuItem.setOnAction(e -> {
             if (selectedPatient != null) {
@@ -277,17 +264,6 @@ public class DoctorDashboardPatientsController implements Initializable {
         }
     }
 
-    // Action handlers - just make buttons clickable without implementing full functionality
-    private void handleAddPatient() {
-        System.out.println("Add Patient button clicked - functionality not implemented yet");
-        statusLabel.setText("Add Patient functionality coming soon...");
-    }
-
-    private void handleFilter() {
-        System.out.println("Filter button clicked - functionality not implemented yet");
-        statusLabel.setText("Filter functionality coming soon...");
-    }
-
     private void viewPatientProfile(PatientTableData patientData) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/ProfileView.fxml"));
@@ -297,7 +273,7 @@ public class DoctorDashboardPatientsController implements Initializable {
             profileController.setUserRole(ProfileViewController.UserRole.DOCTOR_VIEWING_PATIENT, selectedPatient.getPatient());
 
 
-            Scene scene = addPatientBtn.getScene();
+            Scene scene = patientsTable.getScene();
             BorderPane rootPane = (BorderPane) scene.getRoot();
             StackPane contentPane = (StackPane) rootPane.getCenter();
 

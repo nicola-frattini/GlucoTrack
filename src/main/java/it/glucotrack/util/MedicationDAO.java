@@ -11,7 +11,16 @@ import it.glucotrack.model.Frequency;
 import it.glucotrack.model.Medication;
 import it.glucotrack.model.MedicationEdit;
 
+/*
+* MEDICATION DAO
+*/
+
+
 public class MedicationDAO {
+
+    //========================
+    //==== GET OPERATIONS ====
+    //========================
 
     public static Medication getMedicationById(int id) throws SQLException {
         String sql = "SELECT * FROM medications WHERE id = ?";
@@ -45,6 +54,17 @@ public class MedicationDAO {
         return meds;
     }
 
+    public static List<MedicationEdit> getMedicationEditsByMedicationId(int medicationId) throws SQLException {
+        String sql = "SELECT * FROM medication_edits WHERE medication_id = ? ORDER BY edit_time DESC";
+        List<MedicationEdit> edits = new ArrayList<>();
+        try (ResultSet rs = DatabaseInteraction.executeQuery(sql, medicationId)) {
+            while (rs.next()) {
+                edits.add(mapResultSetToMedicationEdit(rs));
+            }
+        }
+        return edits;
+    }
+
     public List<Medication> getAllMedications() throws SQLException {
         String sql = "SELECT * FROM medications ORDER BY name";
         List<Medication> meds = new ArrayList<>();
@@ -56,24 +76,42 @@ public class MedicationDAO {
         return meds;
     }
 
-   public boolean insertMedication(Medication med, int doctorId) throws SQLException {
-    String sql = "INSERT INTO medications (patient_id, name, dose, frequency, start_date, end_date, instructions) VALUES (?, ?, ?, ?, ?, ?, ?)";
-    
-    // Convert LocalDate to java.sql.Date for proper database storage
-    java.sql.Date startDate = java.sql.Date.valueOf(med.getStart_date());
-    java.sql.Date endDate = med.getEnd_date() != null ? java.sql.Date.valueOf(med.getEnd_date()) : null;
-    
-    int rows = DatabaseInteraction.executeUpdate(sql,
-            med.getPatient_id(), 
-            med.getName_medication(), 
-            med.getDose(), 
-            med.getFreq().name(), // Use enum name for consistency
-            startDate,           // Use java.sql.Date
-            endDate,            // Use java.sql.Date (can be null)
-            med.getInstructions());
+    public List<MedicationEdit> getAllMedicationEdits() {
+        String sql = "SELECT * FROM medication_edits ORDER BY edit_time DESC";
+        List<MedicationEdit> edits = new ArrayList<>();
+        try (ResultSet rs = DatabaseInteraction.executeQuery(sql)) {
+            while (rs.next()) {
+                edits.add(mapResultSetToMedicationEdit(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching medication edits: " + e.getMessage());
+        }
+        return edits;
+    }
 
-       createMedicationsEdit(med.getPatient_id(), doctorId, med);
-       return rows > 0;
+
+    //===========================
+    //==== INSERT OPERATIONS ====
+    //===========================
+
+    public boolean insertMedication(Medication med, int doctorId) throws SQLException {
+        String sql = "INSERT INTO medications (patient_id, name, dose, frequency, start_date, end_date, instructions) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        // Convert LocalDate to java.sql.Date for proper database storage
+        java.sql.Date startDate = java.sql.Date.valueOf(med.getStart_date());
+        java.sql.Date endDate = med.getEnd_date() != null ? java.sql.Date.valueOf(med.getEnd_date()) : null;
+
+        int rows = DatabaseInteraction.executeUpdate(sql,
+                med.getPatient_id(),
+                med.getName_medication(),
+                med.getDose(),
+                med.getFreq().name(), // Use enum name for consistency
+                startDate,           // Use java.sql.Date
+                endDate,            // Use java.sql.Date (can be null)
+                med.getInstructions());
+
+           createMedicationsEdit(med.getPatient_id(), doctorId, med);
+           return rows > 0;
 
     }
 
@@ -118,27 +156,37 @@ public class MedicationDAO {
         }
     }
 
-public boolean updateMedication(Medication med, int doctorId) throws SQLException {
-    String sql = "UPDATE medications SET patient_id=?, name=?, dose=?, frequency=?, start_date=?, end_date=?, instructions=? WHERE id=?";
-    
-    // Convert LocalDate to java.sql.Date for proper database storage
-    java.sql.Date startDate = java.sql.Date.valueOf(med.getStart_date());
-    java.sql.Date endDate = med.getEnd_date() != null ? java.sql.Date.valueOf(med.getEnd_date()) : null;
-    
-    int rows = DatabaseInteraction.executeUpdate(sql,
-            med.getPatient_id(), 
-            med.getName_medication(), 
-            med.getDose(), 
-            med.getFreq().name(), // Use enum name for consistency
-            startDate,           // Use java.sql.Date
-            endDate,            // Use java.sql.Date (can be null)
-            med.getInstructions(), 
-            med.getId());
-    createMedicationsEdit(med.getPatient_id(), doctorId, med);
+
+    //===========================
+    //==== UPDATE OPERATIONS ====
+    //===========================
+
+    public boolean updateMedication(Medication med, int doctorId) throws SQLException {
+        String sql = "UPDATE medications SET patient_id=?, name=?, dose=?, frequency=?, start_date=?, end_date=?, instructions=? WHERE id=?";
+
+        // Convert LocalDate to java.sql.Date for proper database storage
+        java.sql.Date startDate = java.sql.Date.valueOf(med.getStart_date());
+        java.sql.Date endDate = med.getEnd_date() != null ? java.sql.Date.valueOf(med.getEnd_date()) : null;
+
+        int rows = DatabaseInteraction.executeUpdate(sql,
+                med.getPatient_id(),
+                med.getName_medication(),
+                med.getDose(),
+                med.getFreq().name(), // Use enum name for consistency
+                startDate,           // Use java.sql.Date
+                endDate,            // Use java.sql.Date (can be null)
+                med.getInstructions(),
+                med.getId());
+        createMedicationsEdit(med.getPatient_id(), doctorId, med);
 
 
-    return rows > 0;
-}
+        return rows > 0;
+    }
+
+
+    //===========================
+    //==== DELETE OPERATIONS ====
+    //===========================
 
     public static boolean deleteMedication(int id) throws SQLException {
         String sql = "DELETE FROM medications WHERE id = ?";
@@ -151,6 +199,11 @@ public boolean updateMedication(Medication med, int doctorId) throws SQLExceptio
         String sql = "DELETE FROM medications WHERE patient_id = ?";
         DatabaseInteraction.executeUpdate(sql, patientId);
     }
+
+
+    //===========================
+    //==== CREATE OPERATIONS ====
+    //===========================
 
     public void createMedicationsEdit(int patientId, int doctorId, Medication med) throws SQLException {
 
@@ -172,18 +225,10 @@ public boolean updateMedication(Medication med, int doctorId) throws SQLExceptio
 
     };
 
-    public static List<MedicationEdit> getMedicationEditsByMedicationId(int medicationId) throws SQLException {
-        String sql = "SELECT * FROM medication_edits WHERE medication_id = ? ORDER BY edit_time DESC";
-        List<MedicationEdit> edits = new ArrayList<>();
-        try (ResultSet rs = DatabaseInteraction.executeQuery(sql, medicationId)) {
-            while (rs.next()) {
-                edits.add(mapResultSetToMedicationEdit(rs));
-            }
-        }
-        return edits;
-    }
 
-
+    //===============================
+    //==== ADDITIONAL OPERATIONS ====
+    //===============================
 
     private static MedicationEdit mapResultSetToMedicationEdit(ResultSet rs) throws SQLException {
 
@@ -204,75 +249,63 @@ public boolean updateMedication(Medication med, int doctorId) throws SQLExceptio
 
 
     private static Medication mapResultSetToMedication(ResultSet rs) throws SQLException {
-    String frequencyStr = rs.getString("frequency");
-    
-    // Try to parse as enum name first, then as display name for backward compatibility
-    Frequency frequency;
-    try {
-        frequency = Frequency.valueOf(frequencyStr);
-    } catch (IllegalArgumentException e) {
-        // If that fails, try parsing as display name
-        frequency = Frequency.fromString(frequencyStr);
-    }
-    
-    // Handle dates more robustly
-    LocalDate startDate;
-    LocalDate endDate;
-    
-    try {
-        // Try getting as Date first
-        java.sql.Date startDateSql = rs.getDate("start_date");
-        startDate = (startDateSql != null) ? startDateSql.toLocalDate() : LocalDate.now();
-    } catch (SQLException e) {
-        // If that fails, try getting as String and parse
-        try {
-            String startDateStr = rs.getString("start_date");
-            startDate = (startDateStr != null && !startDateStr.isEmpty()) ? 
-                       LocalDate.parse(startDateStr) : LocalDate.now();
-        } catch (Exception ex) {
-            System.err.println("Warning: Could not parse start_date, using current date");
-            startDate = LocalDate.now();
-        }
-    }
-    
-    try {
-        // Try getting as Date first
-        java.sql.Date endDateSql = rs.getDate("end_date");
-        endDate = (endDateSql != null) ? endDateSql.toLocalDate() : LocalDate.now().plusMonths(1);
-    } catch (SQLException e) {
-        // If that fails, try getting as String and parse
-        try {
-            String endDateStr = rs.getString("end_date");
-            endDate = (endDateStr != null && !endDateStr.isEmpty()) ? 
-                     LocalDate.parse(endDateStr) : LocalDate.now().plusMonths(1);
-        } catch (Exception ex) {
-            System.err.println("Warning: Could not parse end_date, using current date + 1 month");
-            endDate = LocalDate.now().plusMonths(1);
-        }
-    }
-    
-    return new Medication(
-        rs.getInt("id"),
-        rs.getInt("patient_id"),
-        rs.getString("name"),
-        rs.getString("dose"),
-        frequency,
-        startDate,
-        endDate,
-        rs.getString("instructions")
-    );
-}
+        String frequencyStr = rs.getString("frequency");
 
-    public List<MedicationEdit> getAllMedicationEdits() {
-        String sql = "SELECT * FROM medication_edits ORDER BY edit_time DESC";
-        List<MedicationEdit> edits = new ArrayList<>();
-        try (ResultSet rs = DatabaseInteraction.executeQuery(sql)) {
-            while (rs.next()) {
-                edits.add(mapResultSetToMedicationEdit(rs));
-            }
-        } catch (SQLException e) {
-            System.err.println("Error fetching medication edits: " + e.getMessage());
+        // Try to parse as enum name first
+        Frequency frequency;
+        try {
+            frequency = Frequency.valueOf(frequencyStr);
+        } catch (IllegalArgumentException e) {
+            // If that fails, try parsing as display name
+            frequency = Frequency.fromString(frequencyStr);
         }
-        return edits;
+
+        // Handle dates more robustly
+        LocalDate startDate;
+        LocalDate endDate;
+
+        try {
+            // Try getting as Date first
+            java.sql.Date startDateSql = rs.getDate("start_date");
+            startDate = (startDateSql != null) ? startDateSql.toLocalDate() : LocalDate.now();
+        } catch (SQLException e) {
+            // If that fails, try getting as String and parse
+            try {
+                String startDateStr = rs.getString("start_date");
+                startDate = (startDateStr != null && !startDateStr.isEmpty()) ?
+                           LocalDate.parse(startDateStr) : LocalDate.now();
+            } catch (Exception ex) {
+                System.err.println("Warning: Could not parse start_date, using current date");
+                startDate = LocalDate.now();
+            }
+        }
+
+        try {
+            // Try getting as Date first
+            java.sql.Date endDateSql = rs.getDate("end_date");
+            endDate = (endDateSql != null) ? endDateSql.toLocalDate() : LocalDate.now().plusMonths(1);
+        } catch (SQLException e) {
+            // If that fails, try getting as String and parse
+            try {
+                String endDateStr = rs.getString("end_date");
+                endDate = (endDateStr != null && !endDateStr.isEmpty()) ?
+                         LocalDate.parse(endDateStr) : LocalDate.now().plusMonths(1);
+            } catch (Exception ex) {
+                System.err.println("Warning: Could not parse end_date, using current date + 1 month");
+                endDate = LocalDate.now().plusMonths(1);
+            }
+        }
+
+        return new Medication(
+            rs.getInt("id"),
+            rs.getInt("patient_id"),
+            rs.getString("name"),
+            rs.getString("dose"),
+            frequency,
+            startDate,
+            endDate,
+            rs.getString("instructions")
+        );
     }
+
 }

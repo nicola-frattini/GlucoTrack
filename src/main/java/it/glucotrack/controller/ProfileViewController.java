@@ -18,7 +18,6 @@ import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -34,20 +33,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import javafx.application.Platform;
 import javafx.scene.control.ButtonBar;
- import javafx.scene.control.ButtonType;
- import javafx.scene.control.Dialog;
- import javafx.scene.control.ListCell;
- import javafx.scene.control.TextArea;
- import javafx.scene.paint.Color;
- import javafx.scene.text.Font;
- import javafx.scene.text.FontWeight;
- import java.util.Optional;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.TextArea;
+
+import java.util.Optional;
 
 public class ProfileViewController implements Initializable {
 
-    // Enum per i tipi di utente
+    // Enum for user role type
     public enum UserRole {
         DOCTOR_VIEWING_PATIENT,
         DOCTOR_OWN_PROFILE,
@@ -199,7 +195,6 @@ public class ProfileViewController implements Initializable {
         setupTabs();
         setupCharts();
         loadTrendsContent();
-        setupButtons();
         loadRiskFactors();
         initializeAdditionalButtons();
         setupTherapyTable();
@@ -251,32 +246,29 @@ public class ProfileViewController implements Initializable {
         // Initialize ComboBox
         loadRiskFactors();
 
-        timeRangeCombo.getItems().addAll("Ultimi 7 giorni", "Ultimi 30 giorni", "Ultimo anno");
+        timeRangeCombo.getItems().addAll("Last 7 days", "Last 30 days", "Last year");
 
         timeRangeCombo.setOnAction(e -> {
             String selectedPeriod = timeRangeCombo.getSelectionModel().getSelectedItem();
-            System.out.println("Cambio periodo: " + selectedPeriod);
 
-            // Pausa breve per evitare conflitti nel refresh del grafico
+            // Wait to avoid refresh's problems
             javafx.application.Platform.runLater(() -> {
                 try {
-                    // Aggiorna sia i dati numerici che il grafico quando cambia il periodo
                     updateGlucoseData();
                     updateChart();
-                    System.out.println("Aggiornamento completato per periodo: " + selectedPeriod);
                 } catch (Exception ex) {
-                    System.err.println("Errore durante il cambio periodo: " + ex.getMessage());
+                    System.err.println("Error during change period: " + ex.getMessage());
                     ex.printStackTrace();
                 }
             });
         });
+
         // Initialize therapy modifications list
         therapyModifications = FXCollections.observableArrayList();
 
-        // Seleziona il default (7 giorni) e trigger del listener
-        timeRangeCombo.getSelectionModel().select("Ultimi 7 giorni");
+        timeRangeCombo.getSelectionModel().select("Last 7 days");
 
-        // Inizializza i dati della dashboard
+        // Inizialize data
         updateGlucoseData();
         updateChart();
     }
@@ -293,12 +285,9 @@ public class ProfileViewController implements Initializable {
         }
     }
 
-    /**
-     * Configura la vista in base al ruolo dell'utente
-     */
+
+    //==== SET THE USER ROLE ====
     public void setUserRole(UserRole role, User viewedPatient) throws SQLException {
-        System.out.println("DEBUG - Role: " + role);
-        System.out.println("DEBUG - ViewedPatient: " + (viewedPatient != null ? "not null" : "null"));
 
         this.currentUserRole = role;
 
@@ -306,7 +295,6 @@ public class ProfileViewController implements Initializable {
             this.currentPatient = PatientDAO.getPatientById(viewedPatient.getId());
         } else {
             this.currentPatient = null;
-            System.out.println("DEBUG - User is not a Patient instance!");
         }
 
         refreshInitialize();
@@ -314,7 +302,7 @@ public class ProfileViewController implements Initializable {
         updateViewForUserRole();
 
         if (currentPatient != null && currentUserRole == UserRole.DOCTOR_VIEWING_PATIENT) {
-
+            // This is not patient profile
             updatePatientSpecificData();
             loadTherapyTable();
             loadTherapyModificationsTable();
@@ -322,7 +310,6 @@ public class ProfileViewController implements Initializable {
             updateNonPatientProfile();
         }
     }
-
 
 
     private void updateNonPatientProfile() {
@@ -338,7 +325,6 @@ public class ProfileViewController implements Initializable {
             }
 
         }
-        System.out.println("Nascondo elementi medici");
         hideMedicalElements();
     }
 
@@ -455,7 +441,6 @@ public class ProfileViewController implements Initializable {
         }
 
         showMedicalTabs(true);
-        enableNotesEditing(true);
     }
 
     private void setupDoctorOwnProfile() {
@@ -469,7 +454,6 @@ public class ProfileViewController implements Initializable {
         }
 
         showMedicalTabs(false);
-        enableNotesEditing(false);
     }
 
     private void setupPatientOwnProfile() {
@@ -484,7 +468,6 @@ public class ProfileViewController implements Initializable {
         }
 
         showMedicalTabs(true);
-        enableNotesEditing(false);
     }
 
     private void setupAdminViewingUser() {
@@ -503,7 +486,6 @@ public class ProfileViewController implements Initializable {
         }
 
         showMedicalTabs(true);
-        enableNotesEditing(true);
     }
 
     private void setupAdminOwnProfile() {
@@ -514,7 +496,6 @@ public class ProfileViewController implements Initializable {
         }
 
         showMedicalTabs(false);
-        enableNotesEditing(false);
     }
 
     private void showMedicalCharts(boolean show) {
@@ -531,9 +512,6 @@ public class ProfileViewController implements Initializable {
         }
     }
 
-    private void enableNotesEditing(boolean enable) {
-        // This will be used in loadNotesContent
-    }
 
     private void handleDeleteUser() {
         if (currentPatient == null || currentUserRole != UserRole.ADMIN_VIEWING_USER) return;
@@ -601,25 +579,6 @@ public class ProfileViewController implements Initializable {
         }
         MailHelper.openMailClient(email);
 
-    }
-
-    private void handleUpdatePatientInfo() {
-        boolean canEdit = (currentUserRole != UserRole.PATIENT_OWN_PROFILE || currentPatient == currentUser);
-
-        if (canEdit) {
-            String title = (currentPatient == currentUser) ? "Update My Information" : "Update Patient Information";
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle(title);
-            alert.setHeaderText("Edit Information");
-            alert.setContentText("Information editing dialog would open here.");
-            alert.showAndWait();
-        } else {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Information");
-            alert.setHeaderText("View Only");
-            alert.setContentText("Contact your healthcare provider to update your information.");
-            alert.showAndWait();
-        }
     }
 
     private void showError(String title, String header, String content) {
@@ -709,9 +668,6 @@ public class ProfileViewController implements Initializable {
         }
     }
 
-    private void setupButtons() {
-
-    }
 
     private void updatePatientInfo() {
         if (currentPatient != null) {
@@ -740,16 +696,14 @@ public class ProfileViewController implements Initializable {
             List<GlucoseMeasurement> allMeasurements = currentPatient.getGlucoseReadings();
 
             if (!allMeasurements.isEmpty()) {
-                // Filtra i dati in base al periodo selezionato
+                // Filter during period selected
                 String selectedPeriod = timeRangeCombo.getSelectionModel().getSelectedItem();
                 int daysBack = getDaysFromPeriod(selectedPeriod);
                 List<GlucoseMeasurement> filteredMeasurements = filterMeasurementsByPeriod(allMeasurements, daysBack);
 
                 if (!filteredMeasurements.isEmpty()) {
-                    // Calcola statistiche sui dati filtrati
                     calculateAndDisplayStatistics(filteredMeasurements);
                 } else {
-                    // Nessun dato nel periodo selezionato, usa l'ultima misurazione disponibile
                     GlucoseMeasurement latest = allMeasurements.get(0);
                     currentGlucoseLabel.setText(String.format("%.0f", latest.getGlucoseLevel()));
                     setStatusWithColor(latest.getGlucoseLevel());
@@ -767,17 +721,17 @@ public class ProfileViewController implements Initializable {
     private void calculateAndDisplayStatistics(List<GlucoseMeasurement> measurements) {
         if (measurements.isEmpty()) return;
 
-        // Ordina per data (più recente per primo)
+        // Most recent first
         measurements.sort((a, b) -> b.getDateAndTime().compareTo(a.getDateAndTime()));
 
-        // Valore corrente (più recente nel periodo)
+        // Last measure
         GlucoseMeasurement latest = measurements.get(0);
         currentGlucoseLabel.setText(String.format("%.0f", latest.getGlucoseLevel()));
 
-        // Status basato sul valore più recente con colore
+        // Status on last measure
         setStatusWithColor(latest.getGlucoseLevel());
 
-        // Calcola trend confrontando prima e ultima misurazione del periodo
+        // Calculate trand
         if (measurements.size() > 1) {
             GlucoseMeasurement oldest = measurements.get(measurements.size() - 1);
             double change = ((double) (latest.getGlucoseLevel() - oldest.getGlucoseLevel()) / oldest.getGlucoseLevel()) * 100;
@@ -786,13 +740,13 @@ public class ProfileViewController implements Initializable {
             String trendColor;
             if (Math.abs(change) < 1.0) {
                 trendText = "Stabile";
-                trendColor = "-fx-text-fill: #8892b0;"; // Grigio per stabile
+                trendColor = "-fx-text-fill: #8892b0;";
             } else if (change > 0) {
                 trendText = String.format("↑ %.1f%%", change);
-                trendColor = "-fx-text-fill: #f44336;"; // Rosso per trend positivo (peggioramento)
+                trendColor = "-fx-text-fill: #f44336;";
             } else {
                 trendText = String.format("↓ %.1f%%", Math.abs(change));
-                trendColor = "-fx-text-fill: #4caf50;"; // Verde per trend negativo (miglioramento)
+                trendColor = "-fx-text-fill: #4caf50;";
             }
             trendLabel.setText(trendText);
             trendLabel.setStyle(trendColor);
@@ -809,16 +763,16 @@ public class ProfileViewController implements Initializable {
 
         if (glucose < 70) {
             statusText = "Low";
-            colorStyle = "-fx-text-fill: #f44336;"; // Rosso per valori bassi (stesso del High)
+            colorStyle = "-fx-text-fill: #f44336;";
         } else if (glucose <= 140) {
             statusText = "Normal";
-            colorStyle = "-fx-text-fill: #4caf50;"; // Verde per valori normali (70-140)
+            colorStyle = "-fx-text-fill: #4caf50;";
         } else if (glucose <= 180) {
             statusText = "Elevated";
-            colorStyle = "-fx-text-fill: #ff9800;"; // Arancione per valori elevati (140-180)
+            colorStyle = "-fx-text-fill: #ff9800;";
         } else {
             statusText = "High";
-            colorStyle = "-fx-text-fill: #f44336;"; // Rosso per valori alti (>180)
+            colorStyle = "-fx-text-fill: #f44336;";
         }
 
         statusLabel.setText(statusText);
@@ -923,7 +877,6 @@ public class ProfileViewController implements Initializable {
 
         if (symptomsContainer != null) {
             symptomsContainer.getChildren().clear();
-            System.out.println("Sono nel primo if: " + currentPatient.getFullName()+ "  e i suoi sintomi sono: " + currentPatient.getSymptoms());
 
             if (currentPatient == null || currentPatient.getSymptoms() == null || currentPatient.getSymptoms().isEmpty()) {
                 Label noSymptomsLabel = new Label("No symptoms reported");
@@ -964,7 +917,6 @@ public class ProfileViewController implements Initializable {
         // Add double-click event handler
         symptomBox.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2) {
-                System.out.println("Double-clicked on symptom: " + symptom.getSymptomName());
                 showSymptomDetailsPopup(symptom);
             }
         });
@@ -1031,7 +983,6 @@ public class ProfileViewController implements Initializable {
             popupController.setStage(popupStage);
             popupStage.showAndWait();
 
-            // Show the popup
 
 
         } catch (Exception e) {
@@ -1060,40 +1011,39 @@ public class ProfileViewController implements Initializable {
 
         if (currentPatient == null) return;
 
-        // Pulizia completa del grafico
+        // Clean up the chart
         glucoseChart.getData().clear();
         glucoseChart.getXAxis().setAnimated(false);
         glucoseChart.getYAxis().setAnimated(false);
         glucoseChart.setAnimated(false);
 
-        // Ottieni i dati dal database
+        // Get data
         List<GlucoseMeasurement> measurements = currentPatient.getGlucoseReadings();
-        System.out.println("Totale misurazioni caricate: " + measurements.size());
         if (measurements.isEmpty()) {
-            System.out.println("⚠Nessuna misurazione trovata per il grafico");
+            System.err.println("No measuration found");
             return;
         }
 
-        // Filtra i dati in base al periodo selezionato
+        // Filter data
         String selectedPeriod = timeRangeCombo.getSelectionModel().getSelectedItem();
         int daysBack = getDaysFromPeriod(selectedPeriod);
 
-        // Filtra e ordina i dati per il periodo
+        // Filter and order data
         java.time.LocalDateTime cutoffDate = java.time.LocalDateTime.now().minusDays(daysBack);
         List<GlucoseMeasurement> filteredMeasurements = measurements.stream()
                 .filter(m -> m.getDateAndTime().isAfter(cutoffDate))
                 .sorted((a, b) -> a.getDateAndTime().compareTo(b.getDateAndTime()))
                 .collect(Collectors.toList());
 
-        // Crea serie dati per il grafico
+        // Create data series
         XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.setName("Glicemia (mg/dL)");
+        series.setName("Blood Sugar(mg/dL)");
 
-        // Limita il numero di punti visualizzati per evitare sovrapposizioni delle date
+        // Set max points for chart style
         int maxPoints = getMaxPointsForPeriod(selectedPeriod);
 
         if (filteredMeasurements.size() > maxPoints) {
-            // Campionamento uniforme per distribuire i punti nel tempo
+
             double step = (double) filteredMeasurements.size() / maxPoints;
             for (int i = 0; i < maxPoints; i++) {
                 int index = (int) Math.round(i * step);
@@ -1105,7 +1055,6 @@ public class ProfileViewController implements Initializable {
                 series.getData().add(new XYChart.Data<>(dateStr, measurement.getGlucoseLevel()));
             }
         } else {
-            // Se ci sono pochi punti, mostra tutti ma con spaziatura minima
             for (int i = 0; i < filteredMeasurements.size(); i++) {
                 GlucoseMeasurement measurement = filteredMeasurements.get(i);
                 String dateStr = formatDateForChart(measurement.getDateAndTime(), selectedPeriod);
@@ -1115,11 +1064,8 @@ public class ProfileViewController implements Initializable {
 
         glucoseChart.getData().add(series);
 
-        System.out.println("Grafico aggiornato - Periodo: " + selectedPeriod +
-                ", Punti visualizzati: " + series.getData().size() +
-                "/" + filteredMeasurements.size());
 
-        // Forza il refresh completo del grafico
+        // Complete refresh
         javafx.application.Platform.runLater(() -> {
             glucoseChart.requestLayout();
             glucoseChart.autosize();
@@ -1143,18 +1089,18 @@ public class ProfileViewController implements Initializable {
     private String formatDateForChart(java.time.LocalDateTime dateTime, String period) {
         try {
             switch (period) {
-                case "Ultimi 7 giorni":
+                case "Last 7 days":
                     // Formato compatto per 7 giorni
                     return dateTime.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM HH:mm"));
-                case "Ultimi 30 giorni":
+                case "Last 30 days":
                     return dateTime.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM"));
-                case "Ultimo anno":
+                case "Last year":
                     return dateTime.format(java.time.format.DateTimeFormatter.ofPattern("MMM yyyy"));
                 default:
                     return dateTime.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM"));
             }
         } catch (Exception e) {
-            System.err.println("Errore nel formato data: " + e.getMessage());
+            System.err.println("Error during date formatting: " + e.getMessage());
             return dateTime.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM"));
         }
     }
@@ -1162,30 +1108,17 @@ public class ProfileViewController implements Initializable {
 
     private int getDaysFromPeriod(String period) {
         switch (period) {
-            case "Ultimi 7 giorni":
+            case "Last 7 days":
                 return 7;
-            case "Ultimi 30 giorni":
+            case "Last 30 days":
                 return 30;
-            case "Ultimo anno":
+            case "Last year":
                 return 365;
             default:
                 return 7;
         }
     }
 
-
-    private int getMaxPointsForTimeRange(String timeRange) {
-        switch (timeRange) {
-            case "Last 7 days":
-                return 7;
-            case "Last 30 days":
-                return 30;
-            case "Last 3 months":
-                return 90;
-            default:
-                return 10;
-        }
-    }
 
     private void updateMedicationProgress() {
         if (currentPatient != null && currentPatient.getGlucoseReadings() != null) {
@@ -1413,7 +1346,7 @@ public class ProfileViewController implements Initializable {
     }
 
     private void showEditRiskFactorDialog(RiskFactor riskFactor) {
-        Dialog<RiskFactorFormData> dialog = new Dialog<>();
+        Dialog<RiskFactor> dialog = new Dialog<>();
         dialog.setTitle("Edit Risk Factor");
         dialog.setHeaderText("Edit risk factor for " + currentPatient.getFullName());
 
@@ -1473,12 +1406,12 @@ public class ProfileViewController implements Initializable {
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == updateButtonType) {
                 String riskType = typeComboBox.getValue();
-                return new RiskFactorFormData(riskType, gravityComboBox.getValue(), "");
+                return new RiskFactor(riskType, gravityComboBox.getValue(), -1);
             }
             return null;
         });
 
-        Optional<RiskFactorFormData> result = dialog.showAndWait();
+        Optional<RiskFactor> result = dialog.showAndWait();
 
         result.ifPresent(formData -> {
             try {
@@ -1746,7 +1679,7 @@ public class ProfileViewController implements Initializable {
         Label fieldLabel = new Label(labelText);
         fieldLabel.setTextFill(Color.web("#BDC3C7"));
         fieldLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
-        fieldLabel.setPrefWidth(120); // stessa larghezza per tutte le etichette
+        fieldLabel.setPrefWidth(120);
 
         Node inputNode;
 
@@ -1757,7 +1690,7 @@ public class ProfileViewController implements Initializable {
                             + "-fx-border-color: #3498DB; -fx-border-radius: 3; -fx-background-radius: 3;"
             );
             textField.setPrefHeight(30);
-            textField.setPrefWidth(250); // larghezza fissa o regolabile
+            textField.setPrefWidth(250);
             textField.setUserData(value);
             inputNode = textField;
         } else {
@@ -1766,7 +1699,7 @@ public class ProfileViewController implements Initializable {
             valueLabel.setFont(Font.font(14));
             valueLabel.setWrapText(true);
             valueLabel.setStyle("-fx-background-color: #16213e; -fx-padding: 8; -fx-background-radius: 3;");
-            valueLabel.setMaxWidth(250); // per andare a capo se troppo lungo
+            valueLabel.setMaxWidth(250);
             inputNode = valueLabel;
         }
 
@@ -1899,9 +1832,7 @@ public class ProfileViewController implements Initializable {
         }
     }
 
-    /**
-     * Updates user object with form data and returns the updated user
-     */
+
     private User updateUserFromFormData(Map<String, String> formData, Map<String, Object> specialFields) {
         // Determine which object to update based on the current user role
         User userToUpdate = null;
@@ -1932,15 +1863,6 @@ public class ProfileViewController implements Initializable {
 
         // Update common fields for all user types
         updateCommonUserFields(userToUpdate, formData);
-
-        // Update specific fields based on user type
-        if (userToUpdate instanceof Patient) {
-            updatePatientSpecificFields((Patient) userToUpdate, formData, specialFields);
-        } else if (userToUpdate instanceof Doctor) {
-            updateDoctorSpecificFields((Doctor) userToUpdate, formData);
-        } else if (userToUpdate instanceof Admin) {
-            updateAdminSpecificFields((Admin) userToUpdate, formData);
-        }
 
         return userToUpdate;
     }
@@ -1993,31 +1915,6 @@ public class ProfileViewController implements Initializable {
         }
     }
 
-    private void updatePatientSpecificFields(Patient patient, Map<String, String> formData, Map<String, Object> specialFields) {
-        // Update doctor assignment from ComboBox
-        if (specialFields.containsKey("doctorId")) {
-            Integer doctorId = (Integer) specialFields.get("doctorId");
-            patient.setDoctorId(doctorId);
-        }
-    }
-
-    private void updateDoctorSpecificFields(Doctor doctor, Map<String, String> formData) {
-        if (formData.containsKey("Specialization")) {
-            String specialization = formData.get("Specialization").trim();
-            doctor.setSpecialization(specialization.equals("Not specified") ? null : specialization);
-        }
-    }
-
-    /**
-     * Updates Admin-specific fields
-     */
-    private void updateAdminSpecificFields(Admin admin, Map<String, String> formData) {
-        if (formData.containsKey("Role")) {
-            String role = formData.get("Role").trim();
-            admin.setRole(role.equals("Not specified") ? null : role);
-        }
-    }
-
     private void showSuccessAlert(String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Success");
@@ -2038,7 +1935,7 @@ public class ProfileViewController implements Initializable {
         if (currentPatient == null) return;
 
         // Create the dialog
-        Dialog<RiskFactorFormData> dialog = new Dialog<>();
+        Dialog<RiskFactor> dialog = new Dialog<>();
         dialog.setTitle("Add Risk Factor");
         dialog.setHeaderText("Add new risk factor for " + currentPatient.getFullName());
 
@@ -2179,11 +2076,10 @@ public class ProfileViewController implements Initializable {
                     riskType = typeComboBox.getValue();
                 }
 
-                return new RiskFactorFormData(
+                return new RiskFactor(
                         riskType != null ? riskType.trim() : "",
                         gravityComboBox.getValue(),
-                        notesTextArea.getText().trim()
-                );
+                        -1);
             }
             return null;
         });
@@ -2192,7 +2088,7 @@ public class ProfileViewController implements Initializable {
         Platform.runLater(() -> typeComboBox.requestFocus());
 
         // Show dialog and process result
-        Optional<RiskFactorFormData> result = dialog.showAndWait();
+        Optional<RiskFactor> result = dialog.showAndWait();
 
         result.ifPresent(formData -> {
             try {
@@ -2239,53 +2135,6 @@ public class ProfileViewController implements Initializable {
 
         row.getChildren().addAll(titleLabel, valueLabel);
         container.getChildren().add(row);
-    }
-
-    /**
-     * Helper method to show popup with proper styling and positioning
-     */
-    private void showPopup(StackPane popupRoot) {
-        if (parentContentPane != null) {
-            // Create overlay background
-            StackPane overlay = new StackPane();
-            overlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.5);");
-            overlay.setAlignment(Pos.CENTER);
-
-            // Add popup to overlay
-            overlay.getChildren().add(popupRoot);
-
-            // Add overlay to parent content pane
-            parentContentPane.getChildren().add(overlay);
-
-            // Close popup when clicking on overlay (outside popup)
-            overlay.setOnMouseClicked(event -> {
-                if (event.getTarget() == overlay) {
-                    parentContentPane.getChildren().remove(overlay);
-                }
-            });
-        }
-    }
-
-    // Add this inner class to store form data
-    private static class RiskFactorFormData {
-        private final String type;
-        private final Gravity gravity;
-        private final String notes;
-
-        public RiskFactorFormData(String type, Gravity gravity, String notes) {
-            this.type = type;
-            this.gravity = gravity;
-            this.notes = notes;
-        }
-
-        public String getType() {
-            return type;
-        }
-
-        public Gravity getGravity() {
-            return gravity;
-        }
-
     }
 
 }

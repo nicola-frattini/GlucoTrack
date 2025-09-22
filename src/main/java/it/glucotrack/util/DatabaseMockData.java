@@ -25,14 +25,11 @@ public class DatabaseMockData {
 
     public static void populateDatabase() {
         try {
-            System.out.println("🚀 Popolamento database con dati mock...");
+            System.out.println("Populate Database with mock data");
 
-            // Inizializza i DAO
             UserDAO userDAO = new UserDAO();
 
-            // Controlla se il database è già popolato
             if (!userDAO.getAllUsers().isEmpty()) {
-                System.out.println("✅ Database già popolato, saltando l'inserimento");
                 return;
             }
 
@@ -42,43 +39,42 @@ public class DatabaseMockData {
             MedicationDAO medicationDAO = new MedicationDAO();
             GlucoseMeasurementDAO glucoseDAO = new GlucoseMeasurementDAO();
 
-            // 1. Crea Admins
+            // 1. Create Admins
             createMockAdmins(adminDAO);
 
-            // 2. Crea Doctors
+            // 2. Create Doctors
             createMockDoctors(doctorDAO);
 
-            // 3. Crea Patients
+            // 3. Create Patients
             createMockPatients(patientDAO);
 
-            // 4. Crea Medications per i pazienti
+            // 4. Create Medications
             createMockMedications(medicationDAO, userDAO);
 
-            // 5. Crea Log Medications (pianificazioni assunzioni)
+            // 5. Create Log Medications
             LogMedicationDAO logMedicationDAO = new LogMedicationDAO();
             createMockLogMedications(logMedicationDAO, medicationDAO, userDAO);
 
-            // 6. Crea Glucose Measurements
+            // 6. Create Glucose Measurements
             createMockGlucoseMeasurements(glucoseDAO, userDAO);
 
-            // 7. Crea Symptoms per i pazienti
+            // 7. Create Symptoms
             SymptomDAO symptomDAO = new SymptomDAO();
             createMockSymptoms(symptomDAO, userDAO);
 
-            // 8. Crea Risk Factors per i pazienti
+            // 8. Create Risk Factors
             RiskFactorDAO riskFactorDAO = new RiskFactorDAO();
             createMockRiskFactors(riskFactorDAO, userDAO);
 
-            System.out.println("🎉 Database popolato con successo!");
+            System.out.println("Database populated");
             printDatabaseStats(userDAO, medicationDAO);
 
         } catch (SQLException e) {
-            System.err.println("❌ Errore durante il popolamento: " + e.getMessage());
+            System.err.println("Error during population: " + e.getMessage());
         }
     }
 
     private static void createMockAdmins(AdminDAO adminDAO) throws SQLException {
-        System.out.println("  📋 Creazione Admins...");
 
         Admin admin1 = new Admin("Mario", "Rossi", "admin@glucotrack.com", "admin123",
                 LocalDate.of(1980, 5, 15), Gender.MALE, "3331234567",
@@ -91,11 +87,12 @@ public class DatabaseMockData {
         adminDAO.insertAdmin(admin1);
         adminDAO.insertAdmin(admin2);
 
-        System.out.println("  ✅ 2 Admins creati");
+        System.out.println("2 Admins created");
+
+
     }
 
     private static void createMockDoctors(DoctorDAO doctorDAO) throws SQLException {
-        System.out.println("  👨‍⚕️ Creazione Doctors...");
 
         Doctor doctor1 = new Doctor("Giuseppe", "Verdi", "dr.verdi@glucotrack.com", "doctor123",
                 LocalDate.of(1970, 3, 10), Gender.MALE, "3351234567",
@@ -108,11 +105,11 @@ public class DatabaseMockData {
         doctorDAO.insertDoctor(doctor1);
         doctorDAO.insertDoctor(doctor2);
 
-        System.out.println("  ✅ 2 Doctors creati");
+        System.out.println("2 Doctor created");
+
     }
 
     private static void createMockPatients(PatientDAO patientDAO) throws SQLException {
-        System.out.println("  🤒 Creazione Patients...");
 
         String[] nomi = {"Francesco", "Maria", "Antonio", "Giulia", "Marco", "Elena", "Luca", "Sara", "Paolo", "Chiara"};
         String[] cognomi = {"Rossi", "Bianchi", "Verdi", "Neri", "Ferrari", "Romano", "Gallo", "Conti", "Ricci", "Marino"};
@@ -132,7 +129,7 @@ public class DatabaseMockData {
             String birthPlace = "Città" + (i + 1);
             String fiscalCode = "FISCAL" + String.format("%02d", i + 1) + "X";
 
-            // Assegna ai dottori (ID 1 o 2)
+            // Assign to doctors (ID 1 o 2)
             int doctorId = (i % 2) + 3;
 
             Patient patient = new Patient(nome, cognome, email, password, birthDate, gender,
@@ -141,30 +138,25 @@ public class DatabaseMockData {
             patientDAO.insertPatient(patient);
         }
 
-        System.out.println("  ✅ 10 Patients creati");
+        System.out.println("10 Patients created");
     }
 
 
     private static void createMockMedications(MedicationDAO medicationDAO, UserDAO userDAO) throws SQLException {
-        System.out.println("Creazione Medications...");
 
-        // Prendi tutti i pazienti
-        System.out.println("Recupero pazienti per medications...");
         List<User> patients = userDAO.getUsersByType("PATIENT");
-        System.out.println("Trovati " + patients.size() + " pazienti");
 
         String[] farmaci = {"Metformina", "Insulina Rapida", "Insulina Lenta", "Glibenclamide",
                            "Gliclazide", "Sitagliptin", "Canagliflozin", "Empagliflozin", "Linagliptin"};
-        String[] dosiStr = {"500mg", "10 unità", "20 unità", "5mg",
+        String[] dosiStr = {"500mg", "10 unit", "20 unit", "5mg",
                            "30mg", "100mg", "100mg", "10mg", "5mg"}; // Dosi come stringhe
         Frequency[] frequenze = {Frequency.TWICE_A_DAY, Frequency.THREE_TIMES_A_DAY, Frequency.ONCE_A_DAY,
                                Frequency.EVERY_TWELVE_HOURS, Frequency.FOUR_TIMES_A_DAY};
 
         int medicationCount = 0;
         for (User patient : patients) {
-            System.out.println("Creando medications per: " + patient.getName() + " " + patient.getSurname());
 
-            // Ogni paziente ha 2-4 farmaci (almeno 2)
+            // Every patient 2/4
             int numFarmaci = 2 + random.nextInt(3);
 
             for (int i = 0; i < numFarmaci; i++) {
@@ -174,49 +166,45 @@ public class DatabaseMockData {
                     String dose = dosiStr[farmacoIndex];
                     Frequency frequency = frequenze[random.nextInt(frequenze.length)];
 
-                    // Date di inizio e fine che possono partire massimo fino al 19/09/2025
+                    //Max start: 19/09/2025
                     LocalDate startDate = LocalDate.now().minusDays(random.nextInt(60));
                     LocalDate endDate = startDate.plusMonths(1 + random.nextInt(6));
 
-                    String instructions = "Assumere " + frequency.getDisplayName().toLowerCase() + " prima dei pasti";
+                    String instructions = "Take " + frequency.getDisplayName().toLowerCase() + " with this istruction";
 
-                    // Usa il costruttore che accetta dose come String
                     Medication medication = new Medication(patient.getId(), farmaco, dose, frequency,
                                                          startDate, endDate, instructions);
 
                     medicationDAO.insertMedication(medication, (i%2)+3);
                     medicationCount++;
-                    System.out.println("    Medication creata: " + farmaco + " per paziente " + patient.getName());
 
                 } catch (Exception e) {
-                    System.err.println("    Errore creando medication per paziente " + patient.getName() + ": " + e.getMessage());
-                    throw e; // Re-throw per fermare il processo
+                    System.err.println("Error creating medication for" + patient.getName() + ": " + e.getMessage());
+                    throw e; // Re-throw to stop the process
                 }
             }
         }
 
-        System.out.println(medicationCount + " Medications creati");
+        System.out.println(medicationCount + " Medications created");
     }
 
     private static void createMockGlucoseMeasurements(GlucoseMeasurementDAO glucoseDAO, UserDAO userDAO) throws SQLException {
-        System.out.println("Creazione Glucose Measurements...");
 
         List<User> patients = userDAO.getUsersByType("PATIENT");
 
         int measurementCount = 0;
         for (User patient : patients) {
-            // Ogni paziente ha 20-50 misurazioni negli ultimi 30 giorni
-            int numMeasurements = 20 + random.nextInt(31);
+            // Ogni paziente ha 40-100 misurazioni negli ultimi 90 giorni
+            int numMeasurements = 40 + random.nextInt(61);
 
             for (int i = 0; i < numMeasurements; i++) {
-                LocalDateTime measurementTime = LocalDateTime.now().minusDays(random.nextInt(30))
+                LocalDateTime measurementTime = LocalDateTime.now().minusDays(random.nextInt(90))
                                                                    .minusHours(random.nextInt(24))
                                                                    .minusMinutes(random.nextInt(60));
 
-                // Valori realistici di glicemia (70-300 mg/dL)
-                float value = 70.0f + random.nextFloat() * 231.0f;
+                // (70-250 mg/dL)
+                float value = 70.0f + random.nextFloat() * 181.0f;
 
-                // Seleziona un tipo di misurazione casuale
                 String[] measurementTypes = {
                     "Before Breakfast", "After Breakfast",
                     "Before Lunch", "After Lunch",
@@ -224,7 +212,7 @@ public class DatabaseMockData {
                     "Before Sleep", "Fasting", "Random"
                 };
                 String type = measurementTypes[random.nextInt(measurementTypes.length)];
-                String notes = type.toLowerCase().contains("before") ? "Prima del pasto" : "Dopo il pasto";
+                String notes = type.toLowerCase().contains("before") ? "Before meal" : "After meal";
 
                 GlucoseMeasurement measurement = new GlucoseMeasurement(patient.getId(), measurementTime, value, type, notes);
                 glucoseDAO.insertGlucoseMeasurement(measurement);
@@ -232,11 +220,11 @@ public class DatabaseMockData {
             }
         }
 
-        System.out.println("  ✅ " + measurementCount + " Glucose Measurements creati");
+        System.out.println(measurementCount + " Glucose Measurements created");
     }
 
     private static void printDatabaseStats(UserDAO userDAO, MedicationDAO medicationDAO) throws SQLException {
-        System.out.println("\n📊 Statistiche Database:");
+        System.out.println("\nDatabase Stats:");
         System.out.println("- Admins: " + userDAO.getUserCountByType("ADMIN"));
         System.out.println("- Doctors: " + userDAO.getUserCountByType("DOCTOR"));
         System.out.println("- Patients: " + userDAO.getUserCountByType("PATIENT"));
@@ -244,31 +232,32 @@ public class DatabaseMockData {
     }
 
     public static void printDatabaseContents() {
-        System.out.println("\n🔍 === CONTENUTO DATABASE ===");
+        System.out.println("\n=== DATABASE CONTENTS ===");
         try {
             printUsersTable();
             printMedicationsTable();
             printGlucoseMeasurementsTable();
         } catch (Exception e) {
-            System.err.println("❌ Errore durante la stampa del database: " + e.getMessage());
+            System.err.println("Error during database print: " + e.getMessage());
             e.printStackTrace();
         }
-        System.out.println("🔍 === FINE CONTENUTO DATABASE ===\n");
+        System.out.println("=== END DATABASE ===\n");
     }
 
     private static void printUsersTable() throws SQLException {
-        System.out.println("\n👥 TABELLA USERS:");
-        String sql = "SELECT id, name, surname, email, born_date, gender, type FROM users ORDER BY type, id";
+        System.out.println("\nUSER TABLE:");
+        String sql = "SELECT id, name, surname,password, email, born_date, gender, type FROM users ORDER BY type, id";
         try (java.sql.ResultSet rs = DatabaseInteraction.executeQuery(sql)) {
-            System.out.println("ID | Nome | Cognome | Email | Data Nascita | Genere | Tipo");
-            System.out.println("---|------|---------|-------|--------------|--------|------");
+            System.out.println("ID | Name | Surname | Email | Password | Birth Date | Gender | Type");
+            System.out.println("---|------|---------|-------|----------|------------|--------|------");
             while (rs.next()) {
-                System.out.printf("%2d | %-8s | %-10s | %-25s | %-12s | %-6s | %-7s%n",
+                System.out.printf("%2d | %-8s | %-10s | %-25s | %-25s | %-12s | %-6s | %-7s%n",
                     rs.getInt("id"),
                     rs.getString("name"),
                     rs.getString("surname"),
+                    rs.getString("password"),
                     rs.getString("email"),
-                    rs.getObject("born_date"), // Uso getObject per vedere il tipo effettivo
+                    rs.getObject("born_date"),
                     rs.getString("gender"),
                     rs.getString("type")
                 );
@@ -277,11 +266,11 @@ public class DatabaseMockData {
     }
 
     private static void printMedicationsTable() throws SQLException {
-        System.out.println("\n💊 TABELLA MEDICATIONS:");
+        System.out.println("\nMEDICATIONS TABLE:");
         String sql = "SELECT id, name, dose, frequency FROM medications LIMIT 5";
         try (java.sql.ResultSet rs = DatabaseInteraction.executeQuery(sql)) {
-            System.out.println("ID | Nome | Dosaggio | Frequenza");
-            System.out.println("---|------|----------|----------");
+            System.out.println("ID | Name | Dose | Frequency");
+            System.out.println("---|------|------|----------");
             while (rs.next()) {
                 System.out.printf("%2d | %-15s | %-10s | %-10s%n",
                     rs.getInt("id"),
@@ -294,34 +283,35 @@ public class DatabaseMockData {
     }
 
     private static void printGlucoseMeasurementsTable() throws SQLException {
-        System.out.println("\n📊 TABELLA GLUCOSE_MEASUREMENTS (prime 5):");
-        String sql = "SELECT id, patient_id, value, measurement_time FROM glucose_measurements LIMIT 5";
+        System.out.println("\nGLUCOSE_MEASUREMENTS TABLE (first 10):");
+        String sql = "SELECT id, patient_id, value, measurement_time FROM glucose_measurements LIMIT 10";
         try (java.sql.ResultSet rs = DatabaseInteraction.executeQuery(sql)) {
-            System.out.println("ID | Patient ID | Livello | Timestamp");
-            System.out.println("---|------------|---------|----------");
+            System.out.println("ID | Patient ID | Value | Timestamp");
+            System.out.println("---|------------|-------|----------");
             while (rs.next()) {
                 System.out.printf("%2d | %10d | %7d | %-20s%n",
                     rs.getInt("id"),
                     rs.getInt("patient_id"),
                     rs.getInt("value"),
-                    rs.getObject("measurement_time") // Uso getObject per vedere il tipo effettivo
+                    rs.getObject("measurement_time")
                 );
             }
         }
     }
 
     private static void createMockSymptoms(SymptomDAO symptomDAO, UserDAO userDAO) throws SQLException {
-        System.out.println("  🤒 Creazione Symptoms...");
 
         List<User> patients = userDAO.getUsersByType("PATIENT");
 
-        String[] symptomNames = {"Mal di testa", "Nausea", "Vertigini", "Stanchezza", "Visione offuscata",
-                                "Sete eccessiva", "Fame eccessiva", "Perdita di peso", "Minzione frequente",
-                                "Crampi alle gambe", "Formicolio", "Dolore addominale", "Sudorazione eccessiva"};
+        String[] symptomNames = {
+                "Headache", "Nausea", "Dizziness", "Fatigue", "Blurred vision",
+                "Excessive thirst", "Excessive hunger", "Weight loss", "Frequent urination",
+                "Leg cramps", "Tingling", "Abdominal pain", "Excessive sweating"
+        };
 
         int symptomCount = 0;
         for (User patient : patients) {
-            // Ogni paziente ha 2-8 sintomi negli ultimi 60 giorni
+            //  2-8 symptoms in the last 60 days
             int numSymptoms = 2 + random.nextInt(7);
 
             for (int i = 0; i < numSymptoms; i++) {
@@ -331,19 +321,24 @@ public class DatabaseMockData {
 
                     String symptomName = symptomNames[random.nextInt(symptomNames.length)];
 
-                    // Genera dati casuali per severity, duration e notes
                     String[] severities = {"Mild", "Moderate", "Severe", "VerySevere"};
                     String severity = severities[random.nextInt(severities.length)];
 
-                    // Genera durata casuale (30 minuti a 4 ore)
+                    // 30 minutes to 4 hours)
                     int hours = random.nextInt(5); // 0-4 ore
                     int minutes = random.nextInt(4) * 15; // 0, 15, 30, 45 minuti
                     String duration = String.format("%02d:%02d", hours, minutes);
 
-                    String[] noteOptions = {"", "Sintomo lieve", "Migliorato con riposo", "Peggiorato dopo i pasti", "Sintomo ricorrente"};
+                    String[] noteOptions = {
+                            "",
+                            "Mild symptom",
+                            "Improved with rest",
+                            "Worsened after meals",
+                            "Recurring symptom"
+                    };
+
                     String notes = noteOptions[random.nextInt(noteOptions.length)];
 
-                    // Crea oggetto Symptom usando il modello
                     it.glucotrack.model.Symptom symptom = new it.glucotrack.model.Symptom();
                     symptom.setSymptomName(symptomName);
                     symptom.setGravity(severity);
@@ -351,22 +346,20 @@ public class DatabaseMockData {
                     symptom.setNotes(notes);
                     symptom.setDateAndTime(symptomDateTime);
 
-                    // Usa il nuovo metodo che inserisce tutti i campi
                     symptomDAO.insertSymptom(patient.getId(), symptom);
                     symptomCount++;
 
                 } catch (Exception e) {
-                    System.err.println("    ❌ Errore creando symptom per paziente " + patient.getName() + ": " + e.getMessage());
+                    System.err.println("Error during symptom's creation for " + patient.getName() + ": " + e.getMessage());
                     throw e;
                 }
             }
         }
 
-        System.out.println("  ✅ " + symptomCount + " Symptoms creati");
+        System.out.println(symptomCount + " Symptoms created");
     }
 
     private static void createMockRiskFactors(RiskFactorDAO riskFactorDAO, UserDAO userDAO) throws SQLException {
-        System.out.println("  ⚠️ Creazione Risk Factors...");
 
         String[] riskTypes = {"Smoking", "Obesity", "Family History", "High Blood Pressure", "High Cholesterol",
                 "Sedentary Lifestyle", "Poor Diet", "Stress", "Age Factor", "Genetic Predisposition"};
@@ -374,10 +367,9 @@ public class DatabaseMockData {
 
         int riskFactorCount = 0;
 
-        // Prendi tutti i pazienti
         List<User> patients = userDAO.getUsersByType("PATIENT");
 
-        // Inserisci dai 2 ai 4 risk factor per paziente
+        // 2/4 risk factor for patient
         for(User patient : patients) {
             int numRiskFactors = 2 + random.nextInt(3); // 2-4 risk factors
 
@@ -395,54 +387,48 @@ public class DatabaseMockData {
                     riskFactorCount++;
 
                 } catch (Exception e) {
-                    System.err.println("    ❌ Errore creando risk factor per paziente " + patient.getName() + ": " + e.getMessage());
+                    System.err.println("Error during risk factor creation for patient " + patient.getName() + ": " + e.getMessage());
                     throw e;
                 }
             }
         }
 
-        System.out.println("  ✅ " + riskFactorCount + " Risk Factors creati");
+        System.out.println(riskFactorCount + " Risk Factors created");
     }
 
 
     private static void createMockLogMedications(LogMedicationDAO logMedicationDAO, MedicationDAO medicationDAO, UserDAO userDAO) throws SQLException {
-        System.out.println("  📅 Creazione Log Medications (pianificazioni)...");
 
-        // Prendi tutte le medications esistenti
         List<User> patients = userDAO.getUsersByType("PATIENT");
         int logCount = 0;
 
         for (User patient : patients) {
             try {
-                // Prendi tutti i farmaci del paziente
+
                 List<Medication> medications = medicationDAO.getMedicationsByPatientId(patient.getId());
 
                 for (Medication medication : medications) {
-                    // Crea log per gli ultimi 30 giorni e i prossimi 7 giorni
                     LocalDate startDate = LocalDate.now().minusDays(30);
                     LocalDate endDate = LocalDate.now().plusDays(7);
 
-                    // Determina quante volte al giorno in base alla frequenza
                     int timesPerDay = getTimesPerDay(medication.getFreq());
 
-                    // Genera log per ogni giorno nel range
                     for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-                        // Crea più log al giorno in base alla frequenza
+
                         for (int i = 0; i < timesPerDay; i++) {
                             LocalTime time = getTimeForDose(i, timesPerDay);
                             LocalDateTime dateTime = LocalDateTime.of(date, time);
 
-                            // Determina se è stato preso (passato) o è pianificato (futuro)
-                            boolean taken = dateTime.isBefore(LocalDateTime.now()) && random.nextDouble() > 0.15; // 85% di aderenza
+                            boolean taken = dateTime.isBefore(LocalDateTime.now()) && random.nextDouble() > 0.10; // 90% di aderenza
 
-                            // Debug: controlla che medication ID sia valido
+                            // Debug
                             if (medication.getId() <= 0) {
-                                System.err.println("      ⚠️ Medication ID non valido: " + medication.getId() + " per " + medication.getName_medication());
+                                System.err.println("Medication ID not valid: " + medication.getId() + " for " + medication.getName_medication());
                                 continue;
                             }
 
                             LogMedication logMedication = new LogMedication(
-                                -1, // ID auto-generato
+                                -1, // ID auto-generated
                                 medication.getId(),
                                 dateTime,
                                 taken
@@ -454,12 +440,12 @@ public class DatabaseMockData {
                     }
                 }
             } catch (Exception e) {
-                System.err.println("    ❌ Errore creando log medications per paziente " + patient.getName() + ": " + e.getMessage());
+                System.err.println("Error during the log medications creation for patient " + patient.getName() + ": " + e.getMessage());
                 throw e;
             }
         }
 
-        System.out.println("  ✅ " + logCount + " Log Medications creati");
+        System.out.println(logCount + " Log Medications created");
     }
 
     private static int getTimesPerDay(Frequency frequency) {
@@ -474,24 +460,24 @@ public class DatabaseMockData {
     }
 
     private static LocalTime getTimeForDose(int doseIndex, int totalDoses) {
-        // Distribuisce le dosi durante la giornata
+
         switch (totalDoses) {
-            case 1: return LocalTime.of(8, 0); // Una volta al giorno - mattina
+            case 1: return LocalTime.of(8, 0);
             case 2:
-                return doseIndex == 0 ? LocalTime.of(8, 0) : LocalTime.of(20, 0); // Mattina e sera
+                return doseIndex == 0 ? LocalTime.of(8, 0) : LocalTime.of(20, 0);
             case 3:
                 switch (doseIndex) {
-                    case 0: return LocalTime.of(8, 0);  // Mattina  
-                    case 1: return LocalTime.of(13, 0); // Pranzo
-                    case 2: return LocalTime.of(20, 0); // Sera
+                    case 0: return LocalTime.of(8, 0);
+                    case 1: return LocalTime.of(13, 0);
+                    case 2: return LocalTime.of(20, 0);
                     default: return LocalTime.of(8, 0);
                 }
             case 4:
                 switch (doseIndex) {
-                    case 0: return LocalTime.of(8, 0);  // Mattina
-                    case 1: return LocalTime.of(12, 0); // Pranzo
-                    case 2: return LocalTime.of(17, 0); // Pomeriggio
-                    case 3: return LocalTime.of(21, 0); // Sera
+                    case 0: return LocalTime.of(8, 0);
+                    case 1: return LocalTime.of(12, 0);
+                    case 2: return LocalTime.of(17, 0);
+                    case 3: return LocalTime.of(21, 0);
                     default: return LocalTime.of(8, 0);
                 }
             default: return LocalTime.of(8, 0);

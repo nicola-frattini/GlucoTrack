@@ -30,7 +30,6 @@ public class LoginController {
     @FXML
     private Label signUpLabel;
 
-    // Session Manager per gestire l'utente loggato
     private SessionManager sessionManager = SessionManager.getInstance();
 
     @FXML
@@ -50,7 +49,7 @@ public class LoginController {
 
     @FXML
     private void handleLogin(ActionEvent event) {
-        // Controllo che i campi siano stati iniettati correttamente
+
         if (emailField == null || passwordField == null) {
             System.err.println("FXML fields not injected properly!");
             showErrorAlert("Error", "Application not initialized correctly.");
@@ -62,7 +61,7 @@ public class LoginController {
 
         if (validateInput(email, password)) {
             if (authenticateUser(email, password)) {
-                // Login riuscito - la navigazione è gestita in authenticateUser
+
             } else {
                 showErrorAlert("Login failed", "Invalid email or password.");
             }
@@ -86,11 +85,11 @@ public class LoginController {
     }
 
     public boolean authenticateUser(String email, String password) {
-        // Usa SessionManager per l'autenticazione con password encryption
+
         boolean loginSuccess = sessionManager.login(email, password);
 
         if (loginSuccess) {
-            // Naviga in base al tipo di utente
+
             String userType = sessionManager.getCurrentUserType();
             navigateBasedOnUserType(userType);
             return true;
@@ -120,7 +119,7 @@ public class LoginController {
         ViewNavigator.getInstance().navigateTo(ViewNavigator.REGISTER_VIEW);
     }
 
-    private void showErrorAlert(String title, String message) {
+    protected void showErrorAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText(null);
@@ -130,7 +129,7 @@ public class LoginController {
 
 
 
-    // Metodi statici per compatibilità - delegano a SessionManager
+
     public static User getCurrentUser() {
         return SessionManager.getInstance().getCurrentUser();
     }

@@ -6,18 +6,26 @@ import java.time.LocalDateTime;
 import it.glucotrack.model.User;
 import it.glucotrack.view.ViewNavigator;
 
+
+/*
+* SESSION MANAGER
+* Singleton Class used to manage the session
+*/
+
 public class SessionManager {
 
     private static SessionManager instance;
-    private static User currentUser;
+    private static User currentUser; //
     private String currentUserType;
     private LocalDateTime loginTime;
     private UserDAO userDAO;
 
-    // Private constructor per Singleton
+
+    // Private constructor for Singleton
     private SessionManager() {
         this.userDAO = new UserDAO();
     }
+
 
     // Singleton instance
     public static SessionManager getInstance() {
@@ -27,46 +35,41 @@ public class SessionManager {
         return instance;
     }
 
-    /**
-     * Autentica un utente e avvia la sessione
-     */
+
+    // Authentication for a user
     public boolean login(String email, String password) {
         try {
             // Get user by email first
             User user = userDAO.getUserByEmail(email);
 
             if (user == null) {
-                System.out.println("❌ User not found for email: " + email);
+                System.out.println("User not found for email: " + email);
                 return false;
             }
-
-            // If plain password is correct start the session
-
 
             if (user.getPassword().equals(password)) {
                 this.currentUser = user;
                 this.currentUserType = determineUserType(user);
                 this.loginTime = LocalDateTime.now();
 
-                System.out.println("✅ Session started for: " + user.getFullName() + " (" + currentUserType + ")");
+                System.out.println("Session started for: " + user.getFullName() + " (" + currentUserType + ")");
                 return true;
             } else {
-                System.out.println("❌ Password mismatch for email: " + email);
+                System.out.println("Password mismatch for email: " + email);
                 return false;
             }
 
         } catch (SQLException e) {
-            System.err.println("❌ Database error during authentication: " + e.getMessage());
+            System.err.println("Database error during authentication: " + e.getMessage());
             return false;
         }
     }
 
-    /**
-     * Termina la sessione corrente
-     */
+
+    // End session
     public void logout() {
         if (currentUser != null) {
-            System.out.println("🔐 Session ended for: " + currentUser.getFullName());
+            System.out.println("Session ended for: " + currentUser.getFullName());
         }
 
         this.currentUser = null;
@@ -77,103 +80,68 @@ public class SessionManager {
         ViewNavigator.getInstance().navigateTo(ViewNavigator.LOGIN_VIEW);
     }
 
-    /**
-     * Controlla se c'è una sessione attiva
-     */
+
+
     public boolean isLoggedIn() {
         return currentUser != null;
     }
 
-    /**
-     * Ottiene l'utente corrente
-     */
     public static User getCurrentUser() {
         return currentUser;
     }
 
-    /**
-     * Ottiene il tipo dell'utente corrente
-     */
     public String getCurrentUserType() {
         return currentUserType;
     }
 
-    /**
-     * Ottiene l'ID dell'utente corrente
-     */
     public int getCurrentUserId() {
         return currentUser != null ? currentUser.getId() : -1;
     }
 
-    /**
-     * Ottiene il nome completo dell'utente corrente
-     */
     public String getCurrentUserFullName() {
         return currentUser != null ? currentUser.getFullName() : "Unknown";
     }
 
-    /**
-     * Ottiene l'email dell'utente corrente
-     */
     public String getCurrentUserEmail() {
         return currentUser != null ? currentUser.getEmail() : null;
     }
 
-    /**
-     * Ottiene il tempo di login
-     */
     public LocalDateTime getLoginTime() {
         return loginTime;
     }
 
-    /**
-     * Controlla se l'utente ha un ruolo specifico
-     */
     public boolean hasRole(String role) {
         return role != null && role.equalsIgnoreCase(currentUserType);
     }
 
-    /**
-     * Controlla se l'utente è un admin
-     */
     public boolean isAdmin() {
         return hasRole("ADMIN");
     }
 
-    /**
-     * Controlla se l'utente è un dottore
-     */
     public boolean isDoctor() {
         return hasRole("DOCTOR");
     }
 
-    /**
-     * Controlla se l'utente è un paziente
-     */
     public boolean isPatient() {
         return hasRole("PATIENT");
     }
 
-    /**
-     * Aggiorna i dati dell'utente corrente (dopo modifiche al profilo)
-     */
+    // Refresh the currentUser
     public void refreshCurrentUser() {
         if (currentUser != null) {
             try {
                 User updatedUser = userDAO.getUserById(currentUser.getId());
                 if (updatedUser != null) {
                     this.currentUser = updatedUser;
-                    System.out.println("🔄 User data refreshed for: " + updatedUser.getFullName());
+                    System.out.println("User data refreshed for: " + updatedUser.getFullName());
                 }
             } catch (SQLException e) {
-                System.err.println("❌ Error refreshing user data: " + e.getMessage());
+                System.err.println("Error refreshing user data: " + e.getMessage());
             }
         }
     }
 
-    /**
-     * Ottiene informazioni sulla sessione per debug
-     */
+
     public String getSessionInfo() {
         if (!isLoggedIn()) {
             return "No active session";
@@ -191,11 +159,10 @@ public class SessionManager {
                 loginTime != null ? java.time.Duration.between(loginTime, LocalDateTime.now()).toMinutes() : 0);
     }
 
-    /**
-     * Determina il tipo di utente dal database
-     */
+
+
     private String determineUserType(User user) throws SQLException {
-        // Controlla il tipo direttamente dal database
+
         if (userDAO.getUsersByType("ADMIN").stream()
                 .anyMatch(u -> u.getId() == user.getId())) {
             return "ADMIN";
@@ -214,25 +181,4 @@ public class SessionManager {
         return "PATIENT"; // Default fallback
     }
 
-    /**
-     * Verifica se la sessione è ancora valida (per future implementazioni di timeout)
-     */
-    public boolean isSessionValid() {
-        if (!isLoggedIn()) {
-            return false;
-        }
-
-        // Qui potresti aggiungere logica per timeout sessione
-        // Per ora, ritorna sempre true se l'utente è loggato
-        return true;
-    }
-
-    /**
-     * Forza il logout se la sessione non è valida
-     */
-    public void validateSession() {
-        if (!isSessionValid()) {
-            logout();
-        }
-    }
 }

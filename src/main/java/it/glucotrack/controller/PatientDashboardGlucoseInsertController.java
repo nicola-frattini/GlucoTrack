@@ -20,10 +20,10 @@ import java.util.ResourceBundle;
 
 public class PatientDashboardGlucoseInsertController implements Initializable {
 
-    // Callback per notificare il refresh dei dati
+
     private Runnable onDataSaved;
     
-    // Callback per gestire l'annullamento
+
     private Runnable onCancel;
 
     @FXML
@@ -50,24 +50,23 @@ public class PatientDashboardGlucoseInsertController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         glucoseMeasurementDAO = new GlucoseMeasurementDAO();
 
-        // Inizializza i valori di default
         setupDefaultValues();
         setupValidation();
         setupComboBox();
     }
 
     private void setupDefaultValues() {
-        // Imposta la data corrente
+
         datePicker.setValue(LocalDate.now());
 
-        // Imposta l'ora corrente
+
         LocalTime now = LocalTime.now();
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
         timeField.setText(now.format(timeFormatter));
     }
 
     private void setupComboBox() {
-        // Popola il ComboBox con le opzioni di tipo misurazione
+
         typeComboBox.setItems(FXCollections.observableArrayList(
                 "Before Breakfast",
                 "After Breakfast",
@@ -80,19 +79,18 @@ public class PatientDashboardGlucoseInsertController implements Initializable {
                 "Random"
         ));
 
-        // Imposta il valore di default
+
         typeComboBox.setValue("Before Breakfast");
     }
 
     private void setupValidation() {
-        // Validazione in tempo reale per il campo valore
+
         valueField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue.matches("\\d*\\.?\\d*")) {
                 valueField.setText(oldValue);
             }
         });
 
-        // Validazione per il campo tempo
         timeField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue.matches("([01]?\\d|2[0-3]):?[0-5]?\\d?")) {
                 timeField.setText(oldValue);
@@ -104,26 +102,24 @@ public class PatientDashboardGlucoseInsertController implements Initializable {
     private void handleSaveEntry() {
         if (validateInput()) {
             try {
-                // Crea la misurazione
+
                 GlucoseMeasurement measurement = createMeasurementFromInput();
 
-                // Salva nel database
                 boolean success = glucoseMeasurementDAO.insertGlucoseMeasurement(measurement);
 
                 if (success) {
                     showSuccessAlert();
                     clearForm();
                     
-                    // Notifica il refresh dei dati al controller padre
                     if (onDataSaved != null) {
                         onDataSaved.run();
                     }
                 } else {
-                    showErrorAlert("Errore durante il salvataggio", "Non è stato possibile salvare la misurazione.");
+                    showErrorAlert("Error during save data", "Couldn't save the measurement.");
                 }
 
             } catch (SQLException e) {
-                showErrorAlert("Errore Database", "Errore durante il salvataggio: " + e.getMessage());
+                showErrorAlert("Database error", "Error during the save: " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -132,51 +128,52 @@ public class PatientDashboardGlucoseInsertController implements Initializable {
     private boolean validateInput() {
         StringBuilder errors = new StringBuilder();
 
-        // Validazione data
+        // Date validation
         if (datePicker.getValue() == null) {
-            errors.append("- La data è obbligatoria\n");
+            errors.append("- Date is required\n");
         }
 
-        // Validazione tempo
+        // Time validation
         if (timeField.getText().trim().isEmpty()) {
-            errors.append("- L'ora è obbligatoria\n");
+            errors.append("- Time is required\n");
         } else {
             try {
                 parseTime(timeField.getText());
             } catch (DateTimeParseException e) {
-                errors.append("- Formato ora non valido (usa HH:mm)\n");
+                errors.append("- Invalid time format (use HH:mm)\n");
             }
         }
 
-        // Validazione valore
+        // Value validation
         if (valueField.getText().trim().isEmpty()) {
-            errors.append("- Il valore glicemico è obbligatorio\n");
+            errors.append("- Blood glucose value is required\n");
         } else {
             try {
                 float value = Float.parseFloat(valueField.getText());
                 if (value <= 0 || value > 1000) {
-                    errors.append("- Il valore deve essere tra 1 e 1000 mg/dL\n");
+                    errors.append("- Value must be between 1 and 1000 mg/dL\n");
                 }
             } catch (NumberFormatException e) {
-                errors.append("- Valore glicemico non valido\n");
+                errors.append("- Invalid blood glucose value\n");
             }
         }
 
-        // Validazione tipo
+        // Type validation
         if (typeComboBox.getValue() == null || typeComboBox.getValue().trim().isEmpty()) {
-            errors.append("- Il tipo di misurazione è obbligatorio\n");
+            errors.append("- Measurement type is required\n");
         }
 
         if (errors.length() > 0) {
-            showErrorAlert("Errori di Validazione", errors.toString());
+            showErrorAlert("Validation Errors", errors.toString());
             return false;
         }
 
         return true;
     }
 
+
     private LocalTime parseTime(String timeText) throws DateTimeParseException {
-        // Aggiungi i : se mancano
+
         if (timeText.matches("\\d{1,2}\\d{2}")) {
             timeText = timeText.substring(0, timeText.length()-2) + ":" + timeText.substring(timeText.length()-2);
         }
@@ -194,7 +191,7 @@ public class PatientDashboardGlucoseInsertController implements Initializable {
         String type = typeComboBox.getValue();
         String notes = notesArea.getText().trim();
 
-        // Se le note sono vuote, usa il tipo come nota
+
         if (notes.isEmpty()) {
             notes = type;
         }
@@ -218,23 +215,20 @@ public class PatientDashboardGlucoseInsertController implements Initializable {
 
     private void showSuccessAlert() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Successo");
-        alert.setHeaderText("Misurazione Salvata");
-        alert.setContentText("La misurazione glicemica è stata salvata con successo!");
+        alert.setTitle("Success");
+        alert.setHeaderText("Saved measuration");
+        alert.setContentText("Measuration saved with success!");
 
-        // Stile dell'alert
-        alert.getDialogPane().setStyle("-fx-background-color: #34495e;");
         alert.showAndWait();
+
     }
 
     private void showErrorAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
-        alert.setHeaderText("Errore");
+        alert.setHeaderText("Error");
         alert.setContentText(message);
 
-        // Stile dell'alert
-        alert.getDialogPane().setStyle("-fx-background-color: #34495e;");
         alert.showAndWait();
     }
 

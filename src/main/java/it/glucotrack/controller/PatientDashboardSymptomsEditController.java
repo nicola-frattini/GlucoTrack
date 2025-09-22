@@ -44,13 +44,10 @@ public class PatientDashboardSymptomsEditController implements Initializable {
 
     private SymptomDAO symptomDAO;
     
-    // Callback per quando i dati vengono aggiornati con successo
     private Runnable onDataUpdated;
     
-    // Callback per quando si preme cancel
     private Runnable onCancel;
     
-    // Il sintomo originale che stiamo modificando
     private Symptom originalSymptom;
 
     @Override
@@ -61,7 +58,7 @@ public class PatientDashboardSymptomsEditController implements Initializable {
     }
 
     private void setupComboBox() {
-        // Popola il ComboBox con i livelli di severità
+
         severityComboBox.setItems(FXCollections.observableArrayList(
                 "Mild",
                 "Moderate",
@@ -69,12 +66,11 @@ public class PatientDashboardSymptomsEditController implements Initializable {
                 "Very Severe"
         ));
 
-        // Imposta il placeholder text
         severityComboBox.setPromptText("Select Severity");
     }
 
     private void setupValidation() {
-        // Setup per i ComboBox di ore e minuti
+
         for (int i = 0; i <= 23; i++) {
             hoursComboBox.getItems().add(i);
         }
@@ -84,14 +80,14 @@ public class PatientDashboardSymptomsEditController implements Initializable {
         hoursComboBox.setValue(0);
         minutesComboBox.setValue(0);
 
-        // Limita la lunghezza del nome del sintomo
+
         symptomDescriptionArea.textProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.length() > 500) {
                 symptomDescriptionArea.setText(oldValue);
             }
         });
 
-        // Limita la lunghezza delle note
+
         notesArea.textProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.length() > 1000) {
                 notesArea.setText(oldValue);
@@ -102,22 +98,22 @@ public class PatientDashboardSymptomsEditController implements Initializable {
     public void setupForEdit(Symptom symptom) {
         this.originalSymptom = symptom;
         
-        // Carica i dati del sintomo nei campi del form
+
         LocalDateTime dateTime = symptom.getDateAndTime();
         
-        // Imposta la data in formato MM/dd/yyyy
+
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
         dateField.setText(dateTime.format(dateFormatter));
         
-        // Imposta l'ora in formato 12 ore
+
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mm a");
         timeField.setText(dateTime.format(timeFormatter));
         
-        // Carica gli altri campi
+
         symptomDescriptionArea.setText(symptom.getSymptomName());
         severityComboBox.setValue(symptom.getGravity());
         
-        // Imposta la durata nei ComboBox
+
         if (symptom.getDuration() != null) {
             LocalTime duration = symptom.getDuration();
             hoursComboBox.setValue(duration.getHour());
@@ -133,23 +129,20 @@ public class PatientDashboardSymptomsEditController implements Initializable {
     private void handleUpdateSymptom() {
         if (validateInput()) {
             try {
-                // Crea il sintomo aggiornato
                 Symptom updatedSymptom = createSymptomFromInput();
                 updatedSymptom.setId(originalSymptom.getId());
                 updatedSymptom.setPatient_id(originalSymptom.getPatient_id());
 
-                // Aggiorna nel database
                 boolean success = symptomDAO.updateSymptom(updatedSymptom);
 
                 if (success) {
                     showSuccessAlert();
                     
-                    // Notifica il refresh dei dati al controller padre
                     if (onDataUpdated != null) {
                         onDataUpdated.run();
                     }
                 } else {
-                    showErrorAlert("Errore durante l'aggiornamento", "Non è stato possibile aggiornare il sintomo.");
+                    showErrorAlert("Error during update", "Can't update the symptom.");
                 }
 
             } catch (SQLException e) {
@@ -162,40 +155,36 @@ public class PatientDashboardSymptomsEditController implements Initializable {
     private boolean validateInput() {
         StringBuilder errors = new StringBuilder();
 
-        // Validazione data
         if (dateField.getText().trim().isEmpty()) {
-            errors.append("- La data è obbligatoria\n");
+            errors.append("- Data is needed\n");
         } else {
             try {
                 parseDate(dateField.getText());
             } catch (DateTimeParseException e) {
-                errors.append("- Formato data non valido (usa MM/dd/yyyy)\n");
+                errors.append("- Format not valid (use MM/dd/yyyy)\n");
             }
         }
 
-        // Validazione tempo
         if (timeField.getText().trim().isEmpty()) {
-            errors.append("- L'ora è obbligatoria\n");
+            errors.append("- Hour is needed\n");
         } else {
             try {
                 parseTime(timeField.getText());
             } catch (DateTimeParseException e) {
-                errors.append("- Formato ora non valido (usa hh:mm AM/PM)\n");
+                errors.append("- Forma not valid (use hh:mm AM/PM)\n");
             }
         }
 
-        // Validazione nome sintomo
         if (symptomDescriptionArea.getText().trim().isEmpty()) {
-            errors.append("- Il nome del sintomo è obbligatorio\n");
+            errors.append("- Symptom's name needed\n");
         }
 
-        // Validazione severità
         if (severityComboBox.getValue() == null || severityComboBox.getValue().trim().isEmpty()) {
-            errors.append("- Il livello di severità è obbligatorio\n");
+            errors.append("- Severity needed\n");
         }
 
         if (errors.length() > 0) {
-            showErrorAlert("Errori di Validazione", errors.toString());
+            showErrorAlert("Validation errors", errors.toString());
             return false;
         }
 
@@ -238,53 +227,33 @@ public class PatientDashboardSymptomsEditController implements Initializable {
 
     private void showSuccessAlert() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Successo");
-        alert.setHeaderText("Sintomo Aggiornato");
-        alert.setContentText("Il sintomo è stato aggiornato con successo!");
+        alert.setTitle("Success");
+        alert.setHeaderText("Symptom Updated");
+        alert.setContentText("The symptom has been successfully updated.");
 
-        // Applica lo stile dark
-        try {
-            DialogPane dialogPane = alert.getDialogPane();
-            dialogPane.getStylesheets().add(getClass().getResource("/assets/css/dashboard-styles.css").toExternalForm());
-            dialogPane.getStyleClass().add("alert");
-        } catch (Exception e) {
-            System.err.println("Impossibile applicare lo stile al dialog: " + e.getMessage());
-        }
-        
         alert.showAndWait();
     }
 
     private void showErrorAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
-        alert.setHeaderText("Errore");
+        alert.setHeaderText("Error");
         alert.setContentText(message);
 
-        // Applica lo stile dark
-        try {
-            DialogPane dialogPane = alert.getDialogPane();
-            dialogPane.getStylesheets().add(getClass().getResource("/assets/css/dashboard-styles.css").toExternalForm());
-            dialogPane.getStyleClass().add("alert");
-        } catch (Exception e) {
-            System.err.println("Impossibile applicare lo stile al dialog: " + e.getMessage());
-        }
-        
         alert.showAndWait();
     }
 
-    // Setter per il callback di refresh dati
+
     public void setOnDataUpdated(Runnable onDataUpdated) {
         this.onDataUpdated = onDataUpdated;
     }
     
-    // Setter per il callback di annullamento
     public void setOnCancel(Runnable onCancel) {
         this.onCancel = onCancel;
     }
     
     @FXML
     private void handleCancel() {
-        // Esegui il callback di annullamento se presente
         if (onCancel != null) {
             onCancel.run();
         }

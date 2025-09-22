@@ -8,7 +8,15 @@ import java.util.List;
 import it.glucotrack.model.Gravity;
 import it.glucotrack.model.RiskFactor;
 
+/**
+ * RISK FACTOR DAO
+ */
+
 public class RiskFactorDAO {
+
+    //========================
+    //==== GET OPERATIONS ====
+    //========================
 
     public static List<RiskFactor> getRiskFactorsByPatientId(int patientId) throws SQLException {
         String sql = "SELECT * FROM risk_factors WHERE patient_id = ? ORDER BY id DESC";
@@ -31,6 +39,22 @@ public class RiskFactorDAO {
         return null;
     }
 
+    public List<String> getUniqueRiskFactors() throws SQLException {
+        String sql = "SELECT DISTINCT type FROM risk_factors ORDER BY type";
+        List<String> factors = new ArrayList<>();
+        try (ResultSet rs = DatabaseInteraction.executeQuery(sql)) {
+            while (rs.next()) {
+                factors.add(rs.getString("type"));
+            }
+        }
+        return factors;
+    }
+
+
+    //===========================
+    //==== INSERT OPERATIONS ====
+    //===========================
+
     public boolean insertRiskFactor(int patientId, RiskFactor riskFactor) throws SQLException {
         String sql = "INSERT INTO risk_factors (patient_id, type, gravity) VALUES (?, ?, ?)";
         int rows = DatabaseInteraction.executeUpdate(sql, patientId, riskFactor.getType(), riskFactor.getGravity().toString());
@@ -43,11 +67,21 @@ public class RiskFactorDAO {
         return rows > 0;
     }
 
+
+    //===========================
+    //==== UPDATE OPERATIONS ====
+    //===========================
+
     public boolean updateRiskFactor(int id, int patientId, String type, String description, Gravity gravity) throws SQLException {
         String sql = "UPDATE risk_factors SET patient_id=?, type=?, description=?, gravity=? WHERE id=?";
         int rows = DatabaseInteraction.executeUpdate(sql, patientId, type, description, gravity.toString(), id);
         return rows > 0;
     }
+
+
+    //===========================
+    //==== DELETE OPERATIONS ====
+    //===========================
 
     public boolean deleteRiskFactor(int id) throws SQLException {
         String sql = "DELETE FROM risk_factors WHERE id = ?";
@@ -61,23 +95,19 @@ public class RiskFactorDAO {
         return rows > 0;
     }
 
-    public List<String> getUniqueRiskFactors() throws SQLException {
-        String sql = "SELECT DISTINCT type FROM risk_factors ORDER BY type";
-        List<String> factors = new ArrayList<>();
-        try (ResultSet rs = DatabaseInteraction.executeQuery(sql)) {
-            while (rs.next()) {
-                factors.add(rs.getString("type"));
-            }
-        }
-        return factors;
-    }
+
+    //===============================
+    //==== ADDITIONAL OPERATIONS ====
+    //===============================
+
 
     private static RiskFactor mapResultSetToRiskFactor(ResultSet rs) throws SQLException {
+
         RiskFactor riskFactor = new RiskFactor();
         riskFactor.setId(rs.getInt("id"));
         riskFactor.setType(rs.getString("type"));
 
-        // Imposta gravità usando la colonna gravity, se esiste
+
         String gravityStr = rs.getString("gravity");
         if (gravityStr != null) {
             switch (gravityStr.toUpperCase()) {

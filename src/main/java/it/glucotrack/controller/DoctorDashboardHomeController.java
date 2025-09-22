@@ -47,27 +47,20 @@ public class DoctorDashboardHomeController {
 
         doctorId = SessionManager.getCurrentUser().getId();
 
-
-        // Carica pazienti del dottore
         List<Patient> patients = new PatientDAO().getPatientsByDoctorId(doctorId);
         patientMap = patients.stream().collect(Collectors.toMap(Patient::getId, p -> p));
 
-        // Popola filtro paziente
         patientFilterCombo.setItems(FXCollections.observableArrayList("All Patients"));
         patients.forEach(p -> patientFilterCombo.getItems().add(p.getName() + " " + p.getSurname()));
         patientFilterCombo.getSelectionModel().selectFirst();
 
-        // Popola filtro gravità
         severityFilterCombo.setItems(FXCollections.observableArrayList("All Severities", "CRITICAL", "WARNING", "INFO"));
         severityFilterCombo.getSelectionModel().selectFirst();
 
-        // Carica tutti gli alert
         allAlerts = AlertManagement.generateDoctorAlerts(doctorId);
 
-        // Aggiorna la visualizzazione
         applyFilters();
 
-        // Listener dei filtri
         patientFilterCombo.setOnAction(e -> applyFilters());
         severityFilterCombo.setOnAction(e -> applyFilters());
         loadAlerts();
@@ -112,7 +105,7 @@ public class DoctorDashboardHomeController {
 
         List<Alert> alerts = AlertManagement.generateDoctorAlerts(this.doctorId);
 
-        // Ordina per gravità e poi per data decrescente (CRITICAL prima)
+
         alerts.sort((a1, a2) -> {
             int severity1 = getSeverity(a1.getType());
             int severity2 = getSeverity(a2.getType());
@@ -142,7 +135,7 @@ public class DoctorDashboardHomeController {
         box.setStyle("-fx-background-radius: 10; -fx-padding: 15; -fx-alignment: center-left;");
         box.setMaxWidth(Double.MAX_VALUE); // prendi tutta la larghezza disponibile
 
-        // Colore di sfondo in base al tipo di alert
+
         switch (alert.getType()) {
             case INFO:
                 box.setStyle(box.getStyle() + "-fx-background-color: #4caf50;");
@@ -160,7 +153,7 @@ public class DoctorDashboardHomeController {
 
         Label title = new Label(alert.getMessage());
         title.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;");
-        title.setWrapText(true); // consente al testo di andare su più righe se necessario
+        title.setWrapText(true); // Allows text to wrap if too long
 
         Label patientInfo = new Label();
         if (alert.getPatient() != null) {
@@ -178,6 +171,7 @@ public class DoctorDashboardHomeController {
     @FXML
     private void onNewPrescriptionClick() {
         try {
+
             // Find the parent StackPane and load the new prescription view
             javafx.scene.layout.StackPane contentPane = findContentPane();
             if (contentPane != null) {
