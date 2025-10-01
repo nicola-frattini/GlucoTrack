@@ -21,7 +21,7 @@
                 <HBox spacing="15">
             <Button fx:id="newPrescriptionBtn" text="New Prescription"
                 styleClass="button-accent"
-                onAction="#onNewPrescriptionClick" prefWidth="160"/>
+                onAction="#onNewPrescriptionClick" prefWidth="200"/>
                 </HBox>
             </VBox>
 

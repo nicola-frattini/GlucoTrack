@@ -422,6 +422,7 @@
                                 boolean taken = dateTime.isBefore(LocalDateTime.now()) && random.nextDouble() > 0.02; // 98% di aderenza
 
                                 // Debug
+
                                 if (medication.getId() <= 0) {
                                     System.err.println("Medication ID not valid: " + medication.getId() + " for " + medication.getName_medication());
                                     continue;

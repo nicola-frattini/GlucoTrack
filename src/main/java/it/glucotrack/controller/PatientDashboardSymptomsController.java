@@ -247,7 +247,7 @@ public class PatientDashboardSymptomsController implements Initializable {
             // Get the controller and set up for editing
             PatientDashboardSymptomsEditController editController = loader.getController();
             editController.setupForEdit(selectedSymptom);
-            
+            System.out.println("Setting up edit for symptom: " + selectedSymptom);
             // Set callbacks
             editController.setOnDataUpdated(() -> {
                 try {
@@ -329,7 +329,7 @@ public class PatientDashboardSymptomsController implements Initializable {
         alert.setHeaderText(null);
         alert.setContentText(message);
 
-        ButtonType yes = new ButtonType("Sì", ButtonBar.ButtonData.OK_DONE);
+        ButtonType yes = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
         ButtonType no = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
 
         alert.getButtonTypes().setAll(yes, no);
@@ -338,9 +338,11 @@ public class PatientDashboardSymptomsController implements Initializable {
     }
 
     private void loadData() throws SQLException {
+        System.out.println("Loading symptoms: " + SymptomDAO.getSymptomsByPatientId(currentPatient.getId()));
         symptoms = FXCollections.observableArrayList(
-                SymptomDAO.getSymptomsByPatientId(currentPatient.getId())
+                SymptomDAO.getSymptomsForTable(currentPatient.getId())
         );
+        System.out.println("Loaded symptoms: " + symptoms);
         symptomsTable.setItems(symptoms);
     }
 

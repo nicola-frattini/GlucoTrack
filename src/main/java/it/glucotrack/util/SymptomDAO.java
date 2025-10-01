@@ -73,7 +73,7 @@ public class SymptomDAO {
     }
 
     // Used to set a list of Symptoms for a table
-    public List<Symptom> getSymptomsForTable(int patientId) throws SQLException {
+    public static List<Symptom> getSymptomsForTable(int patientId) throws SQLException {
         String sql = "SELECT id, symptom, severity, duration, notes, symptom_date FROM patient_symptoms WHERE patient_id = ? ORDER BY symptom_date DESC";
         List<Symptom> symptoms = new ArrayList<>();
         try (ResultSet rs = DatabaseInteraction.executeQuery(sql, patientId)) {
