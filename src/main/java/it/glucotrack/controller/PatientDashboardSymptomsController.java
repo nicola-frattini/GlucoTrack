@@ -8,10 +8,14 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.stage.StageStyle;
 import javafx.util.Callback;
+import javafx.scene.paint.Color;
+
 
 import java.net.URL;
 import java.sql.SQLException;
@@ -133,15 +137,24 @@ public class PatientDashboardSymptomsController implements Initializable {
             controller.setSubtitle(sym.getSymptomName());
             javafx.scene.layout.VBox content = controller.getPopupContent();
             content.getChildren().clear();
-            content.getChildren().addAll(
-                new javafx.scene.control.Label("Severity: " + sym.getGravity()),
-                new javafx.scene.control.Label("Duration: " + sym.getDuration()),
-                new javafx.scene.control.Label("Date/Time: " + sym.getDateAndTime().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))),
-                new javafx.scene.control.Label("Notes: " + ((sym.getNotes() == null || sym.getNotes().isEmpty()) ? "Nessuna" : sym.getNotes()))
-            );
+
+            Label lblSeverity = new Label("Severity: " + sym.getGravity());
+            lblSeverity.setTextFill(Color.WHITE);
+            Label lblDuration = new Label("Duration: " + sym.getDuration());
+            lblDuration.setTextFill(Color.WHITE);
+            Label lblDateTime = new Label("Date/Time: " + sym.getDateAndTime().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+            lblDateTime.setTextFill(Color.WHITE);
+            Label lblNotes = new Label("Notes: " + ((sym.getNotes() == null || sym.getNotes().isEmpty()) ? "Nessuna" : sym.getNotes()));
+            lblNotes.setTextFill(Color.WHITE);
+
+            content.getChildren().addAll(lblSeverity, lblDuration, lblDateTime, lblNotes);
+
+
+            Scene scene = new Scene(root);
+            scene.setFill(Color.TRANSPARENT);
             javafx.stage.Stage popupStage = new javafx.stage.Stage();
-            popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
-            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.initStyle(StageStyle.UNDECORATED);
+            popupStage.setScene(scene);
             popupStage.setMinWidth(520);
             popupStage.setMinHeight(340);
             controller.setStage(popupStage);
@@ -258,8 +271,7 @@ public class PatientDashboardSymptomsController implements Initializable {
     
     private void handleDeleteSymptom(Symptom selectedSymptom) {
         // Show custom confirmation dialog
-        boolean confirmed = showCustomConfirmationDialog(
-            "Confirm Deletion",
+        boolean confirmed = showConfirmationDialog(
             "Do you want to delete this symptom?",
             String.format(
                 "Do you really wan to delete the symptom:\n\n" +
@@ -294,76 +306,35 @@ public class PatientDashboardSymptomsController implements Initializable {
             }
         }
     }
-    
+
     private void showErrorAlert(String title, String message) {
-        showCustomPopup(title, message, "error");
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
-    
+
     private void showSuccessAlert(String title, String message) {
-        showCustomPopup(title, message, "success");
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
-    // --- Custom Popup Helpers ---
-    private void showCustomPopup(String title, String message, String type) {
-        try {
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/CustomPopup.fxml"));
-            javafx.scene.Parent root = loader.load();
-            it.glucotrack.component.CustomPopupController controller = loader.getController();
-            controller.setTitle(title);
-            controller.setSubtitle(type.equals("error") ? "Error" : (type.equals("success") ? "Success" : "Info"));
-            javafx.scene.layout.VBox content = controller.getPopupContent();
-            content.getChildren().clear();
-            javafx.scene.control.Label label = new javafx.scene.control.Label(message);
-            label.setWrapText(true);
-            content.getChildren().add(label);
-            javafx.stage.Stage popupStage = new javafx.stage.Stage();
-            popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
-            popupStage.setScene(new javafx.scene.Scene(root));
-            popupStage.setMinWidth(420);
-            popupStage.setMinHeight(200);
-            popupStage.setResizable(false);
+    private boolean showConfirmationDialog(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
 
-            controller.setStage(popupStage, false); // popup: drag disabled
-            popupStage.showAndWait();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+        ButtonType yes = new ButtonType("Sì", ButtonBar.ButtonData.OK_DONE);
+        ButtonType no = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
 
-    private boolean showCustomConfirmationDialog(String title, String subtitle, String message) {
-        final boolean[] result = {false};
-        try {
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/CustomPopup.fxml"));
-            javafx.scene.Parent root = loader.load();
-            it.glucotrack.component.CustomPopupController controller = loader.getController();
-            controller.setTitle(title);
-            controller.setSubtitle(subtitle);
-            javafx.scene.layout.VBox content = controller.getPopupContent();
-            content.getChildren().clear();
-            javafx.scene.control.Label label = new javafx.scene.control.Label(message);
-            label.setWrapText(true);
-            javafx.scene.control.Button yesBtn = new javafx.scene.control.Button("Sì");
-            javafx.scene.control.Button noBtn = new javafx.scene.control.Button("No");
-            yesBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-background-radius: 8;");
-            noBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-background-radius: 8;");
-            javafx.scene.layout.HBox btnBox = new javafx.scene.layout.HBox(16, yesBtn, noBtn);
-            btnBox.setStyle("-fx-alignment: center; -fx-padding: 18 0 0 0;");
-            content.getChildren().addAll(label, btnBox);
-            javafx.stage.Stage popupStage = new javafx.stage.Stage();
-            popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
-            popupStage.setScene(new javafx.scene.Scene(root));
-            popupStage.setMinWidth(420);
-            popupStage.setMinHeight(220);
-            popupStage.setResizable(false);
+        alert.getButtonTypes().setAll(yes, no);
 
-            controller.setStage(popupStage, false); // popup: drag disabled
-            yesBtn.setOnAction(ev -> { result[0] = true; popupStage.close(); });
-            noBtn.setOnAction(ev -> { result[0] = false; popupStage.close(); });
-            popupStage.showAndWait();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return result[0];
+        return alert.showAndWait().orElse(no) == yes;
     }
 
     private void loadData() throws SQLException {
@@ -379,7 +350,6 @@ public class PatientDashboardSymptomsController implements Initializable {
 
 
 
-    // Metodi per future integrazioni
     public void refreshData() throws SQLException {
         loadData();
     }
@@ -419,7 +389,8 @@ public class PatientDashboardSymptomsController implements Initializable {
             e.printStackTrace();
         }
     }
-    
+
+
 
     private void loadContentInMainDashboard(Parent content) {
         try {

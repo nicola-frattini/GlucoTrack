@@ -5,21 +5,11 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<ScrollPane style="-fx-background-color: #2C3E50;" xmlns:fx="http://javafx.com/fxml" fx:controller="it.glucotrack.controller.DoctorDashboardMedicationsEditController" fitToWidth="true" fitToHeight="true">
-    <VBox style="-fx-background-color: #2C3E50;" spacing="0">
-
+<ScrollPane style="-fx-background-color: #2C3E50;" xmlns:fx="http://javafx.com/fxml" fx:controller="it.glucotrack.controller.DoctorDashboardMedicationsEditController" fitToWidth="true" fitToHeight="true" stylesheets="@/assets/css/Style.css">
+    <VBox styleClass="main-bg-dark" spacing="0">
         <!-- Header Section -->
-        <VBox spacing="10.0" style="-fx-padding: 30 40 20 40;">
+    <VBox spacing="10.0" styleClass="main-bg-dark" style="-fx-padding: 30 40 20 40;">
             <children>
-                <HBox alignment="CENTER_LEFT" spacing="15.0">
-                    <children>
-                        <Button fx:id="backButton" onAction="#handleBackToList" mnemonicParsing="false"
-                                style="-fx-background-color: transparent; -fx-text-fill: #3498DB; -fx-font-size: 14px; -fx-padding: 5 10;"
-                                text="← Back to Medications">
-                        </Button>
-                    </children>
-                </HBox>
-
                 <Label text="Edit Medication" textFill="WHITE">
                     <font>
                         <Font name="System Bold" size="28.0" />
@@ -33,14 +23,12 @@
             </children>
         </VBox>
 
-        <!-- Main Form Container -->
+        <!-- Main Form Container as card -->
         <VBox spacing="20.0" style="-fx-padding: 0 40 40 40;" VBox.vgrow="ALWAYS">
             <children>
-
-                <!-- Form Card -->
-                <VBox spacing="25.0" style="-fx-background-color: #34495E; -fx-background-radius: 10; -fx-padding: 30;">
+                <!-- Card: Medication Edit Form -->
+                <VBox spacing="25.0" styleClass="card-dark" style="-fx-background-radius: 15; -fx-padding: 25;">
                     <children>
-
                         <!-- Patient Selection Row -->
                         <VBox spacing="8.0">
                             <children>
@@ -50,7 +38,7 @@
                                     </font>
                                 </Label>
                                 <ComboBox fx:id="patientComboBox" prefWidth="400.0" promptText="Select patient..."
-                                          style="-fx-background-color: #2C3E50; -fx-text-fill: white; -fx-prompt-text-fill: #BDC3C7; -fx-background-radius: 5;">
+                                          styleClass="combo-box-dark">
                                     <cursor>
                                         <javafx.scene.Cursor fx:constant="HAND" />
                                     </cursor>
@@ -70,7 +58,7 @@
                                             </font>
                                         </Label>
                                         <TextField fx:id="medicationNameField" prefWidth="300.0" promptText="Enter medication name..."
-                                                   style="-fx-background-color: #2C3E50; -fx-text-fill: white; -fx-prompt-text-fill: #BDC3C7; -fx-background-radius: 5;">
+                                                   styleClass="input-dark">
                                         </TextField>
                                     </children>
                                 </VBox>
@@ -84,7 +72,7 @@
                                             </font>
                                         </Label>
                                         <TextField fx:id="dosageField" prefWidth="200.0" promptText="e.g., 500mg, 10ml..."
-                                                   style="-fx-background-color: #2C3E50; -fx-text-fill: white; -fx-prompt-text-fill: #BDC3C7; -fx-background-radius: 5;">
+                                                   styleClass="input-dark">
                                         </TextField>
                                     </children>
                                 </VBox>
@@ -100,7 +88,7 @@
                                     </font>
                                 </Label>
                                 <ComboBox fx:id="frequencyComboBox" prefWidth="300.0" promptText="Select frequency..."
-                                          style="-fx-background-color: #2C3E50; -fx-text-fill: white; -fx-prompt-text-fill: #BDC3C7; -fx-background-radius: 5;">
+                                          styleClass="combo-box-dark">
                                     <cursor>
                                         <javafx.scene.Cursor fx:constant="HAND" />
                                     </cursor>
@@ -120,7 +108,7 @@
                                             </font>
                                         </Label>
                                         <DatePicker fx:id="startDatePicker" prefWidth="200.0"
-                                                    style="-fx-background-color: #2C3E50; -fx-text-fill: white; -fx-background-radius: 5;">
+                                                    styleClass="date-picker-dark">
                                             <cursor>
                                                 <javafx.scene.Cursor fx:constant="HAND" />
                                             </cursor>
@@ -136,8 +124,8 @@
                                                 <Font name="System Bold" size="14.0" />
                                             </font>
                                         </Label>
-                                        <DatePicker fx:id="endDatePicker" prefWidth="200.0" promptText="Optional end date"
-                                                    style="-fx-background-color: #2C3E50; -fx-text-fill: white; -fx-background-radius: 5;">
+                                        <DatePicker fx:id="endDatePicker" prefWidth="200.0" promptText="End date *"
+                                                    styleClass="date-picker-dark">
                                             <cursor>
                                                 <javafx.scene.Cursor fx:constant="HAND" />
                                             </cursor>
@@ -157,7 +145,7 @@
                                 </Label>
                                 <TextArea fx:id="notesTextArea" prefHeight="100.0" prefWidth="600.0" wrapText="true"
                                           promptText="Optional notes or special instructions..."
-                                          style="-fx-background-color: #2C3E50; -fx-text-fill: white; -fx-prompt-text-fill: #BDC3C7; -fx-background-radius: 5;">
+                                          styleClass="input-dark">
                                 </TextArea>
                                 <Label text="Maximum 500 characters" textFill="#95A5A6">
                                     <font>
@@ -199,7 +187,6 @@
                                 <Font size="11.0" />
                             </font>
                         </Label>
-
                     </children>
                 </VBox>
 
@@ -208,32 +195,16 @@
                     <children>
                         <!-- Cancel Button -->
                         <Button fx:id="cancelButton" onAction="#handleCancel" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0"
-                                style="-fx-background-color: transparent; -fx-border-color: #95A5A6; -fx-border-width: 1; -fx-text-fill: #95A5A6; -fx-background-radius: 5; -fx-border-radius: 5;"
-                                text="Cancel">
-                            <font>
-                                <Font name="System Bold" size="14.0" />
-                            </font>
-                            <cursor>
-                                <javafx.scene.Cursor fx:constant="HAND" />
-                            </cursor>
-                        </Button>
+                            styleClass="secondary-btn"
+                            text="Cancel" />
 
                         <!-- Update Button -->
                         <Button fx:id="updateButton" onAction="#handleUpdate" mnemonicParsing="false" prefHeight="40.0" prefWidth="140.0"
-                                style="-fx-background-color: #27AE60; -fx-text-fill: white; -fx-background-radius: 5;"
-                                text="Update Medication">
-                            <font>
-                                <Font name="System Bold" size="14.0" />
-                            </font>
-                            <cursor>
-                                <javafx.scene.Cursor fx:constant="HAND" />
-                            </cursor>
-                        </Button>
+                            styleClass="primary-btn"
+                            text="Update Medication" />
                     </children>
                 </HBox>
-
             </children>
         </VBox>
-
     </VBox>
 </ScrollPane>

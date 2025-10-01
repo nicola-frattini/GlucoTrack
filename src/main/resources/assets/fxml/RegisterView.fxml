@@ -9,7 +9,7 @@
 <HBox xmlns="http://javafx.com/javafx/11.0.1"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="it.glucotrack.controller.RegisterController"
-      stylesheets="@../css/register-styles.css">
+      stylesheets="@/assets/css/Style.css">
 
     <children>
         <!-- Sezione sinistra - Form di registrazione -->
@@ -41,9 +41,8 @@
                             <children>
                                 <!-- Account Type Selection (First) -->
                                 <ComboBox fx:id="accountTypeComboBox"
-                                          promptText="👥 Select Account Type"
+                                          promptText="Select Account Type"
                                           styleClass="combo-box-dark"
-                                          style="-fx-background-color: #34495e; -fx-text-fill: #ecf0f1; -fx-prompt-text-fill: #7f8c8d; -fx-border-color: #3498db; -fx-border-width: 0 0 2 0; -fx-background-radius: 8; -fx-padding: 15; -fx-font-size: 14px;"
                                           maxWidth="Infinity" />
 
                                 <!-- Basic Information -->
@@ -53,16 +52,16 @@
                                         <HBox spacing="10.0">
                                             <children>
                                                 <TextField fx:id="firstNameField"
-                                                           promptText="👤 First Name"
-                                                           style="-fx-background-color: #34495e; -fx-text-fill: #ecf0f1; -fx-prompt-text-fill: #7f8c8d; -fx-border-color: #3498db; -fx-border-width: 0 0 2 0; -fx-background-radius: 0; -fx-border-radius: 0; -fx-padding: 15;"
+                                                           promptText="First Name"
+                                                           styleClass="input-dark"
                                                            HBox.hgrow="ALWAYS">
                                                     <font>
                                                         <Font size="14.0" />
                                                     </font>
                                                 </TextField>
                                                 <TextField fx:id="lastNameField"
-                                                           promptText="👤 Last Name"
-                                                           style="-fx-background-color: #34495e; -fx-text-fill: #ecf0f1; -fx-prompt-text-fill: #7f8c8d; -fx-border-color: #3498db; -fx-border-width: 0 0 2 0; -fx-background-radius: 0; -fx-border-radius: 0; -fx-padding: 15;"
+                                                           promptText="Last Name"
+                                                           styleClass="input-dark"
                                                            HBox.hgrow="ALWAYS">
                                                     <font>
                                                         <Font size="14.0" />
@@ -73,8 +72,8 @@
 
                                         <!-- Row 2: Email -->
                                         <TextField fx:id="emailField"
-                                                   promptText="📧 Email"
-                                                   style="-fx-background-color: #34495e; -fx-text-fill: #ecf0f1; -fx-prompt-text-fill: #7f8c8d; -fx-border-color: #3498db; -fx-border-width: 0 0 2 0; -fx-background-radius: 0; -fx-border-radius: 0; -fx-padding: 15;">
+                                                   promptText="Email"
+                                                   styleClass="input-dark">
                                             <font>
                                                 <Font size="14.0" />
                                             </font>
@@ -82,8 +81,8 @@
 
                                         <!-- Row 3: Phone -->
                                         <TextField fx:id="phoneField"
-                                                   promptText="📞 Phone Number"
-                                                   style="-fx-background-color: #34495e; -fx-text-fill: #ecf0f1; -fx-prompt-text-fill: #7f8c8d; -fx-border-color: #3498db; -fx-border-width: 0 0 2 0; -fx-background-radius: 0; -fx-border-radius: 0; -fx-padding: 15;">
+                                                   promptText="Phone Number"
+                                                   styleClass="input-dark">
                                             <font>
                                                 <Font size="14.0" />
                                             </font>
@@ -93,14 +92,12 @@
                                         <HBox spacing="10.0">
                                             <children>
                                                 <ComboBox fx:id="genderComboBox"
-                                                          promptText="⚥ Gender"
+                                                          promptText="Gender"
                                                           styleClass="combo-box-dark"
-                                                          style="-fx-background-color: #34495e; -fx-text-fill: #ecf0f1; -fx-prompt-text-fill: #7f8c8d; -fx-border-color: #3498db; -fx-border-width: 0 0 2 0; -fx-background-radius: 8; -fx-padding: 15; -fx-font-size: 14px;"
                                                           HBox.hgrow="ALWAYS" />
                                                 <DatePicker fx:id="birthDatePicker"
-                                                            promptText="🗓 Birth Date"
+                                                            promptText="Birth Date"
                                                             styleClass="date-picker-dark"
-                                                            style="-fx-background-color: #34495e; -fx-text-fill: #ecf0f1; -fx-prompt-text-fill: #7f8c8d; -fx-border-color: #3498db; -fx-border-width: 0 0 2 0; -fx-background-radius: 8; -fx-padding: 15; -fx-font-size: 14px;"
                                                             HBox.hgrow="ALWAYS" />
                                             </children>
                                         </HBox>
@@ -109,16 +106,16 @@
                                         <HBox spacing="10.0">
                                             <children>
                                                 <TextField fx:id="birthPlaceField"
-                                                           promptText="🏠 Birth Place"
-                                                           style="-fx-background-color: #34495e; -fx-text-fill: #ecf0f1; -fx-prompt-text-fill: #7f8c8d; -fx-border-color: #3498db; -fx-border-width: 0 0 2 0; -fx-background-radius: 0; -fx-border-radius: 0; -fx-padding: 15;"
+                                                           promptText="Birth Place"
+                                                           styleClass="input-dark"
                                                            HBox.hgrow="ALWAYS">
                                                     <font>
                                                         <Font size="14.0" />
                                                     </font>
                                                 </TextField>
                                                 <TextField fx:id="fiscalCodeField"
-                                                           promptText="🆔 Fiscal Code"
-                                                           style="-fx-background-color: #34495e; -fx-text-fill: #ecf0f1; -fx-prompt-text-fill: #7f8c8d; -fx-border-color: #3498db; -fx-border-width: 0 0 2 0; -fx-background-radius: 0; -fx-border-radius: 0; -fx-padding: 15;"
+                                                           promptText="Fiscal Code"
+                                                           styleClass="input-dark"
                                                            HBox.hgrow="ALWAYS">
                                                     <font>
                                                         <Font size="14.0" />
@@ -136,7 +133,7 @@
 
                                         <TextField fx:id="specializationField"
                                                    promptText="🩺 Medical Specialization"
-                                                   style="-fx-background-color: #34495e; -fx-text-fill: #ecf0f1; -fx-prompt-text-fill: #7f8c8d; -fx-border-color: #3498db; -fx-border-width: 0 0 2 0; -fx-background-radius: 0; -fx-border-radius: 0; -fx-padding: 15;">
+                                                   styleClass="input-dark">
                                             <font>
                                                 <Font size="14.0" />
                                             </font>
@@ -150,9 +147,8 @@
                                         <Label text="Patient Information" textFill="#3498db" style="-fx-font-weight: bold; -fx-font-size: 16px;" />
 
                                         <ComboBox fx:id="referringDoctorComboBox"
-                                                  promptText="👨‍⚕️ Select Referring Doctor"
+                                                  promptText="Select Referring Doctor"
                                                   styleClass="combo-box-dark"
-                                                  style="-fx-background-color: #34495e; -fx-text-fill: #ecf0f1; -fx-prompt-text-fill: #7f8c8d; -fx-border-color: #3498db; -fx-border-width: 0 0 2 0; -fx-background-radius: 8; -fx-padding: 15; -fx-font-size: 14px;"
                                                   maxWidth="Infinity" />
                                     </children>
                                 </VBox>
@@ -161,16 +157,16 @@
                                 <VBox spacing="15.0">
                                     <children>
                                         <PasswordField fx:id="passwordField"
-                                                       promptText="🔒 Password"
-                                                       style="-fx-background-color: #34495e; -fx-text-fill: #ecf0f1; -fx-prompt-text-fill: #7f8c8d; -fx-border-color: #3498db; -fx-border-width: 0 0 2 0; -fx-background-radius: 0; -fx-border-radius: 0; -fx-padding: 15;">
+                                                       promptText="Password"
+                                                       styleClass="input-dark">
                                             <font>
                                                 <Font size="14.0" />
                                             </font>
                                         </PasswordField>
 
                                         <PasswordField fx:id="confirmPasswordField"
-                                                       promptText="🔒 Confirm Password"
-                                                       style="-fx-background-color: #34495e; -fx-text-fill: #ecf0f1; -fx-prompt-text-fill: #7f8c8d; -fx-border-color: #3498db; -fx-border-width: 0 0 2 0; -fx-background-radius: 0; -fx-border-radius: 0; -fx-padding: 15;">
+                                                       promptText="Confirm Password"
+                                                       styleClass="input-dark">
                                             <font>
                                                 <Font size="14.0" />
                                             </font>

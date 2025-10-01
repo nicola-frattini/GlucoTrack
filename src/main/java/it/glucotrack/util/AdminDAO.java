@@ -2,6 +2,7 @@ package it.glucotrack.util;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -118,8 +119,8 @@ public class AdminDAO {
             rs.getString("surname"),
             rs.getString("email"),
             PasswordUtils.decryptPassword(rs.getString("password"), rs.getString("email")),
-            rs.getDate("born_date").toLocalDate(),
-            Gender.valueOf(rs.getString("gender")),
+            LocalDate.parse(rs.getString("born_date")),
+            Gender.fromString(rs.getString("gender")),
             rs.getString("phone"),
             rs.getString("birth_place"),
             rs.getString("fiscal_code"),

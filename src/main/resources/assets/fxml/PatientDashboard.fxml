@@ -10,7 +10,8 @@
             xmlns="http://javafx.com/javafx/11.0.1"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="it.glucotrack.controller.PatientDashboardController"
-            style="-fx-background-color: #1a1a2e;">
+            style="-fx-background-color: #1a1a2e;"
+            stylesheets="@/assets/css/Style.css">
     <!-- Sidebar sinistra -->
     <left>
         <VBox style="-fx-background-color: #16213e;" prefWidth="250" spacing="5">
@@ -20,17 +21,16 @@
 
             <!-- Profilo utente - Cliccabile -->
             <Button fx:id="profileBtn" onAction="#onProfileClick" 
-                    style="-fx-background-color: #0f1c35; -fx-background-radius: 10; -fx-padding: 15; -fx-cursor: hand; -fx-border-color: transparent;"
+                    styleClass="input-dark"
                     prefWidth="210">
                 <graphic>
                     <HBox alignment="CENTER_LEFT" spacing="10">
                         <!-- Avatar sostitutivo -->
-                        <Label text="👨‍⚕️" style="-fx-font-size: 32px;" />
                         <VBox>
                             <Label fx:id="patientNameLabel"
-                                   style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+                                   styleClass="primary-text"/>
                             <Label text="Patient - View Profile"
-                                   style="-fx-text-fill: #8892b0; -fx-font-size: 12px;"/>
+                                   styleClass="secondary-text"/>
                         </VBox>
                     </HBox>
                 </graphic>
@@ -38,19 +38,19 @@
 
             <!-- Menu di navigazione -->
             <VBox spacing="5" style="-fx-padding: 10 0;">
-                <Button fx:id="dashboardBtn" text="  📊  Dashboard"
+                <Button fx:id="dashboardBtn" text="Dashboard"
                         style="-fx-background-color: #64b5f6; -fx-text-fill: white; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
                         onAction="#onDashboardClick" prefWidth="210" />
 
-                <Button fx:id="readingsBtn" text="  📈  Readings"
+                <Button fx:id="readingsBtn" text="Readings"
                         style="-fx-background-color: transparent; -fx-text-fill: #8892b0; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
                         onAction="#onReadingsClick" prefWidth="210" />
 
-                <Button fx:id="medicationBtn" text="  💊  Medication"
+                <Button fx:id="medicationBtn" text="Medication"
                         style="-fx-background-color: transparent; -fx-text-fill: #8892b0; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
                         onAction="#onMedicationClick" prefWidth="210" />
 
-                <Button fx:id="symptomsBtn" text="  🩺  Symptoms"
+                <Button fx:id="symptomsBtn" text="Symptoms"
                         style="-fx-background-color: transparent; -fx-text-fill: #8892b0; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
                         onAction="#onSymptomsClick" prefWidth="210" />
             </VBox>
@@ -58,13 +58,8 @@
             <!-- Spacer -->
             <Region VBox.vgrow="ALWAYS"/>
 
-            <!-- Settings e Logout -->
             <VBox spacing="5">
-                <Button fx:id="settingsBtn" text="  ⚙️  Settings"
-                        style="-fx-background-color: transparent; -fx-text-fill: #8892b0; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
-                        onAction="#onSettingsClick" prefWidth="210" />
-
-                <Button fx:id="logoutBtn" text="  🚪  Logout"
+                <Button fx:id="logoutBtn" text="Logout"
                         style="-fx-background-color: transparent; -fx-text-fill: #8892b0; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
                         onAction="#onLogoutClick" prefWidth="210" />
             </VBox>

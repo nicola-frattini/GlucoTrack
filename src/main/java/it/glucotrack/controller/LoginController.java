@@ -22,9 +22,6 @@ public class LoginController {
     private PasswordField passwordField;
 
     @FXML
-    private CheckBox rememberMeCheckBox;
-
-    @FXML
     private Button loginButton;
 
     @FXML
@@ -107,9 +104,20 @@ public class LoginController {
             case "DOCTOR":
                 ViewNavigator.getInstance().navigateTo(ViewNavigator.DOCTOR_DASHBOARD);
                 break;
-            case "ADMIN":
-                ViewNavigator.getInstance().navigateTo(ViewNavigator.ADMIN_DASHBOARD);
+            case "ADMIN": {
+                try {
+                    javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/AdminDashboard.fxml"));
+                    javafx.scene.Parent root = loader.load();
+                    it.glucotrack.controller.AdminDashboardController controller = loader.getController();
+                    controller.setCurrentAdmin(it.glucotrack.util.SessionManager.getCurrentUser());
+                    javafx.stage.Stage stage = it.glucotrack.view.ViewNavigator.getInstance().getPrimaryStage();
+                    stage.setScene(new javafx.scene.Scene(root));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    showErrorAlert("Errore", "Impossibile caricare la dashboard admin: " + e.getMessage());
+                }
                 break;
+            }
             default:
                 showErrorAlert("Error", "Unknown user type");
         }

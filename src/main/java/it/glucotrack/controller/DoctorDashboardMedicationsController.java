@@ -9,10 +9,17 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.input.MouseButton;
+import javafx.scene.paint.Color;
 
 
+
+import java.awt.*;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -91,7 +98,13 @@ public class DoctorDashboardMedicationsController implements Initializable {
     private void setupPrescribedMedicationsTable() {
         System.out.println("setupPrescribedMedicationsTable");
         patientFullNameColumn.setCellValueFactory( cell ->
-                new SimpleStringProperty(cell.getValue().getName_medication())
+                {
+                    try {
+                        return new SimpleStringProperty(PatientDAO.getPatientById(cell.getValue().getPatient_id()).getFullName());
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
          );
         medicationNameColumn.setCellValueFactory(cell ->
                 new SimpleStringProperty(cell.getValue().getName_medication())
@@ -165,15 +178,30 @@ public class DoctorDashboardMedicationsController implements Initializable {
                     }
                 }
 
+                @Override
                 public void updateSelected(boolean selected) {
                     super.updateSelected(selected);
                     if (selected && getItem() != null) {
-                        setStyle("-fx-background-color: #1ABC9C; -fx-text-fill: white;");
+                        setStyle("-fx-background-color: #0078d4; -fx-text-fill: white;");
                     } else if (getItem() != null) {
                         setStyle("");
                     }
                 }
             };
+
+            // Add hover effect
+            row.setOnMouseEntered(e -> {
+                if (row.getItem() != null && !row.isSelected()) {
+                    row.setStyle("-fx-background-color: rgba(255, 255, 255, 0.1);");
+                }
+            });
+            // Remove hover effect
+            row.setOnMouseExited(e -> {
+                if (row.getItem() != null && !row.isSelected()) {
+                    row.setStyle("");
+                }
+            });
+
             row.setOnMouseClicked(event -> {
                 if(!row.isEmpty() && event.getButton() == javafx.scene.input.MouseButton.PRIMARY && event.getClickCount() == 2) {
                     Medication med = row.getItem();
@@ -359,43 +387,59 @@ public class DoctorDashboardMedicationsController implements Initializable {
 
     private void refreshData() {
         try{
-            loadData();
+            extracted();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
+    private void extracted() throws SQLException {
+        loadData();
+    }
+
 
     private void handleDeleteMedication(Medication selectedMedication) throws SQLException {
-        // Show custom confirmation dialog
-        boolean confirmed = showCustomConfirmationDialog(
-                "Conferm Deletion",
-                "Delete this therapy?",
-                String.format(
-                        "Do you really want to delete the therapy?:\n\n" +
-                                "Patient: %s\n" +
-                                "Medication: %s\n" +
-                                "Frequency: %s\n" +
-                        PatientDAO.getPatientById(selectedMedication.getPatient_id()).getFullName()
-                )
-        );
-        if (confirmed) {
+        // Use standard JavaFX confirmation dialog
+    javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+    alert.setTitle("Confirm Deletion");
+    alert.setHeaderText("Delete this therapy?");
+    alert.setContentText(String.format(
+        "Do you really want to delete the therapy?:\n\n" +
+            "Patient: %s\n" +
+            "Medication: %s\n" +
+            "Frequency: %s\n",
+        PatientDAO.getPatientById(selectedMedication.getPatient_id()).getFullName(),
+        selectedMedication.getName_medication(),
+        selectedMedication.getFreq().name()
+    ));
+    java.util.Optional<javafx.scene.control.ButtonType> result = alert.showAndWait();
+    if (result.isPresent() && result.get() == javafx.scene.control.ButtonType.OK) {
             // Delete from database
             try {
                 boolean deleted = MedicationDAO.deleteMedication(selectedMedication.getId());
                 boolean deletedLog = LogMedicationDAO.deleteLogsByMedicationId(selectedMedication.getId());
 
-                if (deleted && deletedLog) {
-                    // Remove from table data
-                    prescribedMedications.remove(selectedMedication);
-
-                    showSuccessAlert("Success", "Therapy successfully eliminated.");
+                if (deleted) {
+                    loadData();
+                    javafx.scene.control.Alert successAlert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+                    successAlert.setTitle("Success");
+                    successAlert.setHeaderText(null);
+                    successAlert.setContentText("Therapy successfully eliminated.");
+                    successAlert.showAndWait();
                 } else {
-                    showErrorAlert("Error", "Couldn't delete the therapy.");
+                    javafx.scene.control.Alert errorAlert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+                    errorAlert.setTitle("Error");
+                    errorAlert.setHeaderText(null);
+                    errorAlert.setContentText("Couldn't delete the therapy.");
+                    errorAlert.showAndWait();
                 }
 
             } catch (SQLException e) {
-                showErrorAlert("Database Error", "Error during therapy deletion: " + e.getMessage());
+                javafx.scene.control.Alert dbErrorAlert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+                dbErrorAlert.setTitle("Database Error");
+                dbErrorAlert.setHeaderText(null);
+                dbErrorAlert.setContentText("Error during therapy deletion: " + e.getMessage());
+                dbErrorAlert.showAndWait();
             }
         }
     }
@@ -411,16 +455,24 @@ public class DoctorDashboardMedicationsController implements Initializable {
             controller.setSubtitle(med.getName_medication());
             javafx.scene.layout.VBox content = controller.getPopupContent();
             content.getChildren().clear();
-            content.getChildren().addAll(
-                    new javafx.scene.control.Label("Patient: " + PatientDAO.getPatientById(med.getPatient_id()).getFullName()),
-                    new javafx.scene.control.Label("Medication: " + med.getName_medication()),
-                    new javafx.scene.control.Label("Dose: " + med.getDose()),
-                    new javafx.scene.control.Label("Frequency: " + med.getFreq()),
-                    new javafx.scene.control.Label("Instruction: " + med.getInstructions())
-            );
+
+            Label lblPatient = new Label("Patient: " + PatientDAO.getPatientById(med.getPatient_id()).getFullName());
+            lblPatient.setTextFill(Color.WHITE);
+            Label lblMedication = new Label("Medication: " + med.getName_medication());
+            lblMedication.setTextFill(Color.WHITE);
+            Label lblDose = new Label("Dose: " + med.getDose());
+            lblDose.setTextFill(Color.WHITE);
+            Label lblFrequency = new Label("Frequency: " + med.getFreq());
+            lblFrequency.setTextFill(Color.WHITE);
+            Label lblInstruction = new Label("Instruction: " + med.getInstructions());
+            lblInstruction.setTextFill(Color.WHITE);
+
+            content.getChildren().addAll(lblPatient, lblMedication, lblDose, lblFrequency, lblInstruction);
+
+            Scene scene = new Scene(root);
+            scene.setFill(Color.TRANSPARENT);
             javafx.stage.Stage popupStage = new javafx.stage.Stage();
-            popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
-            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.setScene(scene);
             popupStage.setMinWidth(520);
             popupStage.setMinHeight(340);
             controller.setStage(popupStage);
@@ -479,42 +531,6 @@ public class DoctorDashboardMedicationsController implements Initializable {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    private boolean showCustomConfirmationDialog(String title, String subtitle, String message) {
-        final boolean[] result = {false};
-        try {
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/CustomPopup.fxml"));
-            javafx.scene.Parent root = loader.load();
-            it.glucotrack.component.CustomPopupController controller = loader.getController();
-            controller.setTitle(title);
-            controller.setSubtitle(subtitle);
-            javafx.scene.layout.VBox content = controller.getPopupContent();
-            content.getChildren().clear();
-            javafx.scene.control.Label label = new javafx.scene.control.Label(message);
-            label.setWrapText(true);
-            javafx.scene.control.Button yesBtn = new javafx.scene.control.Button("Sì");
-            javafx.scene.control.Button noBtn = new javafx.scene.control.Button("No");
-            yesBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-background-radius: 8;");
-            noBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-background-radius: 8;");
-            javafx.scene.layout.HBox btnBox = new javafx.scene.layout.HBox(16, yesBtn, noBtn);
-            btnBox.setStyle("-fx-alignment: center; -fx-padding: 18 0 0 0;");
-            content.getChildren().addAll(label, btnBox);
-            javafx.stage.Stage popupStage = new javafx.stage.Stage();
-            popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
-            popupStage.setScene(new javafx.scene.Scene(root));
-            popupStage.setMinWidth(420);
-            popupStage.setMinHeight(220);
-            popupStage.setResizable(false);
-
-            controller.setStage(popupStage, false);
-            yesBtn.setOnAction(ev -> { result[0] = true; popupStage.close(); });
-            noBtn.setOnAction(ev -> { result[0] = false; popupStage.close(); });
-            popupStage.showAndWait();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return result[0];
     }
 
 

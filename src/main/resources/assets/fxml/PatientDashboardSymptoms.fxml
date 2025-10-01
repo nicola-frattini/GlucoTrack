@@ -5,21 +5,27 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<ScrollPane fitToWidth="true" fitToHeight="true" style="-fx-background-color: transparent; -fx-background: transparent;" xmlns:fx="http://javafx.com/fxml" fx:controller="it.glucotrack.controller.PatientDashboardSymptomsController" stylesheets="@/assets/css/table-styles.css">
+<ScrollPane fitToWidth="true" fitToHeight="true" style="-fx-background-color: transparent; -fx-background: transparent;" xmlns:fx="http://javafx.com/fxml" fx:controller="it.glucotrack.controller.PatientDashboardSymptomsController" stylesheets="@/assets/css/Style.css">
     <content>
-        <VBox spacing="20" style="-fx-padding: 30;">
+    <VBox spacing="20" styleClass="main-bg-dark">
+        <padding>
+            <Insets top="30" right="30" bottom="30" left="30"/>
+        </padding>
             <children>
                 <!-- Header Section -->
-                <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-padding: 30 40 20 40;">
+                <HBox alignment="CENTER_LEFT" spacing="20.0">
+                    <padding>
+                        <Insets top="30" right="40" bottom="20" left="40"/>
+                    </padding>
                     <children>
                         <VBox spacing="10.0" HBox.hgrow="ALWAYS">
                             <children>
-                                <Label text="Symptoms" textFill="WHITE">
+                                <Label text="Symptoms" styleClass="primary-text bold large">
                                     <font>
                                         <Font name="System Bold" size="28.0" />
                                     </font>
                                 </Label>
-                                <Label text="A chronological list of your recorded symptoms." textFill="#BDC3C7">
+                                <Label text="A chronological list of your recorded symptoms." styleClass="secondary-text medium">
                                     <font>
                                         <Font size="14.0" />
                                     </font>
@@ -27,24 +33,24 @@
                             </children>
                         </VBox>
 
-                        <Button fx:id="addNewSymptomBtn" mnemonicParsing="false"
-                                style="-fx-background-color: #3498DB; -fx-text-fill: white; -fx-padding: 12 20; -fx-background-radius: 5;"
-                                text="⊕ Add New Symptom" />
+            <Button fx:id="addNewSymptomBtn" mnemonicParsing="false" styleClass="button-accent" text="Add New Symptom" />
                     </children>
                 </HBox>
 
                 <!-- Symptom History Section -->
-                <VBox spacing="15.0" style="-fx-padding: 0 40 40 40;">
+                <VBox spacing="15.0" styleClass="main-bg-dark" style="-fx-background-radius: 15;">
+                    <padding>
+                        <Insets top="0" right="40" bottom="40" left="40"/>
+                    </padding>
                     <children>
-                        <Label text="Symptom History" textFill="WHITE">
+                        <Label text="Symptom History" styleClass="primary-text bold medium">
                             <font>
                                 <Font name="System Bold" size="18.0" />
                             </font>
                         </Label>
 
                         <!-- Symptoms History Table -->
-                        <TableView fx:id="symptomsTable" prefHeight="450.0"
-                                   style="-fx-background-color: #2C3E50; -fx-table-color: #2C3E50;">
+                        <TableView fx:id="symptomsTable" prefHeight="450.0" styleClass="table-view-dark">
                             <columns>
                                 <TableColumn fx:id="dateRecordedColumn" prefWidth="180.0" text="Date Recorded" />
                                 <TableColumn fx:id="symptomColumn" prefWidth="200.0" text="Symptom" />
@@ -55,6 +61,7 @@
                                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                             </columnResizePolicy>
                         </TableView>
+
                     </children>
                 </VBox>
             </children>

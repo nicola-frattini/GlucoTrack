@@ -3,6 +3,7 @@ import it.glucotrack.model.Patient;
 import it.glucotrack.util.PatientDAO;
 import it.glucotrack.model.LogMedication;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.scene.Scene;
 import javafx.scene.input.MouseButton;
 
 import javafx.collections.FXCollections;
@@ -11,6 +12,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.scene.paint.Color;
 import javafx.util.Callback;
 import java.net.URL;
 import java.sql.SQLException;
@@ -23,8 +25,6 @@ import it.glucotrack.model.Medication;
 
 public class PatientDashboardMedicationsController implements Initializable {
 
-    @FXML
-    private Button logMedicationBtn;
 
     @FXML
     private TableView<Medication> prescribedMedicationsTable;
@@ -275,8 +275,6 @@ public class PatientDashboardMedicationsController implements Initializable {
     }
 
     private void setupEventHandlers() {
-        logMedicationBtn.setOnAction(e -> handleLogMedicationIntake());
-
 
         prescribedMedicationsTable.setRowFactory(tv -> {
             TableRow<Medication> row = new TableRow<>();
@@ -308,15 +306,23 @@ public class PatientDashboardMedicationsController implements Initializable {
             controller.setSubtitle(med.getName_medication());
             javafx.scene.layout.VBox content = controller.getPopupContent();
             content.getChildren().clear();
-            content.getChildren().addAll(
-                new javafx.scene.control.Label("Nome: " + med.getName_medication()),
-                new javafx.scene.control.Label("Dosaggio: " + med.getDose()),
-                new javafx.scene.control.Label("Frequenza: " + med.getFreq()),
-                new javafx.scene.control.Label("Istruzioni: " + med.getInstructions())
-            );
+
+            Label lblName = new Label("Name: " + med.getName_medication());
+            lblName.setTextFill(Color.WHITE);
+            Label lblDose = new Label("Dose: " + med.getDose());
+            lblDose.setTextFill(Color.WHITE);
+            Label lblFreq = new Label("Frequency: " + med.getFreq());
+            lblFreq.setTextFill(Color.WHITE);
+            Label lblInstruction= new Label("Instruction: " + med.getInstructions());
+            lblInstruction.setTextFill(Color.WHITE);
+
+            content.getChildren().addAll(lblName, lblDose, lblFreq, lblInstruction);
+
+            Scene scene = new Scene(root);
+            scene.setFill(Color.TRANSPARENT);
             javafx.stage.Stage popupStage = new javafx.stage.Stage();
-            popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
-            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
+            popupStage.setScene(scene);
             popupStage.setMinWidth(520);
             popupStage.setMinHeight(340);
             controller.setStage(popupStage);

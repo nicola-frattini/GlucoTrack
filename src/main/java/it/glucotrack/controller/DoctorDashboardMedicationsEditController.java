@@ -294,11 +294,11 @@ public class DoctorDashboardMedicationsEditController {
     private void updateMedicationLogs(LocalDate originalStartDate, LocalDate originalEndDate, Frequency originalFrequency) {
         try {
             // Delete existing future medication logs (from today onwards)
-            LocalDate today = LocalDate.now();
-            logMedicationDAO.deleteFutureLogMedications(currentMedication.getId(), today);
+            logMedicationDAO.deleteFutureLogMedications(currentMedication.getId(), LocalDateTime.now());
 
             // Create new medication logs based on updated schedule
-            createLogMedications(currentMedication.getId(), currentMedication, today);
+
+            createLogMedications(currentMedication.getId(), currentMedication, LocalDate.now());
 
 
         } catch (Exception e) {

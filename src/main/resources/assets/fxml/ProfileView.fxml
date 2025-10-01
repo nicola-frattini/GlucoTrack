@@ -8,14 +8,14 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.shape.*?>
 
-<ScrollPane fitToWidth="true" stylesheets="@../css/table-styles.css" fitToHeight="true" style="-fx-background-color: transparent; -fx-background: transparent;" xmlns:fx="http://javafx.com/fxml" fx:controller="it.glucotrack.controller.ProfileViewController">
+<ScrollPane fitToWidth="true" stylesheets="@/assets/css/Style.css" fitToHeight="true" style="-fx-background-color: transparent; -fx-background: transparent;" xmlns:fx="http://javafx.com/fxml" fx:controller="it.glucotrack.controller.ProfileViewController">
     <content>
-        <VBox style="-fx-background-color: #34495E;" stylesheets="@../css/dashboard-styles.css">
+    <VBox styleClass="main-bg-dark">
             <children>
                 <!-- Header Section -->
                 <VBox spacing="10.0" style="-fx-padding: 30 40 20 40;">
                     <children>
-                        <Label text="User Profile" textFill="WHITE">
+                            <Label text="User Profile" textFill="WHITE">
                             <font>
                                 <Font name="System Bold" size="28.0" />
                             </font>
@@ -31,7 +31,7 @@
                 <!-- Patient Info Section -->
                 <HBox spacing="20.0" style="-fx-padding: 0 40 30 40;">
                     <children>
-                        <!-- Patient Details -->
+                            <!-- Patient Details -->
                         <VBox spacing="8.0" VBox.vgrow="ALWAYS">
                             <children>
                                 <Label fx:id="patientNameLabel" text="Sophia Bennett" textFill="WHITE">
@@ -52,15 +52,15 @@
                 <!-- Tab Navigation -->
                 <HBox spacing="0.0" style="-fx-padding: 0 40 20 40;">
                     <children>
-                        <Button fx:id="overviewTab" mnemonicParsing="false" prefHeight="35.0" prefWidth="100.0"
+                            <Button fx:id="overviewTab" mnemonicParsing="false" prefHeight="40.0" prefWidth="160.0"
                                 style="-fx-background-color: #3498DB; -fx-text-fill: white; -fx-border-width: 0 0 3 0; -fx-border-color: #3498DB;"
                                 text="Overview" />
-                        <Button fx:id="medicationTab" mnemonicParsing="false" prefHeight="35.0" prefWidth="120.0"
+                        <Button fx:id="medicationTab" mnemonicParsing="false" prefHeight="40.0" prefWidth="160.0"
                                 style="-fx-background-color: transparent; -fx-text-fill: #BDC3C7; -fx-border-width: 0 0 1 0; -fx-border-color: #2C3E50;"
                                 text="Medication" />
-                        <Button fx:id="notesTab" mnemonicParsing="false" prefHeight="35.0" prefWidth="80.0"
+                        <Button fx:id="notesTab" mnemonicParsing="false" prefHeight="40.0" prefWidth="160.0"
                                 style="-fx-background-color: transparent; -fx-text-fill: #BDC3C7; -fx-border-width: 0 0 1 0; -fx-border-color: #2C3E50;"
-                                text="Notes" />
+                                text="Personal Data" />
                     </children>
                 </HBox>
 
@@ -74,7 +74,7 @@
                                 <HBox spacing="30.0">
                                     <children>
                                         <!-- Glycemic Trends Card -->
-                                        <VBox spacing="15" style="-fx-background-color: #16213e; -fx-background-radius: 15; -fx-padding: 25;">
+                                        <VBox spacing="15" styleClass="card-dark" style="-fx-background-radius: 15; -fx-padding: 25;">
                                             <HBox alignment="CENTER_LEFT" spacing="10">
                                                 <Label text="Glycemic Trends"
                                                        style="-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;"/>
@@ -139,7 +139,7 @@
                                         </VBox>
 
                                         <!-- Medication Adherence Card -->
-                                        <VBox spacing="15.0" style="-fx-background-color: #2C3E50; -fx-background-radius: 8; -fx-padding: 20;" prefWidth="500.0">
+                                        <VBox spacing="15.0" styleClass="card-dark" style="-fx-background-radius: 15; -fx-padding: 20;" prefWidth="500.0">
                                             <children>
                                                 <Label text="Medication Adherence" textFill="WHITE">
                                                     <font>
@@ -152,7 +152,7 @@
                                                     <children>
                                                         <HBox alignment="CENTER_LEFT">
                                                             <children>
-                                                                <Label text="Metformin" textFill="WHITE">
+                                                                <Label text="Adherance" textFill="WHITE">
                                                                     <font>
                                                                         <Font size="14.0" />
                                                                     </font>
@@ -181,7 +181,7 @@
                                 <HBox spacing="30.0">
                                     <children>
                                         <!-- Reported Symptoms Card -->
-                                        <VBox spacing="15.0" style="-fx-background-color: #2C3E50; -fx-background-radius: 8; -fx-padding: 20;" prefWidth="300.0">
+                                        <VBox spacing="15.0" styleClass="card-dark" style="-fx-background-radius: 15; -fx-padding: 20;" prefWidth="300.0">
                                             <children>
                                                 <Label text="Reported Symptoms" textFill="WHITE">
                                                     <font>
@@ -195,7 +195,7 @@
                                             </children>
                                         </VBox>
 
-                                        <VBox spacing="15.0" style="-fx-background-color: #2C3E50; -fx-background-radius: 8; -fx-padding: 20;" HBox.hgrow="ALWAYS">
+                                        <VBox spacing="15.0" styleClass="card-dark" style="-fx-background-radius: 15; -fx-padding: 20;" HBox.hgrow="ALWAYS">
                                             <children>
                                                 <Label text="Risk Factors" textFill="WHITE">
                                                     <font>
@@ -223,7 +223,7 @@
 
                                 <!-- Medications Table -->
                                 <TableView fx:id="prescribedMedicationsTable" prefHeight="200.0"
-                                           style="-fx-background-color: #2C3E50;">
+                                           styleClass="table-view-dark">
                                     <columns>
                                         <TableColumn fx:id="medicationNameColumn" prefWidth="200.0" text="Medication Name" />
                                         <TableColumn fx:id="dosageColumn" prefWidth="150.0" text="Dosage" />
@@ -245,7 +245,7 @@
                                             </font>
                                         </Label>
                                         <TableView fx:id="therapyModificationsTable" prefHeight="200.0"
-                                                   style="-fx-background-color: #2C3E50;">
+                                                   styleClass="table-view-dark">
                                             <columns>
                                                 <TableColumn fx:id="therapyNameEditColumn" prefWidth="200.0" text="Medication Name"/>
                                                 <TableColumn fx:id="dosageEditColumn" prefWidth="150.0" text="Dosage" />
@@ -269,15 +269,12 @@
                 <!-- Action Buttons -->
                 <HBox spacing="15.0" style="-fx-padding: 30 40 30 40;" alignment="CENTER_LEFT">
                     <children>
-                        <Button fx:id="addRiskBtn" mnemonicParsing="false" prefHeight="100.0" prefWidth="220.0"
-                                style="-fx-background-color: #F39C12; -fx-text-fill: white; -fx-background-radius: 5;"
-                                text="Add Risk" visible="false" />
-                        <Button fx:id="deleteUserBtn" mnemonicParsing="false" prefHeight="100.0" prefWidth="220.0"
-                                style="-fx-background-color: #E74C3C; -fx-text-fill: white; -fx-background-radius: 5;"
-                                text="Delete User" visible="false" />
-                        <Button fx:id="sendMessageBtn" mnemonicParsing="false" prefHeight="100.0" prefWidth="220.0"
-                                style="-fx-background-color: #9B59B6; -fx-text-fill: white; -fx-background-radius: 5;"
-                                text="Send Message" visible="false" />
+            <Button fx:id="addRiskBtn" mnemonicParsing="false" prefHeight="100.0" prefWidth="220.0"
+                styleClass="button-accent" text="Add Risk" visible="false" />
+            <Button fx:id="deleteUserBtn" mnemonicParsing="false" prefHeight="100.0" prefWidth="220.0"
+                styleClass="button-danger" text="Delete User" visible="false" />
+            <Button fx:id="sendMessageBtn" mnemonicParsing="false" prefHeight="100.0" prefWidth="220.0"
+                styleClass="primary-btn" text="Send Message" visible="false" />
                     </children>
                 </HBox>
             </children>

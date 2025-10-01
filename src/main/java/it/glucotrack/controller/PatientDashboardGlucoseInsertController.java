@@ -1,14 +1,5 @@
 package it.glucotrack.controller;
 
-import javafx.collections.FXCollections;
-import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
-import javafx.scene.control.*;
-import javafx.stage.Stage;
-import it.glucotrack.model.GlucoseMeasurement;
-import it.glucotrack.util.GlucoseMeasurementDAO;
-import it.glucotrack.util.SessionManager;
-
 import java.net.URL;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -17,6 +8,20 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ResourceBundle;
+
+import it.glucotrack.model.GlucoseMeasurement;
+import it.glucotrack.util.GlucoseMeasurementDAO;
+import it.glucotrack.util.SessionManager;
+import javafx.collections.FXCollections;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 
 public class PatientDashboardGlucoseInsertController implements Initializable {
 
@@ -75,8 +80,8 @@ public class PatientDashboardGlucoseInsertController implements Initializable {
                 "Before Dinner",
                 "After Dinner",
                 "Before Sleep",
-                "Fasting",
-                "Random"
+                "Fasting"
+            
         ));
 
 

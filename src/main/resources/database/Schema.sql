@@ -97,7 +97,7 @@
             instructions VARCHAR(255),
             edit_time DATETIME NOT NULL,
             FOREIGN KEY (medication_id) REFERENCES medications(id) ON DELETE CASCADE,
-            FOREIGN KEY (edited_by) REFERENCES user(id) ON DELETE CASCADE
+            FOREIGN KEY (edited_by) REFERENCES users(id) ON DELETE CASCADE
         );
 
         -- ============================

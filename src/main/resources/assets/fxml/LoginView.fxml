@@ -9,7 +9,7 @@
 <HBox xmlns="http://javafx.com/javafx/11.0.1"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="it.glucotrack.controller.LoginController"
-    stylesheets="@../css/register-styles.css">
+    stylesheets="@/assets/css/Style.css">
         <children>
         <!-- Sezione sinistra - Form di login -->
         <VBox alignment="CENTER" style="-fx-background-color: #2c3e50;" spacing="30.0" HBox.hgrow="ALWAYS">
@@ -35,7 +35,7 @@
                     <children>
                         <!-- Username -->
                         <TextField fx:id="emailField"
-                                   promptText="👤 Email"
+                                   promptText="Email"
                                    style="-fx-background-color: #34495e; -fx-text-fill: #ecf0f1; -fx-prompt-text-fill: #7f8c8d; -fx-border-color: #3498db; -fx-border-width: 0 0 2 0; -fx-background-radius: 0; -fx-border-radius: 0; -fx-padding: 15;">
                             <font>
                                 <Font size="14.0" />
@@ -44,24 +44,12 @@
 
                         <!-- Password -->
                         <PasswordField fx:id="passwordField"
-                                       promptText="🔒 Password"
+                                       promptText="Password"
                                        style="-fx-background-color: #34495e; -fx-text-fill: #ecf0f1; -fx-prompt-text-fill: #7f8c8d; -fx-border-color: #3498db; -fx-border-width: 0 0 2 0; -fx-background-radius: 0; -fx-border-radius: 0; -fx-padding: 15;">
                             <font>
                                 <Font size="14.0" />
                             </font>
                         </PasswordField>
-
-                        <!-- Remember me checkbox -->
-                        <HBox alignment="CENTER_LEFT" spacing="10.0">
-                            <children>
-                                <CheckBox fx:id="rememberMeCheckBox" style="-fx-text-fill: #ecf0f1;" />
-                                <Label text="Remember me" textFill="#7f8c8d">
-                                    <font>
-                                        <Font size="14.0" />
-                                    </font>
-                                </Label>
-                            </children>
-                        </HBox>
 
                         <!-- Login Button -->
                         <Button fx:id="loginButton"

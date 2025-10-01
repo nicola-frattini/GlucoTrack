@@ -5,162 +5,174 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<VBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.glucotrack.controller.DoctorDashboardMedicationsInsertController" stylesheets="@../css/dashboard-styles.css" style="-fx-background-color: #2a2a2a;" VBox.vgrow="ALWAYS">
-    <children>
+<ScrollPane style="-fx-background-color: #2C3E50;" xmlns:fx="http://javafx.com/fxml" fx:controller="it.glucotrack.controller.DoctorDashboardMedicationsInsertController" fitToWidth="true" fitToHeight="true" stylesheets="@/assets/css/Style.css">
+    <VBox styleClass="main-bg-dark" spacing="0">
+
         <!-- Header Section -->
-        <HBox alignment="CENTER_LEFT" prefHeight="80.0" style="-fx-background-color: #2a2a2a; -fx-padding: 20;">
+    <VBox spacing="10.0" styleClass="main-bg-dark" style="-fx-padding: 30 40 20 40;">
             <children>
-                <VBox alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                <Label text="New Medication" textFill="WHITE">
+                    <font>
+                        <Font name="System Bold" size="28.0" />
+                    </font>
+                </Label>
+                <Label text="Fill out the form to prescribe a new medication" textFill="#BDC3C7">
+                    <font>
+                        <Font size="14.0" />
+                    </font>
+                </Label>
+            </children>
+        </VBox>
+
+        <!-- Main Form Container -->
+    <VBox spacing="20.0" style="-fx-padding: 0 40 40 40;" VBox.vgrow="ALWAYS">
+            <children>
+
+                <!-- Form Card -->
+                <VBox spacing="25.0" styleClass="card-dark">
                     <children>
-                        <Label text="New Medication Prescription" textFill="WHITE">
+
+                        <!-- Patient Selection Row -->
+                        <VBox spacing="8.0">
+                            <children>
+                                <Label text="Patient *" textFill="WHITE">
+                                    <font>
+                                        <Font name="System Bold" size="14.0" />
+                                    </font>
+                                </Label>
+                                <ComboBox fx:id="patientComboBox" prefWidth="400.0" promptText="Select patient..."
+                                          styleClass="combo-box-dark">
+                                </ComboBox>
+                            </children>
+                        </VBox>
+
+                        <!-- Medication Details Row -->
+                        <HBox spacing="20.0">
+                            <children>
+                                <!-- Medication Name -->
+                                <VBox spacing="8.0" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label text="Medication Name *" textFill="WHITE">
+                                            <font>
+                                                <Font name="System Bold" size="14.0" />
+                                            </font>
+                                        </Label>
+                                        <TextField fx:id="medicationNameField" prefWidth="300.0" promptText="Enter medication name..."
+                                                   styleClass="input-dark">
+                                        </TextField>
+                                    </children>
+                                </VBox>
+
+                                <!-- Dosage -->
+                                <VBox spacing="8.0" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label text="Dosage *" textFill="WHITE">
+                                            <font>
+                                                <Font name="System Bold" size="14.0" />
+                                            </font>
+                                        </Label>
+                                        <TextField fx:id="dosageField" prefWidth="200.0" promptText="e.g., 500mg, 10ml..."
+                                                   styleClass="input-dark">
+                                        </TextField>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </HBox>
+
+                        <!-- Frequency Row -->
+                        <VBox spacing="8.0">
+                            <children>
+                                <Label text="Frequency *" textFill="WHITE">
+                                    <font>
+                                        <Font name="System Bold" size="14.0" />
+                                    </font>
+                                </Label>
+                                <ComboBox fx:id="frequencyComboBox" prefWidth="300.0" promptText="Select frequency..."
+                                          styleClass="combo-box-dark">
+                                </ComboBox>
+                            </children>
+                        </VBox>
+
+                        <!-- Date Range Row -->
+                        <HBox spacing="20.0">
+                            <children>
+                                <!-- Start Date -->
+                                <VBox spacing="8.0" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label text="Start Date *" textFill="WHITE">
+                                            <font>
+                                                <Font name="System Bold" size="14.0" />
+                                            </font>
+                                        </Label>
+                                        <DatePicker fx:id="startDatePicker" prefWidth="200.0"
+                                                    styleClass="date-picker-dark">
+                                        </DatePicker>
+                                    </children>
+                                </VBox>
+
+                                <!-- End Date -->
+                                <VBox spacing="8.0" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label text="End Date" textFill="WHITE">
+                                            <font>
+                                                <Font name="System Bold" size="14.0" />
+                                            </font>
+                                        </Label>
+                                        <DatePicker fx:id="endDatePicker" prefWidth="200.0" promptText="End date *"
+                                                    styleClass="date-picker-dark">
+                                        </DatePicker>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </HBox>
+
+                        <!-- Notes Section -->
+                        <VBox spacing="8.0">
+                            <children>
+                                <Label text="Notes" textFill="WHITE">
+                                    <font>
+                                        <Font name="System Bold" size="14.0" />
+                                    </font>
+                                </Label>
+                                <TextArea fx:id="notesTextArea" prefHeight="100.0" prefWidth="600.0" wrapText="true"
+                                          promptText="Optional notes or special instructions..."
+                                          styleClass="input-dark">
+                                </TextArea>
+                                <Label text="Maximum 500 characters" textFill="#95A5A6">
+                                    <font>
+                                        <Font size="11.0" />
+                                    </font>
+                                </Label>
+                            </children>
+                        </VBox>
+
+                        <!-- Required Fields Notice -->
+                        <Label text="* Required fields" textFill="#95A5A6">
                             <font>
-                                <Font name="System Bold" size="28.0" />
+                                <Font size="11.0" />
                             </font>
                         </Label>
-                        <Label text="Fill out the form below to prescribe a new therapy for a patient" textFill="#b0b0b0">
-                            <font>
-                                <Font size="14.0" />
-                            </font>
-                        </Label>
+
                     </children>
                 </VBox>
-                
-                <!-- Back Button -->
-                <Button fx:id="backButton" mnemonicParsing="false" onAction="#handleBackToList" prefHeight="40.0" prefWidth="120.0" style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-background-radius: 5;" text="← Back to List">
-                    <font>
-                        <Font name="System Bold" size="12.0" />
-                    </font>
-                </Button>
+
+                <!-- Action Buttons -->
+                <HBox alignment="CENTER_RIGHT" spacing="15.0" style="-fx-padding: 20 0 0 0;">
+                    <children>
+                        <!-- Cancel Button -->
+                        <Button fx:id="cancelButton" onAction="#handleCancel" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0"
+                            styleClass="secondary-btn"
+                            text="Cancel" />
+
+                        <!-- Prescribe Button -->
+                        <Button fx:id="prescribeButton" onAction="#handlePrescribe" mnemonicParsing="false" prefHeight="40.0" prefWidth="140.0"
+                            styleClass="primary-btn"
+                            text="Prescribe" />
+                    </children>
+                </HBox>
+
             </children>
-        </HBox>
+        </VBox>
 
-        <!-- Main Content Area -->
-        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS">
-            <content>
-                <VBox alignment="TOP_CENTER" style="-fx-padding: 30;" spacing="30.0">
-                    <!-- Form Container -->
-                    <VBox alignment="CENTER" maxWidth="800.0" prefWidth="800.0" spacing="25.0" style="-fx-background-color: #3a3a3a; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 5);">
-                        <padding>
-                            <Insets bottom="40.0" left="40.0" right="40.0" top="40.0" />
-                        </padding>
-                        <children>
-                            <!-- Select Patient -->
-                            <VBox spacing="10.0">
-                                <children>
-                                    <Label text="Select Patient *" textFill="WHITE">
-                                        <font>
-                                            <Font name="System Bold" size="16.0" />
-                                        </font>
-                                    </Label>
-                                    <ComboBox fx:id="patientComboBox" prefHeight="45.0" maxWidth="Infinity" promptText="Choose a patient..." style="-fx-background-color: #4a4a4a; -fx-text-fill: white; -fx-prompt-text-fill: #888888; -fx-font-size: 14px;" />
-                                </children>
-                            </VBox>
-
-                            <!-- Medication Name -->
-                            <VBox spacing="10.0">
-                                <children>
-                                    <Label text="Medication Name *" textFill="WHITE">
-                                        <font>
-                                            <Font name="System Bold" size="16.0" />
-                                        </font>
-                                    </Label>
-                                    <TextField fx:id="medicationNameField" prefHeight="45.0" promptText="e.g., Metformin, Insulin, Glibenclamide..." style="-fx-background-color: #4a4a4a; -fx-text-fill: white; -fx-prompt-text-fill: #888888; -fx-font-size: 14px;" />
-                                </children>
-                            </VBox>
-
-                            <!-- Dosage and Frequency Row -->
-                            <HBox spacing="30.0">
-                                <children>
-                                    <!-- Dosage -->
-                                    <VBox spacing="10.0" HBox.hgrow="ALWAYS">
-                                        <children>
-                                            <Label text="Dosage *" textFill="WHITE">
-                                                <font>
-                                                    <Font name="System Bold" size="16.0" />
-                                                </font>
-                                            </Label>
-                                            <TextField fx:id="dosageField" prefHeight="45.0" promptText="e.g., 500mg, 10 units, 1 tablet..." style="-fx-background-color: #4a4a4a; -fx-text-fill: white; -fx-prompt-text-fill: #888888; -fx-font-size: 14px;" />
-                                        </children>
-                                    </VBox>
-
-                                    <!-- Frequency -->
-                                    <VBox spacing="10.0" HBox.hgrow="ALWAYS">
-                                        <children>
-                                            <Label text="Frequency *" textFill="WHITE">
-                                                <font>
-                                                    <Font name="System Bold" size="16.0" />
-                                                </font>
-                                            </Label>
-                                            <ComboBox fx:id="frequencyComboBox" prefHeight="45.0" maxWidth="Infinity" promptText="Select frequency..." style="-fx-background-color: #4a4a4a; -fx-text-fill: white; -fx-prompt-text-fill: #888888; -fx-font-size: 14px;" />
-                                        </children>
-                                    </VBox>
-                                </children>
-                            </HBox>
-
-                            <!-- Start Date and End Date Row -->
-                            <HBox spacing="30.0">
-                                <children>
-                                    <!-- Start Date -->
-                                    <VBox spacing="10.0" HBox.hgrow="ALWAYS">
-                                        <children>
-                                            <Label text="Start Date *" textFill="WHITE">
-                                                <font>
-                                                    <Font name="System Bold" size="16.0" />
-                                                </font>
-                                            </Label>
-                                            <DatePicker fx:id="startDatePicker" prefHeight="45.0" maxWidth="Infinity" promptText="Select start date" style="-fx-background-color: #4a4a4a; -fx-text-fill: white; -fx-font-size: 14px;" />
-                                        </children>
-                                    </VBox>
-
-                                    <!-- End Date -->
-                                    <VBox spacing="10.0" HBox.hgrow="ALWAYS">
-                                        <children>
-                                            <Label text="End Date (Optional)" textFill="WHITE">
-                                                <font>
-                                                    <Font name="System Bold" size="16.0" />
-                                                </font>
-                                            </Label>
-                                            <DatePicker fx:id="endDatePicker" prefHeight="45.0" maxWidth="Infinity" promptText="Select end date (optional)" style="-fx-background-color: #4a4a4a; -fx-text-fill: white; -fx-font-size: 14px;" />
-                                        </children>
-                                    </VBox>
-                                </children>
-                            </HBox>
-
-                            <!-- Notes -->
-                            <VBox spacing="10.0">
-                                <children>
-                                    <Label text="Instructions / Notes" textFill="WHITE">
-                                        <font>
-                                            <Font name="System Bold" size="16.0" />
-                                        </font>
-                                    </Label>
-                                    <TextArea fx:id="notesTextArea" prefHeight="120.0" promptText="e.g., Take with food. Monitor blood glucose levels. Check for side effects..." style="-fx-background-color: #4a4a4a; -fx-text-fill: white; -fx-prompt-text-fill: #888888; -fx-font-size: 14px;" wrapText="true" />
-                                </children>
-                            </VBox>
-
-                            <!-- Action Buttons -->
-                            <HBox alignment="CENTER" spacing="20.0">
-                                <VBox.margin>
-                                    <Insets top="20.0" />
-                                </VBox.margin>
-                                <children>
-                                    <Button fx:id="clearButton" mnemonicParsing="false" onAction="#handleClear" prefHeight="50.0" prefWidth="140.0" style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-background-radius: 8; -fx-cursor: hand;" text="Clear Form">
-                                        <font>
-                                            <Font name="System Bold" size="14.0" />
-                                        </font>
-                                    </Button>
-                                    
-                                    <Button fx:id="prescribeButton" mnemonicParsing="false" onAction="#handlePrescribe" prefHeight="50.0" prefWidth="160.0" style="-fx-background-color: #00bcd4; -fx-text-fill: white; -fx-background-radius: 8; -fx-cursor: hand;" text="💊 Prescribe">
-                                        <font>
-                                            <Font name="System Bold" size="16.0" />
-                                        </font>
-                                    </Button>
-                                </children>
-                            </HBox>
-                        </children>
-                    </VBox>
-                </VBox>
-            </content>
-        </ScrollPane>
-    </children>
-</VBox>
+    </VBox>
+</ScrollPane>

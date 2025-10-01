@@ -1,9 +1,6 @@
 package it.glucotrack.util;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -161,12 +158,15 @@ public class LogMedicationDAO {
             return false;
         }
     }
-    public void deleteFutureLogMedications(int id, LocalDate today) {
+    public void deleteFutureLogMedications(int id, LocalDateTime today) {
 
-        String sql = "DELETE FROM log_medications WHERE medication_id = ? AND date(date_time) > ?";
+        String sql = "DELETE FROM log_medications WHERE medication_id = ? AND date_time >= ?";
+        System.out.println("[DEBUG] Executing SQL: " + sql);
+        System.out.println("[DEBUG] Parameters: medication_id=" + id + ", date=" + today);
         try {
-            int rows = DatabaseInteraction.executeUpdate(sql, id, today);
-            System.out.println("Deleted " + rows + " future log medications for medication_id " + id);
+            int rows = DatabaseInteraction.executeUpdate(sql, id, Timestamp.valueOf(today));
+            System.out.println("Deleted " + rows + " future (and today) log medications for medication_id " + id);
+            System.out.println(getPendingLogMedications(id));
         } catch (SQLException e) {
             System.err.println("Error deleting future log medications: " + e.getMessage());
         }

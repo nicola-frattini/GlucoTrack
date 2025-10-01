@@ -7,10 +7,10 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.control.ScrollPane?>
 
-<ScrollPane style="-fx-background-color: #2C3E50;" xmlns:fx="http://javafx.com/fxml" fx:controller="it.glucotrack.controller.DoctorDashboardPatientsController" stylesheets="@/assets/css/table-styles.css" fitToWidth="true" fitToHeight="true">
-    <VBox style="-fx-background-color: #2C3E50;">
+<ScrollPane style="-fx-background-color: #2C3E50;" xmlns:fx="http://javafx.com/fxml" fx:controller="it.glucotrack.controller.DoctorDashboardPatientsController" stylesheets="@/assets/css/Style.css" fitToWidth="true" fitToHeight="true">
+    <VBox styleClass="main-bg-dark">
         <!-- Header Section -->
-        <VBox spacing="10.0" style="-fx-padding: 30 40 20 40;">
+    <VBox spacing="10.0" styleClass="main-bg-dark" style="-fx-padding: 30 40 20 40;">
             <children>
                 <Label text="Patients" textFill="WHITE">
                     <font>
@@ -30,40 +30,20 @@
             <children>
                 <!-- Search Field -->
                 <TextField fx:id="searchField" prefWidth="300.0" promptText="Search patients..."
-                           style="-fx-background-color: #34495E; -fx-text-fill: white; -fx-prompt-text-fill: #BDC3C7; -fx-background-radius: 5;">
+                           styleClass="input-dark">
                     <font>
                         <Font size="14.0" />
                     </font>
                 </TextField>
 
-                <!-- Spacer -->
-                <Region HBox.hgrow="ALWAYS" />
-
-                <!-- Filter Button -->
-                <Button fx:id="filterBtn" mnemonicParsing="false" prefHeight="35.0" prefWidth="80.0"
-                        style="-fx-background-color: transparent; -fx-border-color: #3498DB; -fx-border-width: 1; -fx-text-fill: #3498DB; -fx-background-radius: 5;"
-                        text="Filter">
-                    <font>
-                        <Font size="14.0" />
-                    </font>
-                </Button>
-
-                <!-- Add Patient Button -->
-                <Button fx:id="addPatientBtn" mnemonicParsing="false" prefHeight="35.0" prefWidth="120.0"
-                        style="-fx-background-color: #3498DB; -fx-text-fill: white; -fx-background-radius: 5;"
-                        text="Add Patient">
-                    <font>
-                        <Font name="System Bold" size="14.0" />
-                    </font>
-                </Button>
-            </children>
+        </children>
         </HBox>
 
         <!-- Patients Table -->
-        <VBox style="-fx-padding: 0 40 40 40;" VBox.vgrow="ALWAYS">
+            <VBox style="-fx-padding: 0 40 40 40;" VBox.vgrow="ALWAYS" styleClass="main-bg-dark">
             <children>
                 <TableView fx:id="patientsTable" prefHeight="400.0" VBox.vgrow="ALWAYS"
-                           style="-fx-background-color: #34495E; -fx-table-cell-border-color: #2C3E50;">
+                           styleClass="table-view-dark">
                     <columns>
                         <!-- Patient Name Column -->
                         <TableColumn fx:id="patientNameColumn" prefWidth="200.0" text="Patient Name" />

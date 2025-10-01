@@ -10,30 +10,26 @@
             xmlns="http://javafx.com/javafx/11.0.1"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="it.glucotrack.controller.DoctorDashboardController"
-            style="-fx-background-color: #1a1a2e;">
+            styleClass="main-bg-dark"
+            stylesheets="@/assets/css/Style.css">
 
     <!-- Sidebar sinistra -->
     <left>
-        <VBox style="-fx-background-color: #16213e;" prefWidth="250" spacing="5">
+        <VBox styleClass="card-dark" prefWidth="250" spacing="5">
             <padding>
                 <Insets top="20" bottom="20" left="20" right="20" />
             </padding>
 
             <!-- Profilo utente -->
-                    <!-- Avatar sostitutivo -->
-
             <Button fx:id="profileBtn" onAction="#onProfileClick"
-                    style="-fx-background-color: #0f1c35; -fx-background-radius: 10; -fx-padding: 15; -fx-cursor: hand; -fx-border-color: transparent;"
+                    styleClass="input-dark"
                     prefWidth="210">
                 <graphic>
                     <HBox alignment="CENTER_LEFT" spacing="10">
-                        <!-- Avatar sostitutivo -->
                         <Label style="-fx-font-size: 32px;" />
                         <VBox>
-                            <Label fx:id="doctorNameLabel"
-                                   style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;"/>
-                            <Label fx:id="doctorRoleLabel"
-                                   style="-fx-text-fill: #8892b0; -fx-font-size: 12px;"/>
+                            <Label fx:id="doctorNameLabel" styleClass="primary-text"/>
+                            <Label fx:id="doctorRoleLabel" styleClass="secondary-text"/>
                         </VBox>
                     </HBox>
                 </graphic>
@@ -42,25 +38,23 @@
             <!-- Menu di navigazione -->
             <VBox spacing="5" style="-fx-padding: 10 0;">
                 <Button fx:id="dashboardBtn" text="Dashboard"
-                        style="-fx-background-color: #64b5f6; -fx-text-fill: white; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
+                        styleClass="nav-button"
                         onAction="#onDashboardClick" prefWidth="210" />
 
                 <Button fx:id="patientsBtn" text="Patients"
-                        style="-fx-background-color: transparent; -fx-text-fill: #8892b0; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
+                        styleClass="nav-button"
                         onAction="#onPatientsClick" prefWidth="210" />
 
                 <Button fx:id="medicationsBtn" text="Therapies"
-                        style="-fx-background-color: transparent; -fx-text-fill: #8892b0; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
+                        styleClass="nav-button"
                         onAction="#onMedicationsClick" prefWidth="210" />
             </VBox>
 
-            <!-- Spacer -->
             <Region VBox.vgrow="ALWAYS"/>
 
-            <!-- Logout -->
             <VBox spacing="5">
                 <Button fx:id="logoutBtn" text="Logout"
-                        style="-fx-background-color: transparent; -fx-text-fill: #8892b0; -fx-background-radius: 8; -fx-font-size: 14px; -fx-padding: 12 20; -fx-cursor: hand; -fx-alignment: center-left;"
+                        styleClass="nav-button"
                         onAction="#onLogoutClick" prefWidth="210" />
             </VBox>
         </VBox>

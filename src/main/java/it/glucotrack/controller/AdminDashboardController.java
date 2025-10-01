@@ -33,11 +33,12 @@ public class AdminDashboardController {
 
     public void setCurrentAdmin(User admin) {
         this.currentAdmin = admin;
-        if (adminNameLabel != null)
-            adminNameLabel.setText(admin.getName() + " " + admin.getSurname());
-
-        if(adminRoleLabel != null)
-            adminRoleLabel.setText("Role: " + admin.getType());
+        if (admin != null) {
+            if (adminNameLabel != null)
+                adminNameLabel.setText(admin.getName() + " " + admin.getSurname());
+            if (adminRoleLabel != null)
+                adminRoleLabel.setText("Role: " + admin.getType());
+        }
     }
 
     private void loadCenterContent(String fxmlPath) {
@@ -49,7 +50,7 @@ public class AdminDashboardController {
             contentPane.getChildren().add(content);
         } catch (Exception e) {
             e.printStackTrace();
-            statusLabel.setText("Error loading content: " + e.getMessage());
+            System.err.println("Error loading content: " + e.getMessage());
         }
     }
 
@@ -69,11 +70,11 @@ public class AdminDashboardController {
                 Scene scene = profileBtn.getScene();
                 BorderPane rootPane = (BorderPane) scene.getRoot();
                 StackPane contentPane = (StackPane) rootPane.getCenter();
-                profileController.setParentContentPane(contentPane); contentPane.getChildren().clear(); contentPane.getChildren().add(profileRoot);
-                statusLabel.setText("Opened your profile");
+                profileController.setParentContentPane(contentPane);
+                contentPane.getChildren().clear();
+                contentPane.getChildren().add(profileRoot);
             } catch (Exception e) {
                 e.printStackTrace();
-                statusLabel.setText("Error loading your profile: " + e.getMessage());
             }
         }
     }

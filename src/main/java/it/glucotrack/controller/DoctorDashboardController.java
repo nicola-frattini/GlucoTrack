@@ -35,6 +35,11 @@ public class DoctorDashboardController {
 
     private Doctor doctor;
 
+    private static DoctorDashboardController instance;
+
+    public static DoctorDashboardController getInstance() {
+        return instance;
+    }
 
 
     public void initialize() throws SQLException {
@@ -114,7 +119,7 @@ public class DoctorDashboardController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/" + fxmlFile));
             Node node = loader.load();
             contentPane.getChildren().setAll(node);
-        } catch (IOException e) {
+            } catch (IOException e) {
             e.printStackTrace();
         }
 

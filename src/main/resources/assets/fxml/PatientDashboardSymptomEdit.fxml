@@ -5,24 +5,23 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<VBox xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.glucotrack.controller.PatientDashboardSymptomsEditController" stylesheets="@../css/symptom-form-style.css,@../css/titlebar.css">
+<VBox xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.glucotrack.controller.PatientDashboardSymptomsEditController" stylesheets="@/assets/css/Style.css">
    <children>
       <!-- Main Content -->
-      <VBox alignment="TOP_CENTER" prefHeight="700.0" style="-fx-background-color: #2c3e50;" VBox.vgrow="ALWAYS">
-         <children>
-            <!-- Title Section -->
-            <VBox alignment="CENTER" spacing="15.0">
-               <children>
-                  <Label style="-fx-text-fill: white; -fx-font-size: 36px; -fx-font-weight: bold;" text="Edit Symptom" />
-                  <Label style="-fx-text-fill: #95a5a6; -fx-font-size: 16px;" text="Modify the details of your existing symptom record." textAlignment="CENTER" wrapText="true" />
-               </children>
-               <VBox.margin>
-                  <Insets bottom="50.0" top="60.0" />
-               </VBox.margin>
-            </VBox>
-            
-            <!-- Form Section -->
-            <VBox alignment="CENTER" maxWidth="500.0" spacing="30.0">
+   <VBox alignment="TOP_CENTER" prefHeight="700.0" styleClass="main-bg-dark" VBox.vgrow="ALWAYS">
+      <children>
+         <!-- Title Section (Card) -->
+         <VBox alignment="CENTER" spacing="10.0" maxWidth="500.0" styleClass="card-dark">
+            <children>
+               <Label styleClass="form-title" text="Edit Symptom" />
+               <Label styleClass="secondary-text" text="Modify the details of your existing symptom record." textAlignment="CENTER" wrapText="true" />
+            </children>
+            <VBox.margin>
+               <Insets bottom="40.0" top="40.0" />
+            </VBox.margin>
+         </VBox>
+         <!-- Form Section (Card) -->
+         <VBox alignment="CENTER" maxWidth="500.0" spacing="30.0" styleClass="card-dark">
                <children>
                   <!-- Date and Time Row -->
                   <HBox spacing="25.0">
@@ -30,16 +29,16 @@
                         <!-- Date Field -->
                         <VBox spacing="10.0" HBox.hgrow="ALWAYS">
                            <children>
-                              <Label style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;" text="Date" />
-                              <TextField fx:id="dateField" prefHeight="50.0" promptText="mm/dd/yyyy" style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-prompt-text-fill: #7f8c8d; -fx-background-radius: 8; -fx-border-color: #4a6278; -fx-border-width: 1; -fx-border-radius: 8; -fx-padding: 15;" />
+                              <Label styleClass="primary-text" text="Date" />
+                              <TextField fx:id="dateField" prefHeight="50.0" promptText="mm/dd/yyyy" styleClass="input-dark" />
                            </children>
                         </VBox>
                         
                         <!-- Time Field -->
                         <VBox spacing="10.0" HBox.hgrow="ALWAYS">
                            <children>
-                              <Label style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;" text="Time" />
-                              <TextField fx:id="timeField" prefHeight="50.0" promptText="--:-- --" style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-prompt-text-fill: #7f8c8d; -fx-background-radius: 8; -fx-border-color: #4a6278; -fx-border-width: 1; -fx-border-radius: 8; -fx-padding: 15;" />
+                              <Label styleClass="primary-text" text="Time" />
+                              <TextField fx:id="timeField" prefHeight="50.0" promptText="--:-- --" styleClass="input-dark" />
                            </children>
                         </VBox>
                      </children>
@@ -48,8 +47,8 @@
                   <!-- Symptom Name -->
                   <VBox spacing="10.0">
                      <children>
-                        <Label style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;" text="Symptom Name" />
-                        <TextArea fx:id="symptomDescriptionArea" prefHeight="120.0" prefWidth="500.0" promptText="e.g., Headache, Fatigue, Nausea..." style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-prompt-text-fill: #7f8c8d; -fx-background-radius: 8; -fx-border-color: #4a6278; -fx-border-width: 1; -fx-border-radius: 8; -fx-padding: 15;" wrapText="true" />
+                        <Label styleClass="primary-text" text="Symptom Name" />
+                        <TextArea fx:id="symptomDescriptionArea" prefHeight="120.0" prefWidth="500.0" promptText="e.g., Headache, Fatigue, Nausea..." styleClass="input-dark" wrapText="true" />
                      </children>
                   </VBox>
                   
@@ -59,21 +58,21 @@
                         <!-- Severity Field -->
                         <VBox spacing="10.0" HBox.hgrow="ALWAYS">
                            <children>
-                              <Label style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;" text="Severity" />
-                              <ComboBox fx:id="severityComboBox" prefHeight="50.0" prefWidth="200.0" promptText="Select Severity" style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-prompt-text-fill: #7f8c8d; -fx-background-radius: 8; -fx-border-color: #4a6278; -fx-border-width: 1; -fx-border-radius: 8; -fx-cursor: hand;" />
+                              <Label styleClass="primary-text" text="Severity" />
+                              <ComboBox fx:id="severityComboBox" prefHeight="50.0" prefWidth="200.0" promptText="Select Severity" styleClass="combo-box-dark" />
                            </children>
                         </VBox>
                         
                         <!-- Duration Field -->
                         <VBox spacing="10.0" HBox.hgrow="ALWAYS">
                            <children>
-                              <Label style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;" text="Duration" />
+                              <Label styleClass="primary-text" text="Duration" />
                               <HBox spacing="10.0" alignment="CENTER_LEFT">
                                  <children>
-                                    <ComboBox fx:id="hoursComboBox" prefHeight="50.0" prefWidth="80.0" promptText="Hours" style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-prompt-text-fill: #7f8c8d; -fx-background-radius: 8; -fx-border-color: #4a6278; -fx-border-width: 1; -fx-border-radius: 8; -fx-cursor: hand;" />
-                                    <Label style="-fx-text-fill: white; -fx-font-size: 14px;" text="h" />
-                                    <ComboBox fx:id="minutesComboBox" prefHeight="50.0" prefWidth="80.0" promptText="Minutes" style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-prompt-text-fill: #7f8c8d; -fx-background-radius: 8; -fx-border-color: #4a6278; -fx-border-width: 1; -fx-border-radius: 8; -fx-cursor: hand;" />
-                                    <Label style="-fx-text-fill: white; -fx-font-size: 14px;" text="m" />
+                                    <ComboBox fx:id="hoursComboBox" prefHeight="50.0" prefWidth="80.0" promptText="Hours" styleClass="combo-box-dark" />
+                                    <Label styleClass="primary-text" text="h" />
+                                    <ComboBox fx:id="minutesComboBox" prefHeight="50.0" prefWidth="80.0" promptText="Minutes" styleClass="combo-box-dark" />
+                                    <Label styleClass="primary-text" text="m" />
                                  </children>
                               </HBox>
                            </children>
@@ -84,16 +83,16 @@
                   <!-- Notes Field -->
                   <VBox spacing="10.0">
                      <children>
-                        <Label style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;" text="Notes (Optional)" />
-                        <TextArea fx:id="notesArea" prefHeight="100.0" prefWidth="500.0" promptText="Any additional context..." style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-prompt-text-fill: #7f8c8d; -fx-background-radius: 8; -fx-border-color: #4a6278; -fx-border-width: 1; -fx-border-radius: 8; -fx-padding: 15;" wrapText="true" />
+                        <Label styleClass="primary-text" text="Notes (Optional)" />
+                        <TextArea fx:id="notesArea" prefHeight="100.0" prefWidth="500.0" promptText="Any additional context..." styleClass="input-dark" wrapText="true" />
                      </children>
                   </VBox>
                   
                   <!-- Buttons Row -->
                   <HBox spacing="20.0" alignment="CENTER">
                      <children>
-                        <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#handleCancel" prefHeight="55.0" prefWidth="150.0" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-border-radius: 10; -fx-cursor: hand;" text="Cancel" />
-                        <Button fx:id="updateSymptomButton" mnemonicParsing="false" onAction="#handleUpdateSymptom" prefHeight="55.0" prefWidth="200.0" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-border-radius: 10; -fx-cursor: hand;" text="Update Symptom" />
+                        <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#handleCancel" prefHeight="50.0" prefWidth="190.0" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-border-radius: 10; -fx-cursor: hand;" text="Cancel" />
+                        <Button fx:id="updateSymptomButton" mnemonicParsing="false" onAction="#handleUpdateSymptom" prefHeight="55.0" prefWidth="200.0" styleClass="button-accent" text="Update Symptom" />
                      </children>
                      <VBox.margin>
                         <Insets top="20.0" />
@@ -106,7 +105,7 @@
             </VBox>
          </children>
          <padding>
-            <Insets left="40.0" right="40.0" />
+            <Insets left="20.0" right="20.0" />
          </padding>
       </VBox>
    </children>

@@ -43,6 +43,8 @@ import java.util.Optional;
 
 public class ProfileViewController implements Initializable {
 
+    private User viewedUser;
+
     // Enum for user role type
     public enum UserRole {
         DOCTOR_VIEWING_PATIENT,
@@ -287,35 +289,59 @@ public class ProfileViewController implements Initializable {
 
 
     //==== SET THE USER ROLE ====
-    public void setUserRole(UserRole role, User viewedPatient) throws SQLException {
-
+    public void setUserRole(UserRole role, User viewedUser) throws SQLException {
         this.currentUserRole = role;
+        this.viewedUser = viewedUser; // Salva sempre l'utente visualizzato
 
-        if (viewedPatient != null) {
-            this.currentPatient = PatientDAO.getPatientById(viewedPatient.getId());
+        if (role == UserRole.ADMIN_OWN_PROFILE && viewedUser != null) {
+            this.currentUser = viewedUser;
+            this.currentPatient = null;
+        } else if (role == UserRole.ADMIN_VIEWING_USER && viewedUser != null) {
+            // Per ADMIN_VIEWING_USER, viewedUser è l'utente da visualizzare
+            if (viewedUser.getType().equals("PATIENT")) {
+                this.currentPatient = PatientDAO.getPatientById(viewedUser.getId());
+            } else {
+                this.currentPatient = null;
+            }
+        } else if (viewedUser != null) {
+            if (viewedUser.getType().equals("PATIENT")) {
+                this.currentPatient = PatientDAO.getPatientById(viewedUser.getId());
+            } else {
+                this.currentPatient = null;
+            }
         } else {
             this.currentPatient = null;
         }
 
-        refreshInitialize();
+        if (timeRangeCombo != null && timeRangeCombo.getItems().isEmpty()) {
+            timeRangeCombo.getItems().addAll("Last 7 days", "Last 30 days", "Last year");
+            timeRangeCombo.getSelectionModel().select("Last 7 days");
+        }
 
+        refreshInitialize();
         updateViewForUserRole();
 
         if (currentPatient != null && currentUserRole == UserRole.DOCTOR_VIEWING_PATIENT) {
-            // This is not patient profile
             updatePatientSpecificData();
             loadTherapyTable();
             loadTherapyModificationsTable();
         } else {
             updateNonPatientProfile();
+            Platform.runLater(() -> {
+                notesContent.getChildren().clear();
+                loadNotesContent();
+            });
         }
     }
 
 
     private void updateNonPatientProfile() {
-        if (currentUser != null) {
-            String userName = getUserName(currentUser);
-            String userId = getUserId(currentUser);
+        // Usa viewedUser invece di currentUser
+        User userToDisplay = (viewedUser != null) ? viewedUser : currentUser;
+
+        if (userToDisplay != null) {
+            String userName = getUserName(userToDisplay);
+            String userId = getUserId(userToDisplay);
 
             if (patientNameLabel != null) {
                 patientNameLabel.setText(userName);
@@ -323,7 +349,6 @@ public class ProfileViewController implements Initializable {
             if (patientIdLabel != null) {
                 patientIdLabel.setText("User ID: " + userId);
             }
-
         }
         hideMedicalElements();
     }
@@ -514,51 +539,62 @@ public class ProfileViewController implements Initializable {
 
 
     private void handleDeleteUser() {
-        if (currentPatient == null || currentUserRole != UserRole.ADMIN_VIEWING_USER) return;
+        if (viewedUser == null || currentUserRole != UserRole.ADMIN_VIEWING_USER) {
+            showError("Delete Error", "Cannot delete user", "No user selected or insufficient permissions.");
+            return;
+        }
 
         Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
         confirmAlert.setTitle("Delete User");
         confirmAlert.setHeaderText("Delete User Account");
         confirmAlert.setContentText("Are you sure you want to delete the account for " +
-                currentPatient.getFullName() + "? This action cannot be undone.");
+                viewedUser.getName() + " " + viewedUser.getSurname() +
+                "? This action cannot be undone.");
+
+        // Style the dialog
+        confirmAlert.getDialogPane().setStyle("-fx-background-color: #2C3E50;");
 
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-                successAlert.setTitle("User Deleted");
-                successAlert.setHeaderText("Success");
-                successAlert.setContentText("User account has been successfully deleted.");
-                successAlert.showAndWait();
+                try {
+                    UserDAO userDAO = new UserDAO();
+                    boolean success = userDAO.deleteUser(viewedUser.getId());
 
-                handleBackToPatientsList();
+                    if (success) {
+                        Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                        successAlert.setTitle("User Deleted");
+                        successAlert.setHeaderText("Success");
+                        successAlert.setContentText("User account has been successfully deleted.");
+                        successAlert.getDialogPane().setStyle("-fx-background-color: #2C3E50;");
+                        successAlert.showAndWait();
+
+                        // Torna alla dashboard admin
+                        handleBackToUsersList();
+                    } else {
+                        showError("Delete Failed", "Could not delete user",
+                                "The user could not be deleted from the database.");
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    showError("Database Error", "Failed to delete user",
+                            "Database error: " + e.getMessage());
+                }
             }
         });
     }
 
-    private void handleBackToPatientsList() {
+    private void handleBackToUsersList() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/AdminDashboardView.fxml"));
-            Parent adminDashboard = loader.load();
-            AdminDashboardController controller = loader.getController();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/AdminDashboardHome.fxml"));
+            Parent adminDashboardHome = loader.load();
+            AdminDashboardHomeController controller = loader.getController();
             if (controller != null && parentContentPane != null) {
-                controller.setContentPane(parentContentPane);
-                parentContentPane.getChildren().setAll(adminDashboard);
+                controller.setCurrentAdmin(SessionManager.getCurrentUser());
+                parentContentPane.getChildren().setAll(adminDashboardHome);
             }
         } catch (Exception e) {
             showError("Navigation Error", "Failed to navigate back to Admin Dashboard", e.getMessage());
         }
-    }
-
-    private void handleExportData() {
-        if (currentPatient == null) return;
-
-        String patientName = (currentPatient == currentUser) ? "your" : currentPatient.getFullName() + "'s";
-
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Export Data");
-        alert.setHeaderText("Data Export");
-        alert.setContentText("Exporting " + patientName + " medical data to PDF format...");
-        alert.showAndWait();
     }
 
     private void handleSendMessage() {
@@ -604,16 +640,28 @@ public class ProfileViewController implements Initializable {
     }
 
     private void switchToTab(String tabName) {
-        // Hide all content
-        if (overviewContent != null) overviewContent.setVisible(false);
-        if (medicationContent != null) medicationContent.setVisible(false);
-        if (notesContent != null) notesContent.setVisible(false);
+        // Hide all content and set unmanaged
+        if (overviewContent != null) {
+            overviewContent.setVisible(false);
+            overviewContent.setManaged(false);
+        }
+        if (medicationContent != null) {
+            medicationContent.setVisible(false);
+            medicationContent.setManaged(false);
+        }
+        if (notesContent != null) {
+            notesContent.setVisible(false);
+            notesContent.setManaged(false);
+        }
 
         resetTabStyles();
 
         switch (tabName) {
             case "Overview":
-                if (overviewContent != null) overviewContent.setVisible(true);
+                if (overviewContent != null) {
+                    overviewContent.setVisible(true);
+                    overviewContent.setManaged(true);
+                }
                 setActiveTabStyle(overviewTab);
                 if (currentPatient != null) {
                     updatePatientSpecificData();
@@ -621,12 +669,18 @@ public class ProfileViewController implements Initializable {
                 }
                 break;
             case "Medication":
-                if (medicationContent != null) medicationContent.setVisible(true);
+                if (medicationContent != null) {
+                    medicationContent.setVisible(true);
+                    medicationContent.setManaged(true);
+                }
                 setActiveTabStyle(medicationTab);
                 loadMedicationContent();
                 break;
             case "Personal Data":
-                if (notesContent != null) notesContent.setVisible(true);
+                if (notesContent != null) {
+                    notesContent.setVisible(true);
+                    notesContent.setManaged(true);
+                }
                 setActiveTabStyle(notesTab);
                 loadNotesContent();
                 break;
@@ -641,6 +695,10 @@ public class ProfileViewController implements Initializable {
     }
 
     private void setActiveTabStyle(Button activeTab) {
+        String baseStyle = "-fx-background-color: transparent; -fx-text-fill: #BDC3C7; -fx-border-width: 0 0 1 0; -fx-border-color: #2C3E50;";
+        if (overviewTab != null) overviewTab.setStyle(baseStyle);
+        if (medicationTab != null) medicationTab.setStyle(baseStyle);
+        if (notesTab != null) notesTab.setStyle(baseStyle);
         if (activeTab != null) {
             String activeStyle = "-fx-background-color: #3498DB; -fx-text-fill: white; -fx-border-width: 0 0 3 0; -fx-border-color: #3498DB;";
             activeTab.setStyle(activeStyle);
@@ -1550,6 +1608,7 @@ public class ProfileViewController implements Initializable {
 
         VBox medicationBox = new VBox(15);
         medicationBox.setPadding(new Insets(20));
+        medicationBox.setStyle("-fx-background-color: transparent;");
 
         Label medicationTitle = new Label("Current Medications");
         medicationTitle.setTextFill(Color.WHITE);
@@ -1568,110 +1627,152 @@ public class ProfileViewController implements Initializable {
 
         if (medicationContent != null) {
             medicationContent.getChildren().clear();
+            medicationContent.setStyle("-fx-background-color: transparent;");
             medicationContent.getChildren().add(medicationBox);
         }
     }
 
     private void loadNotesContent() {
-        if (notesContent != null && !notesContent.getChildren().isEmpty()) return;
+        if (notesContent != null) {
+            notesContent.getChildren().clear();
+        }
 
-        VBox notesBox = new VBox(15);
-        notesBox.setPadding(new Insets(20));
-        notesBox.setStyle("-fx-background-color: #34495E;");
+        VBox notesBox = new VBox(20);
+        notesBox.setPadding(new Insets(0));
+        notesBox.getStyleClass().clear();
 
-        // Determine if editing should be allowed
-        System.out.println(currentUserRole);
+        // L'admin può modificare sia il proprio profilo che quelli degli altri utenti
         boolean canEdit = (currentUserRole == UserRole.DOCTOR_OWN_PROFILE ||
-                currentUserRole == UserRole.ADMIN_VIEWING_USER ||
+                currentUserRole == UserRole.ADMIN_OWN_PROFILE ||
+                currentUserRole == UserRole.ADMIN_VIEWING_USER || // AGGIUNTO: admin può modificare
                 currentUserRole == UserRole.PATIENT_OWN_PROFILE);
 
-        System.out.println(currentPatient);
-        System.out.println(canEdit);
+        // Determina quale utente visualizzare
+        User utente;
+        if (currentUserRole == UserRole.ADMIN_VIEWING_USER) {
+            utente = viewedUser; // L'utente che stai visualizzando come admin
+        } else if (currentUserRole == UserRole.ADMIN_OWN_PROFILE ||
+                currentUserRole == UserRole.DOCTOR_OWN_PROFILE ||
+                currentUserRole == UserRole.PATIENT_OWN_PROFILE) {
+            utente = currentUser; // Il tuo profilo
+        } else {
+            utente = currentPatient; // Profilo del paziente (per dottori)
+        }
 
-        if (currentPatient != null || canEdit) {
+        if (utente != null) {
+            VBox formContainer = new VBox(18);
+            formContainer.setPadding(new Insets(30, 20, 20, 20));
+            formContainer.getStyleClass().clear();
 
-            User utente;
+            // Row 1: Name + Surname
+            HBox nameRow = new HBox(10);
+            nameRow.setAlignment(Pos.CENTER_LEFT);
+            Node nameField = createModernField("First Name", utente.getName(), canEdit);
+            Node surnameField = createModernField("Last Name", utente.getSurname(), canEdit);
+            nameRow.getChildren().addAll(nameField, surnameField);
+
+            // Row 2: Email
+            Node emailField = createModernField("Email", utente.getEmail(), canEdit);
+
+            // Row 3: Phone
+            Node phoneField = createModernField("Phone Number", utente.getPhone() != null ? utente.getPhone() : "", canEdit);
+
+            // Row 4: Gender + Date of Birth
+            HBox genderRow = new HBox(10);
+            genderRow.setAlignment(Pos.CENTER_LEFT);
+            Node genderField;
+            Node dobField;
+
             if (canEdit) {
-                System.out.println(currentUser);
-                utente = currentUser;
-                System.out.println("Ora i dati sono di: " + utente.getFullName());
+                ComboBox<String> genderCombo = new ComboBox<>();
+                genderCombo.getItems().addAll("Male", "Female");
+                genderCombo.setPromptText("Gender");
+                genderCombo.getStyleClass().add("combo-box-dark");
+                genderCombo.setMaxWidth(Double.MAX_VALUE);
+                String genderVal = utente.getGender() != null ? utente.getGender().getDisplayName() : "";
+                if (genderVal.equalsIgnoreCase("male") || genderVal.equalsIgnoreCase("maschio"))
+                    genderCombo.setValue("Male");
+                else if (genderVal.equalsIgnoreCase("female") || genderVal.equalsIgnoreCase("femmina"))
+                    genderCombo.setValue("Female");
+                genderField = genderCombo;
+
+                DatePicker datePicker = new DatePicker();
+                datePicker.setPromptText("Birth Date");
+                datePicker.getStyleClass().add("date-picker-dark");
+                datePicker.setMaxWidth(Double.MAX_VALUE);
+                if (utente.getBornDate() != null) datePicker.setValue(utente.getBornDate());
+                dobField = datePicker;
             } else {
-                utente = currentPatient;
-                System.out.println("Ora i dati sono di: " + utente.getFullName());
+                genderField = createModernField("Gender", utente.getGender() != null ? utente.getGender().getDisplayName() : "", false);
+                dobField = createModernField("Birth Date", utente.getBornDate() != null ? utente.getBornDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "", false);
             }
+            genderRow.getChildren().addAll(genderField, dobField);
 
-
-            // Create form fields for patient data
-            VBox formContainer = new VBox(12);
-            formContainer.setStyle("-fx-background-color: #2C3E50; -fx-background-radius: 8; -fx-padding: 20;");
-
-            // Full Name
-            VBox nameSection = createFormField("Name:", utente.getName(), canEdit);
-            VBox surnameSection = createFormField("Surname:", utente.getSurname(), canEdit);
-            // Email
-            VBox emailSection = createFormField("Email:", utente.getEmail(), canEdit);
-
-            // Phone (if available)
-            String phone = utente.getPhone() != null ? utente.getPhone() : "Not specified";
-            VBox phoneSection = createFormField("Phone:", phone, canEdit);
-
-            // Date of Birth (if available)
-            String dateOfBirth = utente.getBornDate() != null ?
-                    utente.getBornDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "Not specified";
-            VBox dobSection = createFormField("Date of Birth:", dateOfBirth, canEdit);
-
-            // Gender (if available)
-            String gender = utente.getGender() != null ? utente.getGender().getDisplayName() : "Not specified";
-            VBox genderSection = createFormField("Gender:", gender, canEdit);
-
-            // Bitrth City
-            String birthCity = utente.getBirthPlace() != null ? utente.getBirthPlace() : "Not specified";
-            VBox birthCitySection = createFormField("Address:", birthCity, canEdit);
-
-            String fiscalCode = utente.getFiscalCode() != null ? utente.getFiscalCode() : "Not specified";
-            VBox fiscalCodeSection = createFormField("Fiscal Code:", fiscalCode, canEdit);
-
+            // Row 5: Birth Place + Fiscal Code
+            HBox birthRow = new HBox(10);
+            birthRow.setAlignment(Pos.CENTER_LEFT);
+            Node birthPlaceField = createModernField("Birth Place", utente.getBirthPlace() != null ? utente.getBirthPlace() : "", canEdit);
+            Node fiscalCodeField = createModernField("Fiscal Code", utente.getFiscalCode() != null ? utente.getFiscalCode() : "", canEdit);
+            birthRow.getChildren().addAll(birthPlaceField, fiscalCodeField);
 
             formContainer.getChildren().addAll(
-                    nameSection,
-                    surnameSection,
-                    emailSection,
-                    phoneSection,
-                    dobSection,
-                    genderSection,
-                    birthCitySection,
-                    fiscalCodeSection
-
+                    nameRow,
+                    emailField,
+                    phoneField,
+                    genderRow,
+                    birthRow
             );
 
             notesBox.getChildren().addAll(formContainer);
 
-            // Add save button if user can edit
+            // Mostra i pulsanti Save/Cancel se può modificare
             if (canEdit) {
                 HBox buttonContainer = new HBox(15);
                 buttonContainer.setAlignment(Pos.CENTER_LEFT);
 
                 Button saveButton = new Button("Save Changes");
-                saveButton.setStyle("-fx-background-color: #3498DB; -fx-text-fill: white; -fx-background-radius: 5; -fx-padding: 10 20;");
+                saveButton.getStyleClass().add("primary-btn");
                 saveButton.setOnAction(e -> handleSaveUserInfo(formContainer));
 
                 Button cancelButton = new Button("Cancel");
-                cancelButton.setStyle("-fx-background-color: transparent; -fx-border-color: #3498DB; -fx-border-width: 1; -fx-text-fill: #3498DB; -fx-background-radius: 5; -fx-padding: 10 20;");
-                cancelButton.setOnAction(e -> loadNotesContent()); // Reload to cancel changes
+                cancelButton.getStyleClass().add("secondary-btn");
+                cancelButton.setOnAction(e -> {
+                    notesContent.getChildren().clear();
+                    loadNotesContent();
+                });
 
                 buttonContainer.getChildren().addAll(saveButton, cancelButton);
                 notesBox.getChildren().add(buttonContainer);
             }
         } else {
-            Label noDataLabel = new Label("No patient data available");
+            Label noDataLabel = new Label("No user data available");
             noDataLabel.setTextFill(Color.web("#BDC3C7"));
             noDataLabel.setFont(Font.font(14));
             notesBox.getChildren().addAll(noDataLabel);
         }
 
         if (notesContent != null) {
-            notesContent.getChildren().clear();
-            notesContent.getChildren().add(notesBox);
+            VBox card = new VBox();
+            card.getStyleClass().add("card-dark");
+            card.setStyle("-fx-background-radius: 15; -fx-padding: 25 40 25 40; margin-bottom: 20;");
+            card.getChildren().add(notesBox);
+            notesContent.getChildren().add(card);
+        }
+    }
+
+    // Crea un campo stile RegisterView (TextField moderno o Label)
+    private Node createModernField(String prompt, String value, boolean editable) {
+        if (editable) {
+            TextField tf = new TextField(value);
+            tf.setPromptText(prompt);
+            tf.getStyleClass().add("input-dark");
+            tf.setMaxWidth(Double.MAX_VALUE);
+            return tf;
+        } else {
+            Label lbl = new Label(value != null && !value.isEmpty() ? value : "-");
+            lbl.getStyleClass().add("secondary-text");
+            lbl.setMaxWidth(Double.MAX_VALUE);
+            return lbl;
         }
     }
 
@@ -1717,35 +1818,53 @@ public class ProfileViewController implements Initializable {
             Map<String, String> updatedData = new HashMap<>();
             Map<String, Object> specialFields = new HashMap<>();
 
+            int rowIdx = 0;
             for (Node child : formContainer.getChildren()) {
-                if (child instanceof VBox) {
-                    VBox fieldContainer = (VBox) child;
-                    if (fieldContainer.getChildren().size() >= 2) {
-                        Node labelNode = fieldContainer.getChildren().get(0);
-                        Node inputNode = fieldContainer.getChildren().get(1);
-
-                        if (labelNode instanceof Label) {
-                            Label label = (Label) labelNode;
-                            String fieldName = label.getText().replace(":", "");
-
-                            if (inputNode instanceof TextField) {
-                                TextField textField = (TextField) inputNode;
-                                updatedData.put(fieldName, textField.getText());
-                            } else if (inputNode instanceof ComboBox) {
-                                // Handle ComboBox for doctor assignment or other dropdowns
-                                ComboBox<?> comboBox = (ComboBox<?>) inputNode;
-                                Object selectedValue = comboBox.getValue();
-
-                                if (fieldName.equals("Doctor") && selectedValue instanceof Doctor) {
-                                    specialFields.put("doctorId", ((Doctor) selectedValue).getId());
-                                    updatedData.put(fieldName, ((Doctor) selectedValue).getName() + " " + ((Doctor) selectedValue).getSurname());
-                                } else if (selectedValue != null) {
-                                    updatedData.put(fieldName, selectedValue.toString());
-                                }
-                            }
+                // Name + Surname
+                if (rowIdx == 0 && child instanceof HBox) {
+                    HBox hbox = (HBox) child;
+                    if (hbox.getChildren().size() == 2) {
+                        Node nameNode = hbox.getChildren().get(0);
+                        Node surnameNode = hbox.getChildren().get(1);
+                        if (nameNode instanceof TextField) updatedData.put("Name", ((TextField) nameNode).getText());
+                        if (surnameNode instanceof TextField) updatedData.put("Surname", ((TextField) surnameNode).getText());
+                    }
+                }
+                // Email
+                else if (rowIdx == 1 && child instanceof TextField) {
+                    updatedData.put("Email", ((TextField) child).getText());
+                }
+                // Phone
+                else if (rowIdx == 2 && child instanceof TextField) {
+                    updatedData.put("Phone", ((TextField) child).getText());
+                }
+                // Gender + Date of Birth
+                else if (rowIdx == 3 && child instanceof HBox) {
+                    HBox hbox = (HBox) child;
+                    if (hbox.getChildren().size() == 2) {
+                        Node genderNode = hbox.getChildren().get(0);
+                        Node dobNode = hbox.getChildren().get(1);
+                        if (genderNode instanceof ComboBox) {
+                            Object val = ((ComboBox<?>) genderNode).getValue();
+                            updatedData.put("Gender", val != null ? val.toString() : "");
+                        }
+                        if (dobNode instanceof DatePicker) {
+                            LocalDate date = ((DatePicker) dobNode).getValue();
+                            updatedData.put("Date of Birth", date != null ? date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "");
                         }
                     }
                 }
+                // Birth Place + Fiscal Code
+                else if (rowIdx == 4 && child instanceof HBox) {
+                    HBox hbox = (HBox) child;
+                    if (hbox.getChildren().size() == 2) {
+                        Node birthNode = hbox.getChildren().get(0);
+                        Node fiscalNode = hbox.getChildren().get(1);
+                        if (birthNode instanceof TextField) updatedData.put("Birth Place", ((TextField) birthNode).getText());
+                        if (fiscalNode instanceof TextField) updatedData.put("Fiscal Code", ((TextField) fiscalNode).getText());
+                    }
+                }
+                rowIdx++;
             }
 
             // Update user object with new data based on role
@@ -1780,11 +1899,9 @@ public class ProfileViewController implements Initializable {
                 return false;
             }
 
-            System.out.println(toUpdate);
-            System.out.println(toUpdate.getType());
-            System.out.println("Ora mettiamo a confronto: '" + toUpdate.getType() + "' e 'DOCTOR'");
-            System.out.println(toUpdate.getType().equals("DOCTOR"));
-            if (toUpdate.getType().equals("DOCTOR")) {
+            String userType = toUpdate.getType();
+
+            if (userType.equals("DOCTOR")) {
                 Doctor doctor = DoctorDAO.getDoctorById(toUpdate.getId());
                 doctor.setName(toUpdate.getName());
                 doctor.setSurname(toUpdate.getSurname());
@@ -1795,8 +1912,7 @@ public class ProfileViewController implements Initializable {
                 doctor.setBirthPlace(toUpdate.getBirthPlace());
                 doctor.setFiscalCode(toUpdate.getFiscalCode());
                 DoctorDAO.updateDoctor(doctor);
-            } else if (toUpdate.getType().equals("PATIENT")) {
-                System.out.println("Sono dentro i pazienti " + toUpdate);
+            } else if (userType.equals("PATIENT")) {
                 Patient patient = PatientDAO.getPatientById(toUpdate.getId());
                 patient.setName(toUpdate.getName());
                 patient.setSurname(toUpdate.getSurname());
@@ -1806,9 +1922,8 @@ public class ProfileViewController implements Initializable {
                 patient.setPhone(toUpdate.getPhone());
                 patient.setBirthPlace(toUpdate.getBirthPlace());
                 patient.setFiscalCode(toUpdate.getFiscalCode());
-                System.out.println(patient);
                 PatientDAO.updatePatient(patient);
-            } else if (toUpdate.getType().equals("ADMIN")) {
+            } else if (userType.equals("ADMIN")) {
                 Admin admin = AdminDAO.getAdminById(toUpdate.getId());
                 admin.setName(toUpdate.getName());
                 admin.setSurname(toUpdate.getSurname());
@@ -1820,8 +1935,13 @@ public class ProfileViewController implements Initializable {
                 admin.setFiscalCode(toUpdate.getFiscalCode());
                 AdminDAO.updateAdmin(admin);
             } else {
-                System.err.println("Unknown user type: " + toUpdate.getClass().getSimpleName());
+                System.err.println("Unknown user type: " + userType);
                 return false;
+            }
+
+            // Aggiorna anche viewedUser se stai modificando un altro utente
+            if (currentUserRole == UserRole.ADMIN_VIEWING_USER && viewedUser != null) {
+                viewedUser = toUpdate;
             }
 
             return true;
@@ -1834,36 +1954,25 @@ public class ProfileViewController implements Initializable {
 
 
     private User updateUserFromFormData(Map<String, String> formData, Map<String, Object> specialFields) {
-        // Determine which object to update based on the current user role
         User userToUpdate = null;
 
         switch (currentUserRole) {
             case PATIENT_OWN_PROFILE:
-                userToUpdate = (User) currentUser; // Patient viewing own profile
-                break;
             case DOCTOR_OWN_PROFILE:
-                userToUpdate = (User) currentUser; // Doctor viewing own profile
-                break;
             case ADMIN_OWN_PROFILE:
-                userToUpdate = (User) currentUser; // Admin viewing own profile
+                userToUpdate = currentUser;
+                break;
+            case ADMIN_VIEWING_USER:
+                userToUpdate = viewedUser; // Usa viewedUser invece di currentUser!
                 break;
             case DOCTOR_VIEWING_PATIENT:
-            case ADMIN_VIEWING_USER:
-                userToUpdate = currentPatient; // Doctor/Admin viewing another user
+                userToUpdate = currentPatient;
                 break;
             default:
-                System.err.println("Unknown user role: " + currentUserRole);
-                return null;
+                userToUpdate = currentUser;
         }
 
-        if (userToUpdate == null) {
-            System.err.println("No user to update");
-            return null;
-        }
-
-        // Update common fields for all user types
         updateCommonUserFields(userToUpdate, formData);
-
         return userToUpdate;
     }
 
@@ -1905,9 +2014,15 @@ public class ProfileViewController implements Initializable {
                 }
             }
         }
-        if (formData.containsKey("Birth City")) {
-            String birthCity = formData.get("Birth City").trim();
-            user.setBirthPlace(birthCity.equals("Not specified") ? null : birthCity);
+        // Accept both "Birth Place" and "Birth City" as keys
+        String birthPlace = null;
+        if (formData.containsKey("Birth Place")) {
+            birthPlace = formData.get("Birth Place").trim();
+        } else if (formData.containsKey("Birth City")) {
+            birthPlace = formData.get("Birth City").trim();
+        }
+        if (birthPlace != null) {
+            user.setBirthPlace(birthPlace.equals("Not specified") ? null : birthPlace);
         }
         if (formData.containsKey("Fiscal Code")) {
             String fiscalCode = formData.get("Fiscal Code").trim();

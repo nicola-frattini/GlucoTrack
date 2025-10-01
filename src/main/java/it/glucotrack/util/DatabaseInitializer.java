@@ -99,8 +99,9 @@ public class DatabaseInitializer {
             
             // Drop all the tables
             String[] tables = {
-                "admin_managed_users", "risk_factors", "patient_symptoms", 
-                "log_medications", "medications", "glucose_measurements", "users"
+                "medication_edits", "risk_factors", "patient_symptoms", 
+                "log_medications", "medications", "glucose_measurements", 
+                "users"
             };
             
             try (Statement stmt = conn.createStatement()) {

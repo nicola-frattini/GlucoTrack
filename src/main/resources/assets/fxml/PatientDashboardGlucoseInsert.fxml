@@ -6,16 +6,16 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<VBox xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.glucotrack.controller.PatientDashboardGlucoseInsertController" stylesheets="@../css/glucose-form-style.css">
+<VBox xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.glucotrack.controller.PatientDashboardGlucoseInsertController" stylesheets="@/assets/css/Style.css">
     <children>
         <!-- Main Content -->
-        <VBox alignment="TOP_CENTER" prefHeight="600.0" style="-fx-background-color: #34495e;" VBox.vgrow="ALWAYS">
+    <VBox alignment="TOP_CENTER" prefHeight="600.0" style="-fx-background-color: #0f1c35;" VBox.vgrow="ALWAYS">
             <children>
                 <!-- Title Section -->
-                <VBox alignment="CENTER" spacing="10.0">
+                <VBox alignment="CENTER" spacing="10.0" style="-fx-background-color: #16213e; -fx-background-radius: 15; -fx-padding: 25;">
                     <children>
                         <Label style="-fx-text-fill: white; -fx-font-size: 32px; -fx-font-weight: bold;" text="New Glycemia Entry" />
-                        <Label style="-fx-text-fill: #bdc3c7; -fx-font-size: 16px;" text="Add your blood glucose measurement." />
+                        <Label style="-fx-text-fill: #8892b0; -fx-font-size: 16px;" text="Add your blood glucose measurement." />
                     </children>
                     <VBox.margin>
                         <Insets bottom="40.0" top="40.0" />
@@ -23,7 +23,7 @@
                 </VBox>
 
                 <!-- Form Section -->
-                <VBox alignment="CENTER" maxWidth="400.0" spacing="25.0">
+                <VBox alignment="CENTER" maxWidth="400.0" spacing="25.0" style="-fx-background-color: #16213e; -fx-background-radius: 15; -fx-padding: 25;">
                     <children>
                         <!-- Date and Time Row -->
                         <HBox spacing="20.0">
@@ -32,7 +32,7 @@
                                 <VBox spacing="8.0" HBox.hgrow="ALWAYS">
                                     <children>
                                         <Label style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;" text="Date" />
-                                        <DatePicker fx:id="datePicker" prefHeight="45.0" promptText="mm/dd/yyyy" style="-fx-background-color: #4a6278; -fx-text-fill: white; -fx-prompt-text-fill: #7f8c8d; -fx-cursor: hand;" />
+                                        <DatePicker fx:id="datePicker" prefHeight="45.0" promptText="mm/dd/yyyy" styleClass="date-picker-dark" />
                                     </children>
                                 </VBox>
 
@@ -40,7 +40,7 @@
                                 <VBox spacing="8.0" HBox.hgrow="ALWAYS">
                                     <children>
                                         <Label style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;" text="Time" />
-                                        <TextField fx:id="timeField" prefHeight="45.0" promptText="--:--" style="-fx-background-color: #4a6278; -fx-text-fill: white; -fx-prompt-text-fill: #7f8c8d; -fx-background-radius: 5;" />
+                                        <TextField fx:id="timeField" prefHeight="45.0" promptText="--:--" styleClass="input-dark" />
                                     </children>
                                 </VBox>
                             </children>
@@ -50,7 +50,8 @@
                         <VBox spacing="8.0">
                             <children>
                                 <Label style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;" text="Type" />
-                                <ComboBox fx:id="typeComboBox" prefHeight="45.0" prefWidth="400.0" promptText="Before Breakfast" style="-fx-background-color: #4a6278; -fx-text-fill: white; -fx-prompt-text-fill: #7f8c8d; -fx-cursor: hand;" />
+                                <ComboBox fx:id="typeComboBox" prefHeight="45.0" prefWidth="400.0" promptText="Before Breakfast" styleClass="combo-box-dark" />
+                                <TextField fx:id="valueField" prefHeight="45.0" promptText="e.g., 110" styleClass="input-dark" />
                             </children>
                         </VBox>
 
@@ -58,7 +59,7 @@
                         <VBox spacing="8.0">
                             <children>
                                 <Label style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;" text="Value (mg/dL)" />
-                                <TextField fx:id="valueField" prefHeight="45.0" promptText="e.g., 120" style="-fx-background-color: #4a6278; -fx-text-fill: white; -fx-prompt-text-fill: #7f8c8d; -fx-background-radius: 5;" />
+                                <!-- Un solo TextField valueField già presente sopra -->
                             </children>
                         </VBox>
 
@@ -66,15 +67,15 @@
                         <VBox spacing="8.0">
                             <children>
                                 <Label style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;" text="Notes" />
-                                <TextArea fx:id="notesArea" prefHeight="80.0" prefWidth="400.0" promptText="Add any relevant notes..." style="-fx-background-color: #4a6278; -fx-text-fill: white; -fx-prompt-text-fill: #7f8c8d; -fx-background-radius: 5;" wrapText="true" />
+                                <TextArea fx:id="notesArea" prefHeight="80.0" prefWidth="400.0" promptText="Add any relevant notes..." styleClass="input-dark" wrapText="true" />
                             </children>
                         </VBox>
 
                         <!-- Buttons -->
                         <HBox spacing="20.0" alignment="CENTER">
                             <children>
-                                <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#handleCancel" prefHeight="50.0" prefWidth="190.0" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;" text="Cancel" />
-                                <Button fx:id="saveButton" mnemonicParsing="false" onAction="#handleSaveEntry" prefHeight="50.0" prefWidth="190.0" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;" text="Save Entry" />
+                                <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#handleCancel" prefHeight="50.0" prefWidth="190.0" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-border-radius: 10; -fx-cursor: hand;" text="Cancel" />
+                                <Button fx:id="saveButton" mnemonicParsing="false" onAction="#handleSaveEntry" prefHeight="50.0" prefWidth="190.0" style="-fx-background-color: #64b5f6; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-border-radius: 10; -fx-cursor: hand;" text="Save Entry" />
                             </children>
                         </HBox>
                     </children>

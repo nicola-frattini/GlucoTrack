@@ -41,7 +41,9 @@ public class LogMedication {
 
     public LocalDate getDate() { return dateAndTime.toLocalDate(); }
     public String getFormattedDateTime(){
-        return dateAndTime.toLocalDate().toString();
+        if (dateAndTime == null) return "";
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        return dateAndTime.format(formatter);
     }
 
 

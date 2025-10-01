@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
-<StackPane xmlns:fx="http://javafx.com/fxml" fx:id="popupRoot" minWidth="520" minHeight="340" maxWidth="700" maxHeight="600" style="-fx-background-color: #232946; -fx-border-radius: 18; -fx-background-radius: 18; -fx-effect: dropshadow(gaussian, #00000099, 32, 0.2, 0, 8);" fx:controller="it.glucotrack.component.CustomPopupController" stylesheets="@../css/glucose-form-style.css">
+<StackPane xmlns:fx="http://javafx.com/fxml" fx:id="popupRoot" minWidth="520" minHeight="340" maxWidth="700" maxHeight="600" style="-fx-background-color: #232946; -fx-border-radius: 18; -fx-background-radius: 18; -fx-effect: dropshadow(gaussian, #00000099, 32, 0.2, 0, 8);" fx:controller="it.glucotrack.component.CustomPopupController" stylesheets="@/assets/css/Style.css">
     <children>
         <VBox alignment="TOP_CENTER" spacing="0" style="-fx-padding: 0; -fx-border-radius: 18;">
             <HBox alignment="TOP_RIGHT" style="-fx-padding: 18 18 0 0;">

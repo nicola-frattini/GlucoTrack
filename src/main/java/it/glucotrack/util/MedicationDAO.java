@@ -24,6 +24,7 @@ public class MedicationDAO {
 
     public static Medication getMedicationById(int id) throws SQLException {
         String sql = "SELECT * FROM medications WHERE id = ?";
+        // Usa DatabaseInteraction per gestire connessione e parametri, chiudi sempre il ResultSet
         try (ResultSet rs = DatabaseInteraction.executeQuery(sql, id)) {
             if (rs.next()) {
                 return mapResultSetToMedication(rs);
@@ -116,44 +117,47 @@ public class MedicationDAO {
     }
 
     public int insertMedicationAndGetId(Medication med,int doctorId) throws SQLException {
+        if (med == null) {
+            throw new IllegalArgumentException("Medication object is null");
+        }
         String sql = "INSERT INTO medications (patient_id, name, dose, frequency, start_date, end_date, instructions) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        
+
         // Convert LocalDate to java.sql.Date for proper database storage
         java.sql.Date startDate = java.sql.Date.valueOf(med.getStart_date());
         java.sql.Date endDate = med.getEnd_date() != null ? java.sql.Date.valueOf(med.getEnd_date()) : null;
-        
+
+        int affectedRows = DatabaseInteraction.executeUpdate(sql,
+                med.getPatient_id(),
+                med.getName_medication(),
+                med.getDose(),
+                med.getFreq().name(),
+                startDate,
+                endDate,
+                med.getInstructions());
+
+        if (affectedRows == 0) {
+            throw new SQLException("Creating medication failed, no rows affected.");
+        }
+
+        // Get the last inserted row ID using SQLite's last_insert_rowid()
+        int insertedId = -1;
+        String getIdSql = "SELECT last_insert_rowid()";
         try (java.sql.Connection conn = DatabaseInteraction.connect();
-             java.sql.PreparedStatement pstmt = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
-            
-            pstmt.setInt(1, med.getPatient_id());
-            pstmt.setString(2, med.getName_medication());
-            pstmt.setString(3, med.getDose());
-            pstmt.setString(4, med.getFreq().name());
-            pstmt.setDate(5, startDate);
-            pstmt.setDate(6, endDate);
-            pstmt.setString(7, med.getInstructions());
-            
-            int affectedRows = pstmt.executeUpdate();
-            
-            if (affectedRows == 0) {
-                throw new SQLException("Creating medication failed, no rows affected.");
-            }
-            createMedicationsEdit(med.getPatient_id(), doctorId, med);
-
-
-            // Get the last inserted row ID using SQLite's last_insert_rowid()
-            String getIdSql = "SELECT last_insert_rowid()";
-            try (java.sql.Statement stmt = conn.createStatement();
-                 java.sql.ResultSet rs = stmt.executeQuery(getIdSql)) {
-                if (rs.next()) {
-                    med=getMedicationById(rs.getInt(1));
-                    createMedicationsEdit(med.getPatient_id(), doctorId, med);
-                    return rs.getInt(1);
-                } else {
-                    throw new SQLException("Creating medication failed, no ID obtained.");
-                }
+             java.sql.Statement stmt = conn.createStatement();
+             java.sql.ResultSet rs = stmt.executeQuery(getIdSql)) {
+            if (rs.next()) {
+                insertedId = rs.getInt(1);
+            } else {
+                throw new SQLException("Creating medication failed, no ID obtained.");
             }
         }
+
+        Medication insertedMed = getMedicationById(insertedId);
+        if (insertedMed == null) {
+            throw new SQLException("Medication inserted but not found by ID (" + insertedId + ")");
+        }
+        createMedicationsEdit(insertedMed.getPatient_id(), doctorId, insertedMed);
+        return insertedId;
     }
 
 
@@ -191,7 +195,10 @@ public class MedicationDAO {
     public static boolean deleteMedication(int id) throws SQLException {
         String sql = "DELETE FROM medications WHERE id = ?";
         int rows = DatabaseInteraction.executeUpdate(sql, id);
-
+        System.out.println("[DEBUG] Attempted to delete medication with id=" + id + ". Rows affected: " + rows);
+        if (rows == 0) {
+            System.out.println("[DEBUG] No medication found with id=" + id + ", or deletion blocked by foreign key constraints.");
+        }
         return rows > 0;
     }
 

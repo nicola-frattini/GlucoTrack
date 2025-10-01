@@ -1,5 +1,10 @@
 package it.glucotrack.controller;
 
+import java.net.URL;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.ResourceBundle;
+
 import it.glucotrack.model.User;
 import it.glucotrack.util.UserDAO;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -12,15 +17,19 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
-
-import java.net.URL;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.ResourceBundle;
 
 public class AdminDashboardHomeController implements Initializable {
 
@@ -46,6 +55,8 @@ public class AdminDashboardHomeController implements Initializable {
     private UserTableData selectedUser;
     private UserDAO userDAO;
     private User currentAdmin;
+    private Runnable onDataSaved;
+
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -56,6 +67,7 @@ public class AdminDashboardHomeController implements Initializable {
         setupContextMenu();
         loadUsersData();
         updateStatusBar();
+
     }
 
     public void setCurrentAdmin(User admin) {
@@ -144,36 +156,66 @@ public class AdminDashboardHomeController implements Initializable {
     }
 
     private void handleAddUser() {
-        statusLabel.setText("Add User functionality coming soon...");
+
+        try {
+
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/AdminDashboardInsert.fxml"));
+            Parent userInsertView = loader.load();
+
+            Scene scene = addUserBtn.getScene();
+            BorderPane rootPane = (BorderPane) scene.getRoot();
+            StackPane contentPane = (StackPane) rootPane.getCenter();
+
+            contentPane.getChildren().clear();
+            contentPane.getChildren().add(userInsertView);
+
+
+            // Get form controller
+            AdminDashboardInsertController insertController = loader.getController();
+
+            insertController.setOnDataSaved(() -> {
+                loadUsersData();
+            });
+
+        } catch (Exception e) {
+            System.err.println("Error during insert form loading: " + e.getMessage());
+            e.printStackTrace();
+        }
+
     }
 
     private void viewUserProfile(UserTableData userData) {
+        if (userData == null) {
+            statusLabel.setText("No user selected.");
+            return;
+        }
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/ProfileView.fxml"));
             Parent profileRoot = loader.load();
             ProfileViewController profileController = loader.getController();
 
-             ProfileViewController.UserRole role = null;
-             User userToView;
-             if (currentAdmin != null && userData.getId() == currentAdmin.getId()) {
+            ProfileViewController.UserRole role;
+            User userToView = userData.getUser(); // Assicurati di usare l'utente dalla tabella
 
-                 role = ProfileViewController.UserRole.ADMIN_OWN_PROFILE;
-                 userToView = currentAdmin;
-             } else {
+            if (currentAdmin != null && userData.getId() == currentAdmin.getId()) {
+                role = ProfileViewController.UserRole.ADMIN_OWN_PROFILE;
+                userToView = currentAdmin; // Usa l'admin corrente per il proprio profilo
+            } else {
+                role = ProfileViewController.UserRole.ADMIN_VIEWING_USER;
+            }
 
-                 if ("Patient".equalsIgnoreCase(userData.getType()) || "Doctor".equalsIgnoreCase(userData.getType())) {
-                     role = ProfileViewController.UserRole.ADMIN_VIEWING_USER;
-                 }
-                 userToView = userData.getUser();
-             }
-             profileController.setUserRole(role, userToView);
-             Scene scene = addUserBtn.getScene();
-             BorderPane rootPane = (BorderPane) scene.getRoot();
-             StackPane contentPane = (StackPane) rootPane.getCenter();
-             profileController.setParentContentPane(contentPane);
-             contentPane.getChildren().clear();
-             contentPane.getChildren().add(profileRoot);
-             statusLabel.setText("Opened profile for " + userData.getFullName());
+            Scene scene = addUserBtn.getScene();
+            BorderPane rootPane = (BorderPane) scene.getRoot();
+            StackPane contentPane = (StackPane) rootPane.getCenter();
+
+            profileController.setParentContentPane(contentPane);
+            profileController.setUserRole(role, userToView);
+
+            contentPane.getChildren().clear();
+            contentPane.getChildren().add(profileRoot);
+
+            statusLabel.setText("Opened profile for " + userData.getFullName());
         } catch (Exception e) {
             e.printStackTrace();
             statusLabel.setText("Error loading profile: " + e.getMessage());

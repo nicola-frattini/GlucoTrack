@@ -9,52 +9,48 @@
 <?import javafx.scene.chart.CategoryAxis?>
 <?import javafx.scene.chart.NumberAxis?>
 
-<ScrollPane fitToWidth="true" fitToHeight="true" style="-fx-background-color: transparent; -fx-background: transparent;" xmlns:fx="http://javafx.com/fxml" fx:controller="it.glucotrack.controller.PatientDashboardHomeController">
+<ScrollPane fitToWidth="true" fitToHeight="true" style="-fx-background-color: transparent; -fx-background: transparent;" xmlns:fx="http://javafx.com/fxml" fx:controller="it.glucotrack.controller.PatientDashboardHomeController" stylesheets="@/assets/css/Style.css">
     <content>
-        <VBox spacing="20" style="-fx-padding: 30;">
+    <VBox spacing="20" styleClass="main-bg-dark" style="-fx-padding: 30;">
             <!-- Header -->
-            <VBox spacing="10">
-                <Label text="Patient Dashboard"
-                       style="-fx-text-fill: white; -fx-font-size: 28px; -fx-font-weight: bold;"/>
-                <Label text="Overview of your health metrics and alerts"
-                       style="-fx-text-fill: #8892b0; -fx-font-size: 14px;"/>
-            </VBox>
+                        <VBox spacing="10">
+                                <Label text="Patient Dashboard" styleClass="form-title"/>
+                                <Label text="Overview of your health metrics and alerts" styleClass="secondary-text"/>
+                        </VBox>
 
             <HBox spacing="20" alignment="TOP_LEFT">
                 <!-- Sezione principale sinistra -->    
                 <VBox spacing="20" HBox.hgrow="ALWAYS" prefWidth="600">
 
                     <!-- Glycemic Trends -->
-                    <VBox spacing="15" style="-fx-background-color: #16213e; -fx-background-radius: 15; -fx-padding: 25;">
+                    <VBox spacing="15" styleClass="card-dark">
                         <HBox alignment="CENTER_LEFT" spacing="10">
-                            <Label text="Glycemic Trends"
-                                   style="-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;"/>
+                            <Label text="Glycemic Trends" styleClass="form-title"/>
                             <Region HBox.hgrow="ALWAYS"/>
-                            <ComboBox fx:id="timeRangeCombo"/>
+                            <ComboBox fx:id="timeRangeCombo" styleClass="combo-box-dark"/>
                         </HBox>
 
                         <!-- Valore attuale e trend -->
                         <HBox alignment="CENTER_LEFT" spacing="15">
                             <VBox>
-                                <HBox alignment="BASELINE_LEFT" spacing="10">
-                                    <Label fx:id="currentGlucoseLabel" text="120"
-                                           style="-fx-text-fill: white; -fx-font-size: 36px; -fx-font-weight: bold;"/>
-                                    <Label text="mg/dL"
-                                           style="-fx-text-fill: #8892b0; -fx-font-size: 14px;"/>
-                                </HBox>
+                    <HBox alignment="BASELINE_LEFT" spacing="10">
+                     <Label fx:id="currentGlucoseLabel" text="120"
+                         styleClass="form-title"/>
+                     <Label text="mg/dL"
+                         styleClass="secondary-text"/>
+                    </HBox>
                                 <HBox alignment="CENTER_LEFT" spacing="5">
                                     <Label text="Last 7 Days"
-                                           style="-fx-text-fill: #8892b0; -fx-font-size: 12px;"/>
+                                           styleClass="secondary-text"/>
                                     <Label fx:id="trendLabel" text="↓ 5%"
-                                           style="-fx-text-fill: #4caf50; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+                                           styleClass="success-text"/>
                                 </HBox>
                             </VBox>
                             <Region HBox.hgrow="ALWAYS"/>
                             <!-- Status indicator -->
                             <VBox alignment="CENTER" spacing="5">
-                                <Label text="Status" style="-fx-text-fill: #8892b0; -fx-font-size: 12px;"/>
-                                <Label fx:id="statusLabel" text="Normal"
-                                       style="-fx-text-fill: #4caf50; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+                                <Label text="Status" styleClass="secondary-text"/>
+                                <Label fx:id="statusLabel" text="Normal" styleClass="success-text"/>
                             </VBox>
                         </HBox>
 

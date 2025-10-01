@@ -7,13 +7,13 @@
 
 <AnchorPane fx:controller="it.glucotrack.controller.DoctorDashboardMedicationsController"
             xmlns:fx="http://javafx.com/fxml"
-            stylesheets="@/assets/css/table-styles.css"
-            style="-fx-background-color: transparent;">
+            stylesheets="@/assets/css/Style.css"
+            styleClass="main-bg-dark">
 
     <children>
-        <VBox spacing="20" style="-fx-padding: 30;">
+    <VBox spacing="20" styleClass="main-bg-dark" style="-fx-padding: 30;">
             <!-- Header Section -->
-            <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-padding: 30 40 20 40;">
+            <HBox alignment="CENTER_LEFT" spacing="20.0" styleClass="main-bg-dark" style="-fx-padding: 30 40 20 40;">
                 <VBox spacing="10.0" HBox.hgrow="ALWAYS">
                     <Label text="Medications" textFill="WHITE">
                         <font>
@@ -26,22 +26,21 @@
                         </font>
                     </Label>
                 </VBox>
-                <Button fx:id="logMedicationBtn" mnemonicParsing="false" text="Log Medication"
-                        style="-fx-background-color: #3498DB; -fx-text-fill: white; -fx-padding: 12 20; -fx-background-radius: 5;"
-                        onAction="#onInsertMedication"/>
+        <Button fx:id="logMedicationBtn" mnemonicParsing="false" text="Insert Therapy"
+            styleClass="button-accent"
+            onAction="#onInsertMedication"/>
             </HBox>
 
             <!-- Prescribed Medications Section -->
-            <VBox spacing="15.0" style="-fx-padding: 0 40 30 40;" >
+            <VBox spacing="8.0" style="-fx-padding: 0 40 30 40;">
                 <Label text="Prescribed Medications" textFill="WHITE">
                     <font>
                         <Font name="System Bold" size="18.0" />
                     </font>
                 </Label>
-
                 <!-- Medications Table -->
                 <TableView fx:id="prescribedMedicationsTable" prefHeight="600.0"
-                           style="-fx-background-color: #2C3E50;">
+                           styleClass="table-view-dark">
                     <columns>
                         <TableColumn fx:id="patientFullNameColumn" prefWidth="250.0" text="Patient" />
                         <TableColumn fx:id="medicationNameColumn" prefWidth="200.0" text="Medication Name" />

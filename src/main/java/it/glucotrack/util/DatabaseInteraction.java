@@ -67,4 +67,9 @@ public class DatabaseInteraction {
             stmt.setObject(i + 1, params[i]);
         }
     }
+
+    private static void changePath(String path) {
+        dbUrl = "jdbc:sqlite:" + path;
+        disconnect(); // Ensure new connection uses the new path
+    }
 }

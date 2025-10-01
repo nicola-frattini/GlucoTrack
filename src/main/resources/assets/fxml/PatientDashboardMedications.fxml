@@ -5,8 +5,8 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<ScrollPane fitToWidth="true" fitToHeight="true" style="-fx-background-color: transparent; -fx-background: transparent;" xmlns:fx="http://javafx.com/fxml" fx:controller="it.glucotrack.controller.PatientDashboardMedicationsController"     stylesheets="@/assets/css/table-styles.css">
-    <content>
+<VBox xmlns:fx="http://javafx.com/fxml" fx:controller="it.glucotrack.controller.PatientDashboardMedicationsController" stylesheets="@/assets/css/Style.css" styleClass="main-bg-dark">
+    <children>
         <VBox spacing="20" style="-fx-padding: 30;">
             <children>
                 <!-- Header Section -->
@@ -27,10 +27,6 @@
                             </children>
                         </VBox>
 
-                        <Button fx:id="logMedicationBtn" mnemonicParsing="false"
-                                style="-fx-background-color: #3498DB; -fx-text-fill: white; -fx-padding: 12 20; -fx-background-radius: 5;">
-
-                        </Button>
                     </children>
                 </HBox>
 
@@ -45,7 +41,7 @@
 
                         <!-- Medications Table -->
                         <TableView fx:id="prescribedMedicationsTable" prefHeight="200.0"
-                                   style="-fx-background-color: #2C3E50;">
+                                   styleClass="table-view-dark" >
                             <columns>
                                 <TableColumn fx:id="MedicationNameColumn" prefWidth="200.0" text="Drug Name" />
                                 <TableColumn fx:id="dosageColumn" prefWidth="150.0" text="Dosage" />
@@ -70,7 +66,7 @@
 
                         <!-- Intake Log Table -->
                         <TableView fx:id="intakeLogTable" prefHeight="300.0"
-                                   style="-fx-background-color: #2C3E50; -fx-table-color: #2C3E50;">
+                                   styleClass="table-view-dark">
                             <columns>
                                 <TableColumn fx:id="dateTimeColumn" prefWidth="180.0" text="Date &amp; Time" />
                                 <TableColumn fx:id="medicationColumn" prefWidth="250.0" text="Medication" />
@@ -84,5 +80,5 @@
                 </VBox>
             </children>
         </VBox>
-    </content>
-</ScrollPane>
+    </children>
+</VBox>

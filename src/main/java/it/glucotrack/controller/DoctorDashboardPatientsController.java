@@ -56,9 +56,6 @@ public class DoctorDashboardPatientsController implements Initializable {
     // Context menu
     @FXML private ContextMenu tableContextMenu;
     @FXML private MenuItem viewPatientMenuItem;
-    @FXML private MenuItem editPatientMenuItem;
-    @FXML private MenuItem deletePatientMenuItem;
-
 
     // Status elements
     @FXML private Label statusLabel;
@@ -132,6 +129,7 @@ public class DoctorDashboardPatientsController implements Initializable {
                 }
             };
 
+
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && !row.isEmpty()) {
                     viewPatientProfile(getSelectedPatient());
@@ -197,17 +195,7 @@ public class DoctorDashboardPatientsController implements Initializable {
             }
         });
 
-        editPatientMenuItem.setOnAction(e -> {
-            if (selectedPatient != null) {
-                editPatient(selectedPatient);
-            }
-        });
 
-        deletePatientMenuItem.setOnAction(e -> {
-            if (selectedPatient != null) {
-                deletePatient(selectedPatient);
-            }
-        });
 
         patientsTable.setContextMenu(tableContextMenu);
         tableContextMenu.getStyleClass().add("context-menu");
@@ -289,33 +277,7 @@ public class DoctorDashboardPatientsController implements Initializable {
         }
     }
 
-    private void editPatient(PatientTableData patientData) {
-        System.out.println("Edit patient: " + patientData.getFullName());
-        statusLabel.setText("Edit functionality for " + patientData.getFullName() + " coming soon...");
-    }
 
-
-
-    private void deletePatient(PatientTableData patientData) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you want to delete " + patientData.getFullName() + "?", ButtonType.YES, ButtonType.NO);
-        alert.setHeaderText("Confirm Deletion");
-        alert.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.YES) {
-                try {
-                    boolean success = patientDAO.deletePatient(patientData.getPatient().getId());
-                    if (success) {
-                        refreshPatientsList();
-                        statusLabel.setText(patientData.getFullName() + " deleted successfully.");
-                    } else {
-                        statusLabel.setText("Failed to delete " + patientData.getFullName() + ".");
-                    }
-                } catch (SQLException e) {
-                    statusLabel.setText("Error deleting patient: " + e.getMessage());
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
 
     // Public methods for external use
     public void refreshPatientsList() {

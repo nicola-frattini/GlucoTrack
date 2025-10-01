@@ -7,7 +7,7 @@ public enum Status {
     HIGH; // >180 mg/dL
 
     public static Status fromGlucoseValue(float value) {
-        if (value < 70) return LOW;
+        if (value <= 70) return LOW;
         else if (value <= 140) return NORMAL;
         else if (value <= 180) return ELEVATED;
         else return HIGH;

@@ -31,6 +31,11 @@ public class DoctorDashboardMedicationsInsertController {
     @FXML private Button prescribeButton;
     @FXML private Button clearButton;
     @FXML private Button backButton;
+    @FXML
+    private void handleCancel() {
+        navigateBackToMedicationsList();
+    }
+
 
     private MedicationDAO medicationDAO;
     private PatientDAO patientDAO;
@@ -161,6 +166,9 @@ public class DoctorDashboardMedicationsInsertController {
             return;
         }
 
+        if (!validateForm()) {
+            return;
+        }
         try {
             Patient selectedPatient = patientComboBox.getValue();
             String medicationName = medicationNameField.getText().trim();
@@ -170,7 +178,6 @@ public class DoctorDashboardMedicationsInsertController {
             LocalDate endDate = endDatePicker.getValue();
             String notes = notesTextArea.getText().trim();
 
-            // Create medication object
             Medication medication = new Medication(
                     selectedPatient.getId(),
                     medicationName,
@@ -181,22 +188,17 @@ public class DoctorDashboardMedicationsInsertController {
                     notes.isEmpty() ? null : notes
             );
 
-            // Save to database and get the ID
             int medicationId = medicationDAO.insertMedicationAndGetId(medication, SessionManager.getCurrentUser().getId());
-            medication.setId(medicationId); // Set the ID in our object
-            
+            medication.setId(medicationId);
+
             if (medicationId > 0) {
-                // Create log medications based on frequency and date range
                 createLogMedications(medicationId, medication);
-                
                 showSuccess("Medication prescribed successfully!\nSchedule logs have been created for the patient.");
                 clearForm();
-                // Navigate back to medications list
                 navigateBackToMedicationsList();
             } else {
                 showError("Error", "Failed to save medication to database.");
             }
-
         } catch (Exception e) {
             System.err.println("Error prescribing medication: " + e.getMessage());
             e.printStackTrace();
@@ -346,7 +348,7 @@ public class DoctorDashboardMedicationsInsertController {
         try {
             StackPane contentPane = findContentPane();
             if (contentPane != null) {
-                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/DoctorDashboardMedications.fxml.fxml"));
+                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/assets/fxml/DoctorDashboardMedications.fxml"));
                 Node medicationsView = loader.load();
                 contentPane.getChildren().clear();
                 contentPane.getChildren().add(medicationsView);
