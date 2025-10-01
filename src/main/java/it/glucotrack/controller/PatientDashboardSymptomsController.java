@@ -365,10 +365,8 @@ public class PatientDashboardSymptomsController implements Initializable {
     private void openSymptomInsertForm() {
         try {
 
-
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/fxml/PatientDashboardSymptomInsert.fxml"));
             Parent symptomInsertView = loader.load();
-
 
             // Get form controller
             PatientDashboardSymptomsInsertController insertController = loader.getController();
@@ -391,7 +389,6 @@ public class PatientDashboardSymptomsController implements Initializable {
             e.printStackTrace();
         }
     }
-
 
 
     private void loadContentInMainDashboard(Parent content) {
