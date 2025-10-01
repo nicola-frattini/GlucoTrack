@@ -217,7 +217,9 @@ public class ProfileViewController implements Initializable {
                 new SimpleStringProperty(cellData.getValue().getEditTimestamp().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))));
         modifiedByColumn.setCellValueFactory(cellData -> {
             try {
-                Doctor doc = DoctorDAO.getDoctorById(cellData.getValue().getDoctorId());
+                Doctor doc = DoctorDAO.getDoctorById(PatientDAO.getPatientById(cellData.getValue().getDoctorId()).getDoctorId());
+                System.out.println(cellData.getValue().getDoctorId());
+                System.out.println("Loaded doctor for modification: " + doc);
                 String name = (doc != null) ? doc.getFullName() : "Unknown Doctor";
                 return new SimpleStringProperty(name);
             } catch (SQLException e) {
@@ -1271,8 +1273,9 @@ public class ProfileViewController implements Initializable {
         List<Medication> meds = MedicationDAO.getMedicationsByPatientId(currentPatient.getId());
 
         for (Medication med : meds) {
-            System.out.println("Loading edits for medication: " + med.getName_medication());
+            System.out.println("Loading edits for medication: " + med);
             List<MedicationEdit> edits = MedicationDAO.getMedicationEditsByMedicationId(med.getId());
+            System.out.println("Edits found: " + edits);
             data.addAll(edits);
         }
 

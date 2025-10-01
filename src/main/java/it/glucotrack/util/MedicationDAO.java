@@ -135,9 +135,11 @@ public class MedicationDAO {
                 endDate,
                 med.getInstructions());
 
+
         if (affectedRows == 0) {
             throw new SQLException("Creating medication failed, no rows affected.");
         }
+
 
         // Get the last inserted row ID using SQLite's last_insert_rowid()
         int insertedId = -1;
