@@ -183,7 +183,15 @@ public class PatientDashboardReadingsController implements Initializable {
 
     private void setupComboBox() {
         ObservableList<String> readingTypes = FXCollections.observableArrayList(
-                "All Types", "Pre-Meal", "Post-Meal", "Bedtime", "Fasting"
+                "All Types",
+                "Before Breakfast",
+                "After Breakfast",
+                "Before Lunch",
+                "After Lunch",
+                "Before Dinner",
+                "After Dinner",
+                "Before Sleep",
+                "Fasting"
         );
         typeComboBox.setItems(readingTypes);
         typeComboBox.setValue("All Types");

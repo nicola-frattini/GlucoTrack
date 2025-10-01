@@ -79,7 +79,7 @@
                                                 <Label text="Glycemic Trends"
                                                        style="-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;"/>
                                                 <Region HBox.hgrow="ALWAYS"/>
-                                                <ComboBox fx:id="timeRangeCombo"/>
+                                                <ComboBox fx:id="timeRangeCombo" styleClass="combo-box-dark"/>
                                             </HBox>
 
                                             <!-- Valore attuale e trend -->

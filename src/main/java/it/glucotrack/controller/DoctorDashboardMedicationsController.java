@@ -472,6 +472,7 @@ public class DoctorDashboardMedicationsController implements Initializable {
             Scene scene = new Scene(root);
             scene.setFill(Color.TRANSPARENT);
             javafx.stage.Stage popupStage = new javafx.stage.Stage();
+            popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
             popupStage.setScene(scene);
             popupStage.setMinWidth(520);
             popupStage.setMinHeight(340);

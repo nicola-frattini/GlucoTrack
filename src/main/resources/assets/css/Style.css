@@ -75,7 +75,7 @@
 }
 
 /* =========================================
-   TESTI - VERSIONI CORRETTE
+   TESTI
    ========================================= */
 
 /* Testo principale bianco con font-size e font-weight */
@@ -226,6 +226,7 @@
 /* Celle testo */
 .table-view-dark .table-cell {
     -fx-text-fill: #ecf0f3;
+    -fx-alignment: CENTER;
 }
 
 /* Celle selezionate */
@@ -342,7 +343,7 @@
 }
 
 /* =========================================
-   COMBOBOX (dark) - VERSIONE CORRETTA
+   COMBOBOX (dark)
    ========================================= */
 .combo-box-dark {
     -fx-background-color: #34495e;
@@ -400,7 +401,7 @@
 }
 
 /* =========================================
-   TEXTFIELDS & TEXTAREAS - VERSIONE CORRETTA
+   TEXTFIELDS & TEXTAREAS
    ========================================= */
 
 .input-dark {
@@ -431,7 +432,7 @@
 }
 
 /* =========================================
-   VBOX E CONTENITORI - AGGIUNTO PER SICUREZZA
+   VBOX E CONTENITORI -
    ========================================= */
 
 .form-container {
@@ -472,4 +473,40 @@ Label {
         -fx-font-size: 18px;
         -fx-font-weight: bold;
         -fx-padding: 12 0 6 0;
+}
+
+/* ===============================
+   RISK STATUS COLORS (tabella pazienti)
+   =============================== */
+.risk-status-label {
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-padding: 4 12;
+    -fx-min-width: 80px;
+    -fx-max-width: 120px;
+}
+.risk-normal {
+    -fx-background-color: #4caf50;
+}
+.risk-elevated {
+    -fx-background-color: #ff9800;
+    -fx-text-fill: #16213e;
+}
+.risk-high {
+    -fx-background-color: #f44336;
+}
+.risk-unknown {
+    -fx-background-color: #7f8c8d;
+}
+
+/* Per colorare la riga intera */
+.table-row-high-risk {
+    -fx-background-color: #ffcccc;
+}
+.table-row-elevated-risk {
+    -fx-background-color: #fff6cc;
+}
+.table-row-normal {
+    -fx-background-color: #eafaf1;
 }

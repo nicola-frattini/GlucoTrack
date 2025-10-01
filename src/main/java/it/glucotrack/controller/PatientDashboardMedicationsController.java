@@ -13,6 +13,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.paint.Color;
+import javafx.stage.StageStyle;
 import javafx.util.Callback;
 import java.net.URL;
 import java.sql.SQLException;
@@ -321,7 +322,7 @@ public class PatientDashboardMedicationsController implements Initializable {
             Scene scene = new Scene(root);
             scene.setFill(Color.TRANSPARENT);
             javafx.stage.Stage popupStage = new javafx.stage.Stage();
-            popupStage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
+            popupStage.initStyle(javafx.stage.StageStyle.UNDECORATED);
             popupStage.setScene(scene);
             popupStage.setMinWidth(520);
             popupStage.setMinHeight(340);

@@ -248,16 +248,16 @@ public class ProfileViewController implements Initializable {
         // Initialize ComboBox
         loadRiskFactors();
 
+        timeRangeCombo.getItems().clear();
         timeRangeCombo.getItems().addAll("Last 7 days", "Last 30 days", "Last year");
 
         timeRangeCombo.setOnAction(e -> {
             String selectedPeriod = timeRangeCombo.getSelectionModel().getSelectedItem();
-
-            // Wait to avoid refresh's problems
             javafx.application.Platform.runLater(() -> {
                 try {
                     updateGlucoseData();
                     updateChart();
+                    updateStatusLabelOnStartup();
                 } catch (Exception ex) {
                     System.err.println("Error during change period: " + ex.getMessage());
                     ex.printStackTrace();
@@ -273,6 +273,18 @@ public class ProfileViewController implements Initializable {
         // Inizialize data
         updateGlucoseData();
         updateChart();
+        updateStatusLabelOnStartup();
+
+    }
+
+    private void updateStatusLabelOnStartup() {
+        if (currentPatient != null) {
+            List<GlucoseMeasurement> allMeasurements = currentPatient.getGlucoseReadings();
+            if (!allMeasurements.isEmpty()) {
+                GlucoseMeasurement latest = allMeasurements.get(0);
+                setStatusWithColor(latest.getGlucoseLevel());
+            }
+        }
     }
 
     private void initializeAdditionalButtons() {
@@ -834,8 +846,8 @@ public class ProfileViewController implements Initializable {
 
 
     private void setStatusWithColor(float glucose) {
-        String statusText;
-        String colorStyle;
+        String statusText = "";
+        String colorStyle = "";
 
         if (glucose < 70) {
             statusText = "Low";
@@ -851,7 +863,16 @@ public class ProfileViewController implements Initializable {
             colorStyle = "-fx-text-fill: #f44336;";
         }
 
-        statusLabel.setText(statusText);
+        // Mostra solo la stringa corretta se il colore corrisponde
+        if (colorStyle.equals("-fx-text-fill: #4caf50;")) {
+            statusLabel.setText("Normal");
+        } else if (colorStyle.equals("-fx-text-fill: #ff9800;")) {
+            statusLabel.setText("Elevated");
+        } else if (colorStyle.equals("-fx-text-fill: #f44336;")) {
+            statusLabel.setText(statusText);
+        } else {
+            statusLabel.setText("");
+        }
         statusLabel.setStyle(colorStyle);
     }
 
@@ -2076,18 +2097,22 @@ public class ProfileViewController implements Initializable {
         if (currentPatient == null) return;
 
         // Create the dialog
-        Dialog<RiskFactor> dialog = new Dialog<>();
-        dialog.setTitle("Add Risk Factor");
-        dialog.setHeaderText("Add new risk factor for " + currentPatient.getFullName());
+    Dialog<RiskFactor> dialog = new Dialog<>();
+    dialog.setTitle("Add Risk Factor");
+    dialog.setHeaderText("Add new risk factor for " + currentPatient.getFullName());
 
-        // Set the button types
-        ButtonType addButtonType = new ButtonType("Add Risk Factor", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
+    // Set the button types
+    ButtonType addButtonType = new ButtonType("Add Risk Factor", ButtonBar.ButtonData.OK_DONE);
+    dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
 
-        // Create the form content
-        VBox formContainer = new VBox(15);
-        formContainer.setPadding(new Insets(20));
-        formContainer.setStyle("-fx-background-color: #2C3E50;");
+    // Apply dark style from Style.css
+    dialog.getDialogPane().getStylesheets().add(getClass().getResource("/assets/css/Style.css").toExternalForm());
+    dialog.getDialogPane().getStyleClass().add("main-bg-dark");
+
+    // Create the form content
+    VBox formContainer = new VBox(15);
+    formContainer.setPadding(new Insets(20));
+    formContainer.getStyleClass().add("main-bg-dark");
 
         // Risk Factor Type section
         VBox typeSection = new VBox(5);
@@ -2095,9 +2120,9 @@ public class ProfileViewController implements Initializable {
         typeLabel.setTextFill(Color.WHITE);
         typeLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
 
-        ComboBox<String> typeComboBox = new ComboBox<>();
-        typeComboBox.setPrefWidth(300);
-        typeComboBox.setStyle("-fx-background-color: #34495E; -fx-text-fill: white; -fx-border-color: #3498DB; -fx-border-radius: 3; -fx-background-radius: 3;");
+    ComboBox<String> typeComboBox = new ComboBox<>();
+    typeComboBox.setPrefWidth(300);
+    typeComboBox.getStyleClass().add("combo-box-dark");
 
         // Populate with common risk factors
         typeComboBox.getItems().addAll(
@@ -2126,8 +2151,8 @@ public class ProfileViewController implements Initializable {
         gravityLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
 
         ComboBox<Gravity> gravityComboBox = new ComboBox<>();
-        gravityComboBox.setPrefWidth(300);
-        gravityComboBox.setStyle("-fx-background-color: #34495E; -fx-text-fill: white; -fx-border-color: #3498DB; -fx-border-radius: 3; -fx-background-radius: 3;");
+    gravityComboBox.setPrefWidth(300);
+    gravityComboBox.getStyleClass().add("combo-box-dark");
         gravityComboBox.getItems().addAll(Gravity.LOW, Gravity.MEDIUM, Gravity.HIGH);
         gravityComboBox.setValue(Gravity.MEDIUM); // Default selection
 
@@ -2172,22 +2197,8 @@ public class ProfileViewController implements Initializable {
 
         gravitySection.getChildren().addAll(gravityLabel, gravityComboBox);
 
-        // Additional notes section (optional)
-        VBox notesSection = new VBox(5);
-        Label notesLabel = new Label("Additional Notes (Optional):");
-        notesLabel.setTextFill(Color.WHITE);
-        notesLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
-
-        TextArea notesTextArea = new TextArea();
-        notesTextArea.setPrefRowCount(3);
-        notesTextArea.setPrefWidth(300);
-        notesTextArea.setStyle("-fx-background-color: #34495E; -fx-text-fill: white; -fx-border-color: #3498DB; -fx-border-radius: 3; -fx-background-radius: 3;");
-        notesTextArea.setPromptText("Enter any additional information about this risk factor...");
-
-        notesSection.getChildren().addAll(notesLabel, notesTextArea);
-
         // Add all sections to the form container
-        formContainer.getChildren().addAll(typeSection, gravitySection, notesSection);
+        formContainer.getChildren().addAll(typeSection, gravitySection);
 
         // Enable/Disable Add button based on input validation
         Node addButton = dialog.getDialogPane().lookupButton(addButtonType);

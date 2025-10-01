@@ -111,15 +111,15 @@ public class DoctorDashboardPatientsController implements Initializable {
                     super.updateItem(patientData, empty);
                     if (empty || patientData == null) {
                         setStyle("");
-                        getStyleClass().removeAll("table-row-high-risk", "table-row-moderate-risk", "table-row-normal");
+                        getStyleClass().removeAll("table-row-high-risk", "table-row-elevated-risk", "table-row-normal");
                     } else {
-                        getStyleClass().removeAll("table-row-high-risk", "table-row-moderate-risk", "table-row-normal");
+                        getStyleClass().removeAll("table-row-high-risk", "table-row-elevated-risk", "table-row-normal");
                         switch (patientData.getRiskStatus()) {
                             case "High":
                                 getStyleClass().add("table-row-high-risk");
                                 break;
-                            case "Moderate":
-                                getStyleClass().add("table-row-moderate-risk");
+                            case "Elevated":
+                                getStyleClass().add("table-row-elevated-risk");
                                 break;
                             case "Normal":
                                 getStyleClass().add("table-row-normal");
@@ -163,8 +163,8 @@ public class DoctorDashboardPatientsController implements Initializable {
                         case "Normal":
                             statusLabel.getStyleClass().add("risk-normal");
                             break;
-                        case "Moderate":
-                            statusLabel.getStyleClass().add("risk-moderate");
+                        case "Elevated":
+                            statusLabel.getStyleClass().add("risk-elevated");
                             break;
                         case "High":
                             statusLabel.getStyleClass().add("risk-high");
@@ -278,7 +278,6 @@ public class DoctorDashboardPatientsController implements Initializable {
     }
 
 
-
     // Public methods for external use
     public void refreshPatientsList() {
         loadPatientsData();
@@ -346,7 +345,7 @@ public class DoctorDashboardPatientsController implements Initializable {
             if (glucoseLevel < 70 || glucoseLevel > 180) {
                 return "High";
             } else if (glucoseLevel > 140 && glucoseLevel < 180) {
-                return "Moderate";
+                return "Elevated";
             } else {
                 return "Normal";
             }

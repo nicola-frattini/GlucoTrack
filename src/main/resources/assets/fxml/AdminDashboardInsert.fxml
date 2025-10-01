@@ -14,13 +14,13 @@
     styleClass="main-bg-dark">
 
     <children>
-    <VBox alignment="CENTER" spacing="20.0" styleClass="card-dark" maxWidth="500">
+    <VBox alignment="CENTER" spacing="20.0" styleClass="main-bg-dark" maxWidth="500">
         <children>
             <!-- Header -->
             <VBox alignment="CENTER" spacing="5.0">
                 <children>
                     <Label text="Add a new User" styleClass="primary-title" />
-                    <Label text="Insert the user's data." styleClass="secondary-label" />
+                    <Label text="Insert the user's data." styleClass="secondary-text" />
                 </children>
             </VBox>
 
@@ -117,7 +117,6 @@
                     <!-- Doctor-specific fields -->
                     <VBox fx:id="doctorFieldsContainer" spacing="15.0" visible="false" managed="false">
                         <children>
-                            <Label text="Doctor Information" styleClass="section-title" />
                             <TextField fx:id="specializationField"
                                        promptText="Medical Specialization"
                                        styleClass="input-dark">
@@ -131,7 +130,6 @@
                     <!-- Patient-specific fields -->
                     <VBox fx:id="patientFieldsContainer" spacing="15.0" visible="false" managed="false">
                         <children>
-                            <Label text="Patient Information" styleClass="section-title" />
                             <ComboBox fx:id="referringDoctorComboBox"
                                       promptText="Select Referring Doctor"
                                       styleClass="combo-box-dark"
@@ -142,7 +140,6 @@
                     <!-- Admin-specific fields -->
                     <VBox fx:id="adminFieldsContainer" spacing="15.0" visible="false" managed="false">
                         <children>
-                            <Label text="Admin Information" styleClass="section-title" />
                             <TextField fx:id="adminRoleField"
                                        promptText="Admin Role"
                                        styleClass="input-dark">

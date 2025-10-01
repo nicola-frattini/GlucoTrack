@@ -109,7 +109,6 @@ public class AdminDashboardHomeController implements Initializable {
 
     private void setupContextMenu() {
         viewUserMenuItem.setOnAction(e -> { if (selectedUser != null) viewUserProfile(selectedUser); });
-        editUserMenuItem.setOnAction(e -> { if (selectedUser != null) editUser(selectedUser); });
         deleteUserMenuItem.setOnAction(e -> { if (selectedUser != null) deleteUser(selectedUser); });
         usersTable.setContextMenu(tableContextMenu);
     }
@@ -220,10 +219,6 @@ public class AdminDashboardHomeController implements Initializable {
             e.printStackTrace();
             statusLabel.setText("Error loading profile: " + e.getMessage());
         }
-    }
-
-    private void editUser(UserTableData userData) {
-        statusLabel.setText("Edit functionality for " + userData.getFullName() + " coming soon...");
     }
 
     private void deleteUser(UserTableData userData) {
