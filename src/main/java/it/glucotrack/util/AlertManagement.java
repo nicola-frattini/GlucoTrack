@@ -25,16 +25,25 @@ public class AlertManagement {
 
     // Generate the alert for a patient
     public static List<Alert> generatePatientAlerts(Patient patient) throws SQLException {
+
         List<Alert> alerts = new ArrayList<>();
+        List<Alert> alertsForFunction = new ArrayList<>();
 
+        alertsForFunction = glucoseOutOfRange(patient);
+        if(alertsForFunction != null)
+            alerts.addAll(alertsForFunction);
 
-        alerts.addAll(glucoseOutOfRange(patient));
+        alertsForFunction = missingsGlucoseMeasurements(patient);
+        if(alertsForFunction != null)
+            alerts.addAll(alertsForFunction);
 
-        alerts.addAll(missingsGlucoseMeasurements(patient));
+        alertsForFunction = nonLoggedMedications(patient);
+        if(alertsForFunction != null)
+            alerts.addAll(alertsForFunction);
 
-        alerts.addAll(nonLoggedMedications(patient));
-
-        alerts.addAll(medicationToGetInTheNextHour(patient));
+        alertsForFunction = medicationToGetInTheNextHour(patient);
+        if(alertsForFunction != null)
+            alerts.addAll(alertsForFunction);
 
         return alerts;
     }
@@ -57,12 +66,18 @@ public class AlertManagement {
     }
 
     public static List<Alert> missingsGlucoseMeasurements(Patient patient) {
+        GlucoseMeasurement last = patient.getLastGlucoseMeasurement();
+        if (last == null) {
+            return null;
+        }
+
         List<Alert> alerts = new ArrayList<>();
         LocalDateTime lastMeasurementDate = patient.getLastGlucoseMeasurement().getDateAndTime();
         if (isTooOld(lastMeasurementDate, DAYS_WITHOUT_MEASUREMENT)) {
             alerts.add(new Alert("No misuration for more than " + DAYS_WITHOUT_MEASUREMENT + " days",
                     AlertType.WARNING, patient, LocalDateTime.now()));
         }
+
         return alerts;
     }
 

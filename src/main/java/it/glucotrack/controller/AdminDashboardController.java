@@ -29,6 +29,7 @@ public class AdminDashboardController {
     @FXML
     public void initialize() {
         loadCenterContent("/assets/fxml/AdminDashboardHome.fxml");
+        setCurrentAdmin(SessionManager.getCurrentUser());
     }
 
     public void setCurrentAdmin(User admin) {

@@ -39,6 +39,34 @@ public class LogMedicationDAO {
         return logs;
     }
 
+    public static List<LogMedication> getLogMedicationByPatientId(int patientId) throws SQLException {
+        String sql = "SELECT lm.* FROM log_medications lm " +
+                     "JOIN medications m ON lm.medication_id = m.id " +
+                     "WHERE m.patient_id = ? ORDER BY lm.date_time DESC";
+        List<LogMedication> logs = new ArrayList<>();
+        try (ResultSet rs = DatabaseInteraction.executeQuery(sql, patientId)) {
+            while (rs.next()) {
+                logs.add(mapResultSetToLogMedication(rs));
+            }
+        }
+        return logs;
+    }
+
+    public static List<LogMedication> getLogMedicationsByPatientIdUntillNow(int patientId) throws SQLException {
+
+        String sql = "SELECT lm.* FROM log_medications lm " +
+                     "JOIN medications m ON lm.medication_id = m.id " +
+                     "WHERE m.patient_id = ? AND lm.date_time <= ? ORDER BY lm.date_time DESC";
+        List<LogMedication> logs = new ArrayList<>();
+        try (ResultSet rs = DatabaseInteraction.executeQuery(sql, patientId, Timestamp.valueOf(LocalDateTime.now()))) {
+            while (rs.next()) {
+                logs.add(mapResultSetToLogMedication(rs));
+            }
+        }
+        return logs;
+
+    }
+
 
     public List<LogMedication> getPendingLogMedications(int medicationId) throws SQLException {
         String sql = "SELECT * FROM log_medications WHERE medication_id = ? AND taken = 0 ORDER BY date_time";

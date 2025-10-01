@@ -13,7 +13,7 @@ public class ViewNavigator {
 
     private static ViewNavigator instance;
     private Stage primaryStage;
-    private Map<String, String> viewPaths;
+    private Map<String, String>     viewPaths;
 
     // Costanti per le viste
     public static final String LOGIN_VIEW = "LOGIN";
@@ -62,6 +62,8 @@ public class ViewNavigator {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Parent root = loader.load();
             System.out.println("[ViewNavigator] FXML caricato con successo");
+
+
 
             double width = primaryStage.getWidth();
             double height = primaryStage.getHeight();

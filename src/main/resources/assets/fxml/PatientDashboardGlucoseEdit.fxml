@@ -51,7 +51,6 @@
                             <children>
                                 <Label style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;" text="Type" />
                                 <ComboBox fx:id="typeComboBox" prefHeight="45.0" prefWidth="400.0" promptText="Before Breakfast" styleClass="combo-box-dark" />
-                                <TextField fx:id="valueField" prefHeight="45.0" promptText="e.g., 110" styleClass="input-dark" />
                             </children>
                         </VBox>
 
@@ -59,7 +58,7 @@
                         <VBox spacing="8.0">
                             <children>
                                 <Label style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;" text="Value (mg/dL)" />
-                                <!-- Un solo TextField valueField già presente sopra -->
+                                <TextField fx:id="valueField" prefHeight="45.0" promptText="e.g., 110" styleClass="input-dark" />
                             </children>
                         </VBox>
 

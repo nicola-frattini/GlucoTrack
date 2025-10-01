@@ -192,7 +192,7 @@ public class ProfileViewController implements Initializable {
 
     }
 
-    public void refreshInitialize() {
+    public void refreshInitialize() throws SQLException {
         initializeComponents();
         setupTabs();
         setupCharts();
@@ -626,10 +626,28 @@ public class ProfileViewController implements Initializable {
     }
 
     // Tab and UI setup methods
-    private void setupTabs() {
-        if (overviewTab != null) overviewTab.setOnAction(e -> switchToTab("Overview"));
-        if (medicationTab != null) medicationTab.setOnAction(e -> switchToTab("Medication"));
-        if (notesTab != null) notesTab.setOnAction(e -> switchToTab("Personal Data"));
+    private void setupTabs() throws SQLException {
+        if (overviewTab != null) overviewTab.setOnAction(e -> {
+            try {
+                switchToTab("Overview");
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        if (medicationTab != null) medicationTab.setOnAction(e -> {
+            try {
+                switchToTab("Medication");
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        if (notesTab != null) notesTab.setOnAction(e -> {
+            try {
+                switchToTab("Personal Data");
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
         if (currentUserRole == UserRole.DOCTOR_VIEWING_PATIENT) {
             switchToTab("Overview");
         } else {
@@ -639,7 +657,7 @@ public class ProfileViewController implements Initializable {
 
     }
 
-    private void switchToTab(String tabName) {
+    private void switchToTab(String tabName) throws SQLException {
         // Hide all content and set unmanaged
         if (overviewContent != null) {
             overviewContent.setVisible(false);
@@ -739,7 +757,7 @@ public class ProfileViewController implements Initializable {
         }
     }
 
-    private void updatePatientSpecificData() {
+    private void updatePatientSpecificData() throws SQLException {
         if (currentPatient != null) {
             updateGlucoseStatistics();
             loadSymptoms();
@@ -1133,11 +1151,11 @@ public class ProfileViewController implements Initializable {
 
     private int getMaxPointsForPeriod(String period) {
         switch (period) {
-            case "Ultimi 7 giorni":
+            case "Last 7 days":
                 return 15;
-            case "Ultimi 30 giorni":
+            case "Last 30 days":
                 return 20;
-            case "Ultimo anno":
+            case "Last year":
                 return 25;
             default:
                 return 15;
@@ -1178,10 +1196,20 @@ public class ProfileViewController implements Initializable {
     }
 
 
-    private void updateMedicationProgress() {
-        if (currentPatient != null && currentPatient.getGlucoseReadings() != null) {
-            int readingsCount = currentPatient.getGlucoseReadings().size();
-            double compliance = Math.min(1.0, readingsCount / 30.0 * 0.85);
+    private void updateMedicationProgress() throws SQLException {
+        if (currentPatient != null && LogMedicationDAO.getLogMedicationByPatientId(currentPatient.getId()) != null) {
+            List<LogMedication> logs= LogMedicationDAO.getLogMedicationsByPatientIdUntillNow(currentPatient.getId());
+            System.out.println("Logs size: " + logs.size());
+            int taken = 0;
+            for(LogMedication log : logs){
+                if(log.isTaken()){
+                    taken++;
+                }
+            }
+            System.out.println("Taken: " + taken);
+
+            double compliance = (double) taken/logs.size();
+            System.out.println("Compliance: " + compliance);
 
             if (adheranceProgressBar != null) {
                 adheranceProgressBar.setProgress(compliance);
@@ -1641,22 +1669,21 @@ public class ProfileViewController implements Initializable {
         notesBox.setPadding(new Insets(0));
         notesBox.getStyleClass().clear();
 
-        // L'admin può modificare sia il proprio profilo che quelli degli altri utenti
         boolean canEdit = (currentUserRole == UserRole.DOCTOR_OWN_PROFILE ||
                 currentUserRole == UserRole.ADMIN_OWN_PROFILE ||
-                currentUserRole == UserRole.ADMIN_VIEWING_USER || // AGGIUNTO: admin può modificare
+                currentUserRole == UserRole.ADMIN_VIEWING_USER ||
                 currentUserRole == UserRole.PATIENT_OWN_PROFILE);
 
-        // Determina quale utente visualizzare
+        // Which user
         User utente;
         if (currentUserRole == UserRole.ADMIN_VIEWING_USER) {
-            utente = viewedUser; // L'utente che stai visualizzando come admin
+            utente = viewedUser; // Viewed user (for admin)
         } else if (currentUserRole == UserRole.ADMIN_OWN_PROFILE ||
                 currentUserRole == UserRole.DOCTOR_OWN_PROFILE ||
                 currentUserRole == UserRole.PATIENT_OWN_PROFILE) {
-            utente = currentUser; // Il tuo profilo
+            utente = currentUser; // Own profile (for admin, doctor, patient)
         } else {
-            utente = currentPatient; // Profilo del paziente (per dottori)
+            utente = currentPatient; // Patient profile (for doctor viewing patient)
         }
 
         if (utente != null) {
@@ -1725,7 +1752,7 @@ public class ProfileViewController implements Initializable {
 
             notesBox.getChildren().addAll(formContainer);
 
-            // Mostra i pulsanti Save/Cancel se può modificare
+            // Show button Save/Cancel if can edit
             if (canEdit) {
                 HBox buttonContainer = new HBox(15);
                 buttonContainer.setAlignment(Pos.CENTER_LEFT);
@@ -1760,7 +1787,6 @@ public class ProfileViewController implements Initializable {
         }
     }
 
-    // Crea un campo stile RegisterView (TextField moderno o Label)
     private Node createModernField(String prompt, String value, boolean editable) {
         if (editable) {
             TextField tf = new TextField(value);
