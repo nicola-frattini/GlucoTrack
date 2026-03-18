@@ -1,6 +1,7 @@
 # GlucoTrack
 
 A JavaFX desktop application for diabetes management, built to support **patients**, **doctors**, and **administrators** through role-based dashboards and local clinical data persistence.
+
 Project made for the "Software Engineer" module at "Università degli studi di Verona"
 
 ## Table of Contents
